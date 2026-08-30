@@ -1,0 +1,37 @@
+<template>
+    <v-form>
+        <p class="text-h6">{{ $t('Meal_Plan') }}</p>
+        <v-divider class="mb-3"></v-divider>
+
+        <closable-help-alert :text="$t('HouseholdSettingsHelp')" :title="$t('Household')"></closable-help-alert>
+
+        <v-model-select model="MealType" v-model="useUserPreferenceStore().userSettings.defaultMealType"></v-model-select>
+
+        <v-btn class="mt-3" color="success" @click="useUserPreferenceStore().updateUserSettings()" prepend-icon="$save">{{ $t('Save') }}</v-btn>
+
+        <p class="text-h6 mt-2">{{ $t('DeviceSettings') }}</p>
+        <v-divider></v-divider>
+        <p class="text-subtitle-2 mb-2">{{ $t('DeviceSettingsHelp') }}</p>
+
+        <meal-plan-device-settings></meal-plan-device-settings>
+
+    </v-form>
+</template>
+
+
+<script setup lang="ts">
+import {useUserPreferenceStore} from "@/stores/UserPreferenceStore";
+import MealPlanDeviceSettings from "@/components/settings/MealPlanDeviceSettings.vue";
+import ModelSelect from "@/components/inputs/ModelSelect.vue";
+import ClosableHelpAlert from "@/components/display/ClosableHelpAlert.vue";
+import VModelSelect from "@/components/inputs/VModelSelect.vue";
+
+
+
+
+
+</script>
+
+<style scoped>
+
+</style>

@@ -1,0 +1,15 @@
+{
+    "python.testing.pytestArgs": [
+        "cookbook/tests"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "[python]": {
+        "editor.defaultFormatter": "eeyore.yapf",
+    },
+    "yapf.args": [],
+    "isort.args": [],
+    "snyk.advanced.autoSelectOrganization": true
+}

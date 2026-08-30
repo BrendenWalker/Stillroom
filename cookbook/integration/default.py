@@ -1,0 +1,95 @@
+import json
+import traceback
+from io import BytesIO, StringIO
+from re import match
+from zipfile import ZipFile
+
+from rest_framework.renderers import JSONRenderer
+
+from cookbook.helper.image_processing import get_filetype
+from cookbook.integration.integration import Integration
+from cookbook.serializer import RecipeExportSerializer
+
+
+class Default(Integration):
+
+    def get_recipe_from_file(self, file):
+        recipe_zip = self.get_zip_file(file)
+
+        recipe_string = self.safe_read(recipe_zip, 'recipe.json').decode("utf-8")
+        recipe = self.decode_recipe(recipe_string)
+        images = list(filter(lambda v: match('image.*', v), recipe_zip.namelist()))
+        if images:
+            try:
+                self.import_recipe_image(recipe, BytesIO(self.safe_read(recipe_zip, images[0])), filetype=get_filetype(images[0]))
+            except AttributeError:
+                traceback.print_exc()
+        return recipe
+
+    def decode_recipe(self, string):
+        def extract_error_messages(data, path=""):
+            errors = []
+            if isinstance(data, dict):
+                for key, value in data.items():
+                    new_path = f"{path}.{key}" if path else key
+                    errors.extend(extract_error_messages(value, new_path))
+            elif isinstance(data, list):
+                for i, item in enumerate(data):
+                    new_path = f"{path}[{i}]"
+                    errors.extend(extract_error_messages(item, new_path))
+            else:
+                if hasattr(data, 'title'):
+                    if path.endswith(']') and '[' in path:
+                        last_bracket = path.rindex('[')
+                        path = path[:last_bracket]
+                    errors.append(f"{path}: {data.title()}")
+            return errors
+
+        data = json.loads(string)
+        serialized_recipe = RecipeExportSerializer(data=data, context={'request': self.request})
+        if serialized_recipe.is_valid():
+            recipe = serialized_recipe.save()
+            return recipe
+        else:
+            errors = extract_error_messages(serialized_recipe.errors)
+            raise Exception("\n".join(errors))
+
+        return None
+
+    def get_file_from_recipe(self, recipe):
+
+        export = RecipeExportSerializer(recipe).data
+
+        return 'recipe.json', JSONRenderer().render(export).decode("utf-8")
+
+    def get_files_from_recipes(self, recipes, el, cookie):
+        export_zip_stream = BytesIO()
+        export_zip_obj = ZipFile(export_zip_stream, 'w')
+
+        for r in recipes:
+            if r.internal and r.space == self.request.space:
+                recipe_zip_stream = BytesIO()
+                recipe_zip_obj = ZipFile(recipe_zip_stream, 'w')
+
+                recipe_stream = StringIO()
+                filename, data = self.get_file_from_recipe(r)
+                recipe_stream.write(data)
+                recipe_zip_obj.writestr(filename, recipe_stream.getvalue())
+                recipe_stream.close()
+
+                try:
+                    recipe_zip_obj.writestr(f'image{get_filetype(r.image.file.name)}', r.image.file.read())
+                except (ValueError, FileNotFoundError):
+                    pass
+
+                recipe_zip_obj.close()
+
+                export_zip_obj.writestr(str(r.pk) + '.zip', recipe_zip_stream.getvalue())
+
+            el.exported_recipes += 1
+            el.msg += self.get_recipe_processed_msg(r)
+            el.save()
+
+        export_zip_obj.close()
+
+        return [[self.get_export_file_name(), export_zip_stream.getvalue()]]

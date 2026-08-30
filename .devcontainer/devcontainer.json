@@ -1,0 +1,23 @@
+// For format details, see https://aka.ms/devcontainer.json.
+{
+	"name": "Stillroom Dev Container",
+	"build": { "context": "..", "dockerfile": "Dockerfile" },
+	"forwardPorts": [8000, 8080],
+	"remoteUser": "root",
+	"updateRemoteUserUID": false,
+	"overrideCommand": true,
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-python.debugpy",
+				"ms-python.python"
+			]
+		}
+	},
+	"containerEnv": {
+		"CSRF_TRUSTED_ORIGINS": "http://localhost:8000,http://localhost:8080"
+	},
+	// Cursor copies host gitconfig; drop host-only ssh/signing binaries so the
+	// forwarded SSH agent is used instead.
+	"postStartCommand": "git config --global --unset-all gpg.ssh.program || true; git config --global --unset-all core.sshCommand || true"
+}

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 512" width="2048" height="512">
+  <rect x="48" y="96" width="320" height="320" rx="56" fill="#ddbf86"/>
+  <g fill="#3b2f1a">
+    <rect x="190.5" y="141" width="35" height="17.5" rx="5"/>
+    <rect x="133" y="156" width="150" height="35" rx="8"/>
+    <rect x="155.5" y="191" width="105" height="22.5" rx="4"/>
+    <path d="M148 213.5h120v112.5c0 30-25 52.5-60 52.5s-60-22.5-60-52.5V213.5z"/>
+  </g>
+  <rect x="170.5" y="256" width="75" height="42.5" rx="7" fill="#ddbf86"/>
+  <text x="420" y="318" font-family="Arial, Helvetica, sans-serif" font-size="168" font-weight="700" fill="#3b2f1a">Stillroom</text>
+</svg>
