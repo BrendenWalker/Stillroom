@@ -32,7 +32,7 @@
 
 import {IHeaderProps} from "vue-simple-calendar/dist/src/IHeaderProps";
 import {ref, watch} from "vue";
-import {VDateInput} from "vuetify/labs/VDateInput";
+import {VDateInput} from "vuetify/components/VDateInput";
 import {DateTime} from "luxon";
 
 const emit = defineEmits(['input'])
