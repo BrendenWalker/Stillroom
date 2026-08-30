@@ -23,8 +23,8 @@ try:
     version_info.append({
         'name': 'Stillroom ',
         'version': re.sub(r'<.*>', '', r),
-        'website': 'https://github.com/BrendenWalker/TandoorNG',
-        'commit_link': 'https://github.com/BrendenWalker/TandoorNG/commit/' + r.split('\n')[0].split(' ')[1],
+        'website': 'https://github.com/BrendenWalker/Stillroom',
+        'commit_link': 'https://github.com/BrendenWalker/Stillroom/commit/' + r.split('\n')[0].split(' ')[1],
         'ref': tandoor_hash,
         'branch': tandoor_branch,
         'tag': tandoor_tag

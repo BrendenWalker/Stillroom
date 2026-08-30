@@ -1,8 +1,8 @@
 site_name: Stillroom
 site_description: Stillroom Recipe Documentation
 site_author: BrendenWalker
-repo_url: https://github.com/BrendenWalker/TandoorNG
-edit_uri: https://github.com/BrendenWalker/TandoorNG/tree/develop/docs
+repo_url: https://github.com/BrendenWalker/Stillroom
+edit_uri: https://github.com/BrendenWalker/Stillroom/tree/develop/docs
 extra_css:
   - stylesheets/extra.css
 

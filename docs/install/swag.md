@@ -18,7 +18,7 @@
 cd /opt
 mkdir recipes
 cd recipes
-wget https://raw.githubusercontent.com/BrendenWalker/TandoorNG/develop/.env.template -O .env
+wget https://raw.githubusercontent.com/BrendenWalker/Stillroom/develop/.env.template -O .env
 base64 /dev/urandom | head -c50
 ``` 
 Copy the response from that last command and paste the key into the `.env` file:

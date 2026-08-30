@@ -26,7 +26,7 @@
                 <v-text-field :label="$t('Url')" v-model="editingObj.url" v-if="editingObj.method == 'NEXTCLOUD'"></v-text-field>
                 <v-text-field :label="$t('Path')" v-model="editingObj.path"></v-text-field>
 
-                <p v-if="editingObj.method === 'LOCAL'">{{ $t('LocalStoragePathHelp') }} <a href="https://github.com/BrendenWalker/TandoorNG/blob/develop/docs/system/configuration.md#local-storage-paths" target="_blank"
+                <p v-if="editingObj.method === 'LOCAL'">{{ $t('LocalStoragePathHelp') }} <a href="https://github.com/BrendenWalker/Stillroom/blob/develop/docs/system/configuration.md#local-storage-paths" target="_blank"
                                                                                             rel="nofollow noreferrer">{{ $t('Help') }}</a></p>
             </v-form>
         </v-card-text>

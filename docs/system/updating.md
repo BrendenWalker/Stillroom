@@ -28,7 +28,7 @@ To install latest libraries, apply all new migrations and collect new static fil
 ## PostgreSQL
 
 Postgres does not automatically upgrade database files when you change versions and requires manual intervention.
-One option is to manually [backup/restore](https://github.com/BrendenWalker/TandoorNG/blob/develop/docs/system/updating.md#postgresql) the database.
+One option is to manually [backup/restore](https://github.com/BrendenWalker/Stillroom/blob/develop/docs/system/updating.md#postgresql) the database.
 
 A full list of options to upgrade a database provide in the [official PostgreSQL documentation](https://www.postgresql.org/docs/current/upgrading.html).
 

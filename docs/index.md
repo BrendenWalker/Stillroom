@@ -1,6 +1,6 @@
 <h1 align="center">
   <br>
-  <a href="https://github.com/BrendenWalker/TandoorNG"><img src="logo_color.svg" height="256px" width="256px"></a>
+  <a href="https://github.com/BrendenWalker/Stillroom"><img src="logo_color.svg" height="256px" width="256px"></a>
   <br>
   Stillroom
   <br>
@@ -9,15 +9,15 @@
 <h4 align="center">The recipe manager that allows you to manage your ever growing collection of digital recipes.</h4>
 
 <p align="center">
-<a href="https://github.com/BrendenWalker/TandoorNG/actions" target="_blank" rel="noopener noreferrer"><img src="https://github.com/BrendenWalker/TandoorNG/workflows/Continuous%20Integration/badge.svg?branch=develop" ></a>
-<a href="https://github.com/BrendenWalker/TandoorNG/stargazers" target="_blank" rel="noopener noreferrer"><img src="https://img.shields.io/github/stars/BrendenWalker/TandoorNG" ></a>
-<a href="https://github.com/BrendenWalker/TandoorNG/releases/latest" rel="noopener noreferrer"><img src="https://img.shields.io/github/v/release/BrendenWalker/TandoorNG" ></a>
+<a href="https://github.com/BrendenWalker/Stillroom/actions" target="_blank" rel="noopener noreferrer"><img src="https://github.com/BrendenWalker/Stillroom/workflows/Continuous%20Integration/badge.svg?branch=develop" ></a>
+<a href="https://github.com/BrendenWalker/Stillroom/stargazers" target="_blank" rel="noopener noreferrer"><img src="https://img.shields.io/github/stars/BrendenWalker/Stillroom" ></a>
+<a href="https://github.com/BrendenWalker/Stillroom/releases/latest" rel="noopener noreferrer"><img src="https://img.shields.io/github/v/release/BrendenWalker/Stillroom" ></a>
 </p>
 
 <p align="center">
 <a href="install/docker.md">Installation</a> •
 <a href="index.md">Docs</a> •
-<a href="https://github.com/BrendenWalker/TandoorNG/issues">Issues</a>
+<a href="https://github.com/BrendenWalker/Stillroom/issues">Issues</a>
 </p>
 
 ![Preview](preview.png)
@@ -55,9 +55,9 @@ Stillroom is an independent fork of [Tandoor Recipes](https://github.com/Tandoor
 
 ## Get in touch
 
-Open an issue on [GitHub](https://github.com/BrendenWalker/TandoorNG/issues) for bugs, setup help, and feature requests.
+Open an issue on [GitHub](https://github.com/BrendenWalker/Stillroom/issues) for bugs, setup help, and feature requests.
 
 ## Docs
 
 Installation, configuration, and feature docs are in this folder. Docker setup starts at [install/docker.md](install/docker.md).
-The published image is `ghcr.io/brendenwalker/stillroom`. If you are coming from Tandoor Recipes, see [Migrating from Tandoor](https://github.com/BrendenWalker/TandoorNG#migrating-from-tandoor).
+The published image is `ghcr.io/brendenwalker/stillroom`. If you are coming from Tandoor Recipes, see [Migrating from Tandoor](https://github.com/BrendenWalker/Stillroom#migrating-from-tandoor).
