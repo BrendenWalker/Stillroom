@@ -1,4 +1,4 @@
-If there is a not a guide below for the type of feature you wish to implement then please add a request on [github](https://github.com/BrendenWalker/TandoorNG/issues) for the type of feature you wish to contribute. 
+If there is a not a guide below for the type of feature you wish to implement then please add a request on [github](https://github.com/BrendenWalker/Stillroom/issues) for the type of feature you wish to contribute. 
 
 Alternatively please document the process of adding a feature type if you have already contributed a feature.
 

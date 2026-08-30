@@ -1845,7 +1845,7 @@ class InviteLinkSerializer(WritableNestedModelSerializer):
                         obj.uuid) + '\n\n'
                     message += _('The invitation is valid until ') + str(obj.valid_until) + '\n\n'
                     message += _(
-                        'Stillroom is an Open Source recipe manager. Check it out on GitHub ') + 'https://github.com/BrendenWalker/TandoorNG/'
+                        'Stillroom is an Open Source recipe manager. Check it out on GitHub ') + 'https://github.com/BrendenWalker/Stillroom/'
 
                     send_mail(
                         _('Stillroom Invite'),

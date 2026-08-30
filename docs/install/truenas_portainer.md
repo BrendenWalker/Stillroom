@@ -96,7 +96,7 @@ services:
       - stack.env
     volumes:
       - staticfiles:/opt/recipes/staticfiles
-      # Do not make this a bind mount, see https://github.com/BrendenWalker/TandoorNG/blob/develop/docs/install/docker.md#volumes-vs-bind-mounts
+      # Do not make this a bind mount, see https://github.com/BrendenWalker/Stillroom/blob/develop/docs/install/docker.md#volumes-vs-bind-mounts
       - nginx_config:/opt/recipes/nginx/conf.d 
       - ./mediafiles:/opt/recipes/mediafiles
     depends_on:
@@ -112,7 +112,7 @@ services:
     depends_on:
       - web_recipes
     volumes:
-      # Do not make this a bind mount, see https://github.com/BrendenWalker/TandoorNG/blob/develop/docs/install/docker.md#volumes-vs-bind-mounts
+      # Do not make this a bind mount, see https://github.com/BrendenWalker/Stillroom/blob/develop/docs/install/docker.md#volumes-vs-bind-mounts
       - nginx_config:/etc/nginx/conf.d:ro
       - staticfiles:/static
       - ./mediafiles:/media
@@ -122,7 +122,7 @@ volumes:
   staticfiles:
 ```
 
--Download the .env template from [HERE](https://raw.githubusercontent.com/BrendenWalker/TandoorNG/develop/.env.template) and load this file by pressing the "Load Variables from .env File" button:
+-Download the .env template from [HERE](https://raw.githubusercontent.com/BrendenWalker/Stillroom/develop/.env.template) and load this file by pressing the "Load Variables from .env File" button:
 ![Screenshot of Add Stack screen](https://www.portainer.io/hubfs/image-png-Feb-21-2022-06-21-15-88-PM.png)
 
 -You will need to change the following variables:
