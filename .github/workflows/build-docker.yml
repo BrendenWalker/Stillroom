@@ -21,21 +21,10 @@ jobs:
             suffix: ""
             continue-on-error: false
     steps:
-      - uses: actions/checkout@v6
-
-      - name: Get version number
-        id: get_version
-        run: |
-          if [[ "$GITHUB_REF" = refs/tags/* ]]; then
-            echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_OUTPUT
-          elif [[ "$GITHUB_REF" = refs/heads/beta ]]; then
-            echo VERSION=beta >> $GITHUB_OUTPUT
-          else
-            echo VERSION=develop >> $GITHUB_OUTPUT
-          fi
+      - uses: actions/checkout@v7
 
       # Build Vue 3 frontend
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
           cache: yarn

@@ -10,7 +10,7 @@
 Install Docker from https://docs.docker.com/desktop/install/windows-install/
 Be sure to select the Use WSL 2 instead of Hyper-V option on the configuration page when prompted
 
-Follow the instructions to install Stillroom on Docker. Stillroom installation instructions using Docker is gotten from https://github.com/BrendenWalker/TandoorNG/blob/develop/docs/install/docker.md
+Follow the instructions to install Stillroom on Docker. Stillroom installation instructions using Docker is gotten from https://github.com/BrendenWalker/Stillroom/blob/develop/docs/install/docker.md
 
 You may get the error below if you are using Docker Desktop:
 /usr/bin/docker-credential-desktop.exe: Invalid argument

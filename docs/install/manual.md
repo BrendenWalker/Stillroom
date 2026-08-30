@@ -16,7 +16,7 @@ Update the repositories and upgrade your OS: `sudo apt update && sudo apt upgrad
 
 Install all prerequisits `sudo apt install -y git curl python3 python3-pip python3-venv nginx`
 
-Get the last version from the repository: `git clone https://github.com/BrendenWalker/TandoorNG.git -b develop`
+Get the last version from the repository: `git clone https://github.com/BrendenWalker/Stillroom.git -b develop`
 
 Move it to the `/var/www` directory: `mv recipes /var/www`
 
@@ -113,7 +113,7 @@ exit
 
 Download the `.env` configuration file and **edit it accordingly**.
 ```shell
-wget https://raw.githubusercontent.com/BrendenWalker/TandoorNG/develop/.env.template -O /var/www/recipes/.env
+wget https://raw.githubusercontent.com/BrendenWalker/Stillroom/develop/.env.template -O /var/www/recipes/.env
 ```
 
 Things to edit:

@@ -12,7 +12,7 @@ They allow for certain actions to be translated to api calls to external service
     In order for this application to push data to external providers it needs to store authentication information.
     Please use read only/separate accounts or app passwords wherever possible.
 
-for the configuration please see [Configuration](https://github.com/BrendenWalker/TandoorNG/blob/develop/docs/system/configuration.md#connectors)
+for the configuration please see [Configuration](https://github.com/BrendenWalker/Stillroom/blob/develop/docs/system/configuration.md#connectors)
 
 ## Current Connectors
 

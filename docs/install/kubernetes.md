@@ -6,7 +6,7 @@
 
 ## K8s Setup
 
-This is a setup which should be sufficient for production use. Be sure to replace the default secrets! You can find the example files [here](https://github.com/BrendenWalker/TandoorNG/tree/develop/docs/install/k8s) on Github.
+This is a setup which should be sufficient for production use. Be sure to replace the default secrets! You can find the example files [here](https://github.com/BrendenWalker/Stillroom/tree/develop/docs/install/k8s) on Github.
 
 ## Files
 
@@ -60,7 +60,7 @@ Creating the database service.
 
 ### 50-deployment.yaml
 
-The deployment first fires up a init container to do the database migrations and file modifications. This init container runs as root. The init container runs part of the [boot.sh](https://github.com/BrendenWalker/TandoorNG/blob/develop/boot.sh) script from the `ghcr.io/brendenwalker/stillroom` image. 
+The deployment first fires up a init container to do the database migrations and file modifications. This init container runs as root. The init container runs part of the [boot.sh](https://github.com/BrendenWalker/Stillroom/blob/develop/boot.sh) script from the `ghcr.io/brendenwalker/stillroom` image. 
 
 The deployment then runs two containers, the recipes-nginx and the recipes container which runs the gunicorn app. The nginx container gets it's nginx.conf via config map to deliver static content `/static` and `/media`. The guincorn container gets it's secret key and the database password from the secret `recipes`. `gunicorn` runs as user `nobody`.
 
