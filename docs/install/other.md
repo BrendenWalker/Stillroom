@@ -115,7 +115,7 @@ and the relevant section from the docker-compose.yml:
        - "SERVICE_NAME=stillroom"
      volumes:
        - ${YOUR_DOCKER_VOLUME_BASE_DIR}/stillroom/static:/opt/recipes/staticfiles:rw
-       # Do not make this a bind mount, see https://github.com/BrendenWalker/TandoorNG/blob/develop/docs/install/docker.md#volumes- vs-bind-mounts
+       # Do not make this a bind mount, see https://github.com/BrendenWalker/Stillroom/blob/develop/docs/install/docker.md#volumes- vs-bind-mounts
        - stillroom_nginx_config:/opt/recipes/nginx/conf.d
        - ${YOUR_DOCKER_VOLUME_BASE_DIR}}/stillroom/media:/opt/recipes/mediafiles:rw
      depends_on:

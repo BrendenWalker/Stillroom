@@ -1,6 +1,6 @@
 <h1 align="center">
   <br>
-  <a href="https://github.com/BrendenWalker/TandoorNG"><img src="docs/logo_color.svg" height="256px" width="256px"></a>
+  <a href="https://github.com/BrendenWalker/Stillroom"><img src="docs/logo_color.svg" height="256px" width="256px"></a>
   <br>
   Stillroom
   <br>
@@ -9,15 +9,15 @@
 <h4 align="center">The recipe manager that allows you to manage your ever growing collection of digital recipes.</h4>
 
 <p align="center">
-<a href="https://github.com/BrendenWalker/TandoorNG/actions" target="_blank" rel="noopener noreferrer"><img src="https://github.com/BrendenWalker/TandoorNG/workflows/Continuous%20Integration/badge.svg?branch=develop" ></a>
-<a href="https://github.com/BrendenWalker/TandoorNG/stargazers" target="_blank" rel="noopener noreferrer"><img src="https://img.shields.io/github/stars/BrendenWalker/TandoorNG" ></a>
-<a href="https://github.com/BrendenWalker/TandoorNG/releases/latest" rel="noopener noreferrer"><img src="https://img.shields.io/github/v/release/BrendenWalker/TandoorNG" ></a>
+<a href="https://github.com/BrendenWalker/Stillroom/actions" target="_blank" rel="noopener noreferrer"><img src="https://github.com/BrendenWalker/Stillroom/workflows/Continuous%20Integration/badge.svg?branch=develop" ></a>
+<a href="https://github.com/BrendenWalker/Stillroom/stargazers" target="_blank" rel="noopener noreferrer"><img src="https://img.shields.io/github/stars/BrendenWalker/Stillroom" ></a>
+<a href="https://github.com/BrendenWalker/Stillroom/releases/latest" rel="noopener noreferrer"><img src="https://img.shields.io/github/v/release/BrendenWalker/Stillroom" ></a>
 </p>
 
 <p align="center">
-<a href="https://github.com/BrendenWalker/TandoorNG/blob/develop/docs/install/docker.md" target="_blank" rel="noopener noreferrer">Installation</a> •
-<a href="https://github.com/BrendenWalker/TandoorNG/blob/develop/docs/index.md" target="_blank" rel="noopener noreferrer">Docs</a> •
-<a href="https://github.com/BrendenWalker/TandoorNG/issues" target="_blank" rel="noopener noreferrer">Issues</a>
+<a href="https://github.com/BrendenWalker/Stillroom/blob/develop/docs/install/docker.md" target="_blank" rel="noopener noreferrer">Installation</a> •
+<a href="https://github.com/BrendenWalker/Stillroom/blob/develop/docs/index.md" target="_blank" rel="noopener noreferrer">Docs</a> •
+<a href="https://github.com/BrendenWalker/Stillroom/issues" target="_blank" rel="noopener noreferrer">Issues</a>
 </p>
 
 ![Preview](docs/preview.png)

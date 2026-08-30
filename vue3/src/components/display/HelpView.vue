@@ -43,7 +43,7 @@
                             routine or search
                             for specific features to help you understand them.</p>
 
-                        <v-btn class="mt-2" color="info" href="https://github.com/BrendenWalker/TandoorNG" target="_blank" prepend-icon="fa-solid fa-code-branch">GitHub
+                        <v-btn class="mt-2" color="info" href="https://github.com/BrendenWalker/Stillroom" target="_blank" prepend-icon="fa-solid fa-code-branch">GitHub
                         </v-btn>
 
                         <v-alert class="mt-3" border="start" variant="tonal" color="success"
@@ -51,7 +51,7 @@
                             <v-alert-title>Did you know?</v-alert-title>
                             Stillroom is Open Source and available to anyone for free to host on their own server.
                             <br/>
-                            <v-btn class="mt-2" color="secondary" href="https://github.com/BrendenWalker/TandoorNG/blob/develop/docs/contribute/contribute.md" target="_blank" prepend-icon="fa-solid fa-code-branch">
+                            <v-btn class="mt-2" color="secondary" href="https://github.com/BrendenWalker/Stillroom/blob/develop/docs/contribute/contribute.md" target="_blank" prepend-icon="fa-solid fa-code-branch">
                                 Contribute
                             </v-btn>
                         </v-alert>
@@ -369,7 +369,7 @@
                     <v-window-item value="translations">
                         <div class="d-flex align-center justify-space-between">
                             <h2>{{ $t('Translations') }}</h2>
-                            <v-btn variant="tonal" color="primary" href="https://github.com/BrendenWalker/TandoorNG/tree/develop/vue3/src/locales" target="_blank" prepend-icon="fa-solid fa-language">
+                            <v-btn variant="tonal" color="primary" href="https://github.com/BrendenWalker/Stillroom/tree/develop/vue3/src/locales" target="_blank" prepend-icon="fa-solid fa-language">
                                 {{ $t('help_translate') }}
                             </v-btn>
                         </div>
@@ -487,7 +487,7 @@ const mobileMenuItems = ref([
 
 // Weblate directory names use underscore format (nb_NO, zh_Hant)
 function localeUrl(filename: string): string {
-    return `https://github.com/BrendenWalker/TandoorNG/blob/develop/vue3/src/locales/${filename}.json`
+    return `https://github.com/BrendenWalker/Stillroom/blob/develop/vue3/src/locales/${filename}.json`
 }
 
 function barColor(pct: number): string {

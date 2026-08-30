@@ -330,7 +330,7 @@ There are some rate limits that can be configured.
 ### Authentication
 
 All configurable variables regarding authentication.
-Please also visit the [dedicated docs page](https://github.com/BrendenWalker/TandoorNG/blob/develop/docs/features/authentication.md) for more information.
+Please also visit the [dedicated docs page](https://github.com/BrendenWalker/Stillroom/blob/develop/docs/features/authentication.md) for more information.
 
 #### Default Permissions
 
@@ -570,7 +570,7 @@ FDC_API_KEY=DEMO_KEY
 - `DISABLE_EXTERNAL_CONNECTORS` is a global switch to disable External Connectors entirely.
 - `EXTERNAL_CONNECTORS_QUEUE_SIZE` is the amount of changes that are kept in memory if the worker cannot keep up.
 
-(External) Connectors are used to sync the status from Stillroom to other services. More info can be found [here](https://github.com/BrendenWalker/TandoorNG/blob/develop/docs/features/connectors.md).
+(External) Connectors are used to sync the status from Stillroom to other services. More info can be found [here](https://github.com/BrendenWalker/Stillroom/blob/develop/docs/features/connectors.md).
 
 ```env
 DISABLE_EXTERNAL_CONNECTORS=0  # Default 0 (false), set to 1 (true) to disable connectors
