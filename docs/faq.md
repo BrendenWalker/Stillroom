@@ -78,7 +78,7 @@ If removed, the nginx webserver needs to be replaced by something else that serv
 `GUNICORN_MEDIA` needs to be enabled to allow media serving by the application container itself.
 
 ## Why am I getting an error stating database files are incompatible with server?
-Your version of Postgres has been upgraded.  See [Updating PostgreSQL](https://github.com/BrendenWalker/TandoorNG/blob/develop/docs/system/updating.md#postgresql)
+Your version of Postgres has been upgraded.  See [Updating PostgreSQL](https://github.com/BrendenWalker/Stillroom/blob/develop/docs/system/updating.md#postgresql)
 
 
 ## Why does the Text/Markdown preview look different than the final recipe?

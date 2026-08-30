@@ -110,7 +110,7 @@ Additionally add your integration to the table at the top of the document, marki
 ## 5. Add to Vue Integration Utils
 In the `/vue3/src/utils/integration_utils.ts` find `export const INTEGRATIONS: Array<Integration>` and in the long list add:
 ```typo3_typoscript
-{id: 'YOURINTEGRATION', name: "Your Integration", import: true, export: false, helpUrl: 'https://github.com/BrendenWalker/TandoorNG/blob/develop/docs/features/import_export.md#yourintegration'},
+{id: 'YOURINTEGRATION', name: "Your Integration", import: true, export: false, helpUrl: 'https://github.com/BrendenWalker/Stillroom/blob/develop/docs/features/import_export.md#yourintegration'},
 ```
 be sure to change 'true' or 'false' value for the import and export options to the correct values for your integration. 'true' indicates that it should be listed in the menu for imports or exports respectively.
 
@@ -190,7 +190,7 @@ filename = file.name
 ```
 
 ### Managing the Stillroom 'Recipe' Object
-The `Recipe` class has many properties, and it is recommended to view all of them [here](https://github.com/BrendenWalker/TandoorNG/blob/develop/cookbook/models.py) in order to determine specifically how your integration will organize its data into the `Recipe` object data structure. The important ones to know are:
+The `Recipe` class has many properties, and it is recommended to view all of them [here](https://github.com/BrendenWalker/Stillroom/blob/develop/cookbook/models.py) in order to determine specifically how your integration will organize its data into the `Recipe` object data structure. The important ones to know are:
 ```python
 name = models.CharField(max_length=128)
 description = models.CharField(max_length=512, blank=True, null=True)

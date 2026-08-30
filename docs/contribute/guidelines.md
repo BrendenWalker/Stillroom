@@ -10,7 +10,7 @@ If you want to contribute bug fixes or small tweaks then your pull requests are 
 
 ## License
 
-Stillroom is licensed under AGPL v3 with a Commons Clause selling exception. See [LICENSE.md](https://github.com/BrendenWalker/TandoorNG/blob/develop/LICENSE.md).
+Stillroom is licensed under AGPL v3 with a Commons Clause selling exception. See [LICENSE.md](https://github.com/BrendenWalker/Stillroom/blob/develop/LICENSE.md).
 
 There is no contributor license agreement. A pull request licenses your contribution under the same terms as the rest of this repository. You keep your copyright.
 

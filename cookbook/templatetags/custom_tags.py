@@ -111,15 +111,15 @@ def recipe_last(recipe, user):
 @register.simple_tag
 def page_help(page_name):
     help_pages = {
-        'edit_storage': 'https://github.com/BrendenWalker/TandoorNG/blob/develop/docs/features/external_recipes.md',
-        'list_connector_config': 'https://github.com/BrendenWalker/TandoorNG/blob/develop/docs/features/connectors.md',
-        'new_connector_config': 'https://github.com/BrendenWalker/TandoorNG/blob/develop/docs/features/connectors.md',
-        'edit_connector_config': 'https://github.com/BrendenWalker/TandoorNG/blob/develop/docs/features/connectors.md',
-        'view_shopping': 'https://github.com/BrendenWalker/TandoorNG/blob/develop/docs/features/shopping.md',
-        'view_import': 'https://github.com/BrendenWalker/TandoorNG/blob/develop/docs/features/import_export.md',
-        'data_import_url': 'https://github.com/BrendenWalker/TandoorNG/blob/develop/docs/features/import_export.md',
-        'view_export': 'https://github.com/BrendenWalker/TandoorNG/blob/develop/docs/features/import_export.md',
-        'list_automation': 'https://github.com/BrendenWalker/TandoorNG/blob/develop/docs/features/automation.md',
+        'edit_storage': 'https://github.com/BrendenWalker/Stillroom/blob/develop/docs/features/external_recipes.md',
+        'list_connector_config': 'https://github.com/BrendenWalker/Stillroom/blob/develop/docs/features/connectors.md',
+        'new_connector_config': 'https://github.com/BrendenWalker/Stillroom/blob/develop/docs/features/connectors.md',
+        'edit_connector_config': 'https://github.com/BrendenWalker/Stillroom/blob/develop/docs/features/connectors.md',
+        'view_shopping': 'https://github.com/BrendenWalker/Stillroom/blob/develop/docs/features/shopping.md',
+        'view_import': 'https://github.com/BrendenWalker/Stillroom/blob/develop/docs/features/import_export.md',
+        'data_import_url': 'https://github.com/BrendenWalker/Stillroom/blob/develop/docs/features/import_export.md',
+        'view_export': 'https://github.com/BrendenWalker/Stillroom/blob/develop/docs/features/import_export.md',
+        'list_automation': 'https://github.com/BrendenWalker/Stillroom/blob/develop/docs/features/automation.md',
     }
 
     link = help_pages.get(page_name, '')

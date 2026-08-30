@@ -1,7 +1,7 @@
 <template>
     <v-app>
         <v-app-bar color="stillroom" flat density="comfortable" v-if="!useUserPreferenceStore().isAuthenticated && !useUserPreferenceStore().isPrintMode">
-            <a href="https://github.com/BrendenWalker/TandoorNG">
+            <a href="https://github.com/BrendenWalker/Stillroom">
                 <v-img src="../../assets/brand_logo.svg" width="140px" class="ms-2" ></v-img>
             </a>
         </v-app-bar>
