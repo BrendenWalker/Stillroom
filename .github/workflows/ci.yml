@@ -13,10 +13,21 @@ jobs:
                 node-version: ["22"]
         steps:
             - uses: actions/checkout@v6
-            - uses: awalsh128/cache-apt-pkgs-action@v1.6.3
-              with:
-                  packages: libsasl2-dev python3-dev libxml2-dev libxmlsec1-dev libxslt-dev libxmlsec1-openssl libxslt-dev libldap2-dev libssl-dev gcc musl-dev postgresql-dev zlib-dev jpeg-dev libwebp-dev openssl-dev libffi-dev cargo openldap-dev python3-dev xmlsec-dev xmlsec build-base g++ curl
-                  version: 1.0
+            - name: Install system dependencies
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y --no-install-recommends \
+                    gcc \
+                    g++ \
+                    pkg-config \
+                    libldap2-dev \
+                    libsasl2-dev \
+                    libssl-dev \
+                    libxml2-dev \
+                    libxmlsec1-dev \
+                    libxmlsec1-openssl \
+                    libxslt1-dev \
+                    python3-dev
 
             # Setup python & dependencies
             - name: Set up Python ${{ matrix.python-version }}
