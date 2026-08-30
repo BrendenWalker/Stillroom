@@ -910,35 +910,35 @@
   resolved "https://registry.yarnpkg.com/@fortawesome/fontawesome-free/-/fontawesome-free-6.7.2.tgz#8249de9b7e22fcb3ceb5e66090c30a1d5492b81a"
   integrity sha512-JUOtgFW6k9u4Y+xeIaEiLr3+cjoUPiAuLXoyKOJSia6Duzb7pq+A76P9ZdPDoAoxHdHzq6gE9/jKBGXlZT8FbA==
 
-"@intlify/core-base@11.4.6":
-  version "11.4.6"
-  resolved "https://registry.yarnpkg.com/@intlify/core-base/-/core-base-11.4.6.tgz#7402cd6f7e1c813e7a8370afa3654d2d9034783a"
-  integrity sha512-EOeHO95XESK9IFHgHeZXunsM/WBAoCA0DlaWODvx14vKmetAuS97t+l6Xe9hTUqntPpF93vtVSjjUDafw3wXMw==
+"@intlify/core-base@11.4.10":
+  version "11.4.10"
+  resolved "https://registry.yarnpkg.com/@intlify/core-base/-/core-base-11.4.10.tgz#22bc22db585363720c31a46baf430aaabb809782"
+  integrity sha512-+yJ74JRWVJokdgG9zYNMyTSzeNV3O9T4vVxk8PvLFHmI+R/BYA//cITh7vhRK37hWLZ4/kTcKcUz1dlWOpypIg==
   dependencies:
-    "@intlify/devtools-types" "11.4.6"
-    "@intlify/message-compiler" "11.4.6"
-    "@intlify/shared" "11.4.6"
+    "@intlify/devtools-types" "11.4.10"
+    "@intlify/message-compiler" "11.4.10"
+    "@intlify/shared" "11.4.10"
 
-"@intlify/devtools-types@11.4.6":
-  version "11.4.6"
-  resolved "https://registry.yarnpkg.com/@intlify/devtools-types/-/devtools-types-11.4.6.tgz#2280698191c7a238f7ce9fe69cafba6280277b40"
-  integrity sha512-wowQPpNem56b2d43IJmqbrzG2FeBKe5f/kUGlpNuBmXs6OSqncF8m1+1lxHuW8ISZJF0ma2RkW3iLkw0g0G4VA==
+"@intlify/devtools-types@11.4.10":
+  version "11.4.10"
+  resolved "https://registry.yarnpkg.com/@intlify/devtools-types/-/devtools-types-11.4.10.tgz#987285b6fc1b31f8e4011c069bcfdf5610fcbaab"
+  integrity sha512-xZxzZsAuu6/0zoLRVQWdpXWe5Kjl0LnWpjlQA3r9u9FbLYMhapqt7IwkgQyn0Tm2GUNAqhj9eZiUmYOrB024BQ==
   dependencies:
-    "@intlify/core-base" "11.4.6"
-    "@intlify/shared" "11.4.6"
+    "@intlify/core-base" "11.4.10"
+    "@intlify/shared" "11.4.10"
 
-"@intlify/message-compiler@11.4.6":
-  version "11.4.6"
-  resolved "https://registry.yarnpkg.com/@intlify/message-compiler/-/message-compiler-11.4.6.tgz#4afde994de403f2e2d9569cd52eae7707f5d3008"
-  integrity sha512-5nj3jULqeTAC1WovwMs1LQWgatTa2pM/rXN9T3XW8rdOtXW9ZF6/GLSNFTKDQmPLwclhPdgUWLJ/4w3fMeeC/Q==
+"@intlify/message-compiler@11.4.10":
+  version "11.4.10"
+  resolved "https://registry.yarnpkg.com/@intlify/message-compiler/-/message-compiler-11.4.10.tgz#be3dbcadafba9f310aab286f93a1ae15c5409f3f"
+  integrity sha512-oUB/scz2EJENXDiUJ7JjZffOrH8UIZ1BuZeHvonbi5fWLavLt04aivuk2OIByOZA0tsci1bkeeQRmwhb5M8Imw==
   dependencies:
-    "@intlify/shared" "11.4.6"
+    "@intlify/shared" "11.4.10"
     source-map-js "^1.0.2"
 
-"@intlify/shared@11.4.6":
-  version "11.4.6"
-  resolved "https://registry.yarnpkg.com/@intlify/shared/-/shared-11.4.6.tgz#06431217c1ea12f91b303f026f485eb0a4cebe6a"
-  integrity sha512-m1p1HHAMLhqSpTRH7VnXdrN0CQ4y+9vunFkpLkbD8soIuBsnQdawZXqMCgvwI2UVF9Ww7sVaw7g9tV2VO7shoA==
+"@intlify/shared@11.4.10":
+  version "11.4.10"
+  resolved "https://registry.yarnpkg.com/@intlify/shared/-/shared-11.4.10.tgz#2ab2d85709e66259462ca2efd7ee8b2ad45fc0a1"
+  integrity sha512-FeImVdPeoSHTm3NBFFZHv0eRP9gQ3F4lj2puDBX5Kw7iiM1uJW6JTf39ian0K/17pbXCI3ef5i9RVsRrALqI6Q==
 
 "@isaacs/cliui@^9.0.0":
   version "9.0.0"
@@ -3476,14 +3476,14 @@ vue-draggable-plus@^0.6.1:
   dependencies:
     "@types/sortablejs" "^1.15.8"
 
-vue-i18n@^11.2.8:
-  version "11.4.6"
-  resolved "https://registry.yarnpkg.com/vue-i18n/-/vue-i18n-11.4.6.tgz#6ce49dc15b128b5de6e3813cf06f7de5410d9ae3"
-  integrity sha512-l0gE7Rfy0phCa5ChKYkOq543Wgd39BCK6hkktfr1Ed4D99oRkgPK9ffShASZdeC8OJxGfdWmpYoAaAH6iLEuIg==
+vue-i18n@^11.4.10:
+  version "11.4.10"
+  resolved "https://registry.yarnpkg.com/vue-i18n/-/vue-i18n-11.4.10.tgz#8c05cd32c72968c1d1fd72ef146fdca001e1e6f7"
+  integrity sha512-Lp+BjOxqzOY87DS6Z8KrQrpiTr9IN/Lt4kZEilwyXG2Wrx+AcU6IVsAW92HNXtVcn1HFFPV6ty41p9e/qDpyvg==
   dependencies:
-    "@intlify/core-base" "11.4.6"
-    "@intlify/devtools-types" "11.4.6"
-    "@intlify/shared" "11.4.6"
+    "@intlify/core-base" "11.4.10"
+    "@intlify/devtools-types" "11.4.10"
+    "@intlify/shared" "11.4.10"
     "@vue/devtools-api" "^6.5.0"
 
 vue-router@^4.5.0:
