@@ -4,6 +4,16 @@ from django.db.models.functions import Substr
 from cookbook.models import Food
 
 
+def is_food_item(food):
+    """True if the item belongs in recipes and pantry (uncategorized counts as food)."""
+    if food is None:
+        return False
+    category = getattr(food, 'supermarket_category', None)
+    if category is None:
+        return True
+    return bool(getattr(category, 'is_food', True))
+
+
 def _is_available(household, shopping_users):
     q = Q(onhand_users__in=shopping_users)
     if household is not None:

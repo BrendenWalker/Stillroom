@@ -30,6 +30,7 @@ from cookbook.helper.ai_helper import get_monthly_token_usage
 from cookbook.helper.image_processing import is_file_type_allowed
 from cookbook.helper.permission_helper import above_space_limit, create_space_for_user, get_household_user_ids
 from cookbook.helper.property_helper import FoodPropertyHelper
+from cookbook.helper.food_availability_helper import is_food_item
 from cookbook.helper.food_pack import apply_food_pack_fields, shopping_entry_quantities, shopping_measure_grams_of, to_decimal
 from cookbook.helper.shopping_helper import RecipeShoppingEditor
 from cookbook.helper.unit_conversion_helper import UnitConversionHelper
@@ -783,7 +784,7 @@ class SupermarketCategorySerializer(UniqueFieldsMixin, WritableNestedModelSerial
 
     class Meta:
         model = SupermarketCategory
-        fields = ('id', 'name', 'description', 'open_data_slug')
+        fields = ('id', 'name', 'description', 'is_food', 'open_data_slug')
 
 
 class SupermarketCategoryRelationSerializer(WritableNestedModelSerializer):
@@ -1661,13 +1662,15 @@ class ShoppingListEntrySerializer(WritableNestedModelSerializer):
         if 'mealplan_id' in validated_data:
             del validated_data['mealplan_id']
 
-        # update the onhand for food if shopping_add_onhand is True
+        # update the onhand for food if shopping_add_onhand is True and the item is a food item
         if user.userpreference.shopping_add_onhand:
             if checked := validated_data.get('checked', None):
                 validated_data['completed_at'] = timezone.now()
-                instance.food.onhand_users.add(*User.objects.filter(id__in=get_household_user_ids(self.context['request'].user_space)))
+                if is_food_item(instance.food):
+                    instance.food.onhand_users.add(*User.objects.filter(id__in=get_household_user_ids(self.context['request'].user_space)))
             elif not checked:
-                instance.food.onhand_users.remove(*User.objects.filter(id__in=get_household_user_ids(self.context['request'].user_space)))
+                if is_food_item(instance.food):
+                    instance.food.onhand_users.remove(*User.objects.filter(id__in=get_household_user_ids(self.context['request'].user_space)))
         validated_data = self._apply_pack_quantities(validated_data, instance=instance)
         return super().update(instance, validated_data)
 

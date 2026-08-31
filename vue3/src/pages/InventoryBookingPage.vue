@@ -33,7 +33,7 @@
                                           @update:modelValue="inventoryEntrySelected()">
                             </v-model-select>
 
-                            <v-model-select model="Food" allow-create v-model="food" v-if="['add'].includes(bookingMode)"></v-model-select>
+                            <v-model-select model="Food" allow-create v-model="food" v-if="['add'].includes(bookingMode)" :list-params="{isFood: true}"></v-model-select>
 
                             <v-card variant="outlined" class="mb-4" v-if="inventoryEntry">
                                 <v-card-title>

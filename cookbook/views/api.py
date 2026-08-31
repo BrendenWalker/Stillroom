@@ -1087,6 +1087,14 @@ class FoodViewSet(LoggingMixin, TreeMixin, DeleteRelationMixing):
 
     def get_queryset(self):
         self.queryset = super().get_queryset()
+        is_food = self.request.query_params.get('is_food', None)
+        if is_food is not None:
+            if str2bool(is_food):
+                self.queryset = self.queryset.filter(
+                    Q(supermarket_category__isnull=True) | Q(supermarket_category__is_food=True)
+                )
+            else:
+                self.queryset = self.queryset.filter(supermarket_category__is_food=False)
         return self._annotate_and_prefetch(self.queryset)
 
     def get_serializer_class(self):
@@ -2371,9 +2379,11 @@ class ShoppingListEntryViewSet(LoggingMixin, viewsets.ModelViewSet):
                     bulk_entries.update(checked=checked, updated_at=update_timestamp, completed_at=None)
                 serializer.validated_data['timestamp'] = update_timestamp
 
-                # update the onhand for food if shopping_add_onhand is True
+                # update the onhand for food if shopping_add_onhand is True (food-category items only)
                 if request.user.userpreference.shopping_add_onhand:
-                    foods = Food.objects.filter(id__in=bulk_entries.values('food'))
+                    foods = Food.objects.filter(id__in=bulk_entries.values('food')).filter(
+                        Q(supermarket_category__isnull=True) | Q(supermarket_category__is_food=True)
+                    )
                     household_users = User.objects.filter(id__in=household_user_ids)
                     if checked:
                         for f in foods:

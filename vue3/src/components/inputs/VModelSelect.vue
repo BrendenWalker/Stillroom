@@ -134,6 +134,7 @@ const props = defineProps({
     create: {type: Boolean, default: false},
     searchOnLoad: {type: Boolean, default: false},
     limit: {type: Number, default: 25},
+    listParams: {type: Object, default: () => ({})},
 
     // default props
     label: {type: String, default: ''},
@@ -285,7 +286,7 @@ function searchItems() {
     }
     console.log('search query is', query)
     loading.value = true
-    return modelClass.value.list({query: query, page: 1, pageSize: props.limit}).then((r: any) => {
+    return modelClass.value.list({query: query, page: 1, pageSize: props.limit, ...props.listParams}).then((r: any) => {
         if (modelClass.value.model.isPaginated) {
             hasMoreItems.value = !!r.next
             items.value = r.results

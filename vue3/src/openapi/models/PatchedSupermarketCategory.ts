@@ -72,6 +72,12 @@ export interface PatchedSupermarketCategory {
      */
     description?: string | null;
     /**
+     * When true, items in this category can be used in recipes and the pantry.
+     * @type {boolean}
+     * @memberof PatchedSupermarketCategory
+     */
+    isFood?: boolean;
+    /**
      * 
      * @type {string}
      * @memberof PatchedSupermarketCategory
@@ -99,6 +105,7 @@ export function PatchedSupermarketCategoryFromJSONTyped(json: any, ignoreDiscrim
         'id': json['id'] == null ? undefined : json['id'],
         'name': json['name'] == null ? undefined : json['name'],
         'description': json['description'] == null ? undefined : json['description'],
+        'isFood': json['is_food'] == null ? undefined : json['is_food'],
         'openDataSlug': json['open_data_slug'] == null ? undefined : json['open_data_slug'],
     };
 }
@@ -117,6 +124,7 @@ export function PatchedSupermarketCategoryToJSONTyped(value?: PatchedSupermarket
         'id': value['id'],
         'name': value['name'],
         'description': value['description'],
+        'is_food': value['isFood'],
         'open_data_slug': value['openDataSlug'],
     };
 }

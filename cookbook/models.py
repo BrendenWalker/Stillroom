@@ -642,6 +642,7 @@ class Sync(models.Model, PermissionModelMixin):
 class SupermarketCategory(models.Model, PermissionModelMixin, MergeModelMixin):
     name = models.CharField(max_length=128, validators=[MinLengthValidator(1)])
     description = models.TextField(blank=True, null=True)
+    is_food = models.BooleanField(default=True)
     open_data_slug = models.CharField(max_length=128, null=True, blank=True, default=None)
 
     space = models.ForeignKey(Space, on_delete=models.CASCADE)

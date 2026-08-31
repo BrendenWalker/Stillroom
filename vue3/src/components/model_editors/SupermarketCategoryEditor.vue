@@ -15,6 +15,7 @@
 
                 <v-text-field :label="$t('Name')" v-model="editingObj.name"></v-text-field>
                 <v-textarea :label="$t('Description')" v-model="editingObj.description"></v-textarea>
+                <v-checkbox :label="$t('FoodItems')" :hint="$t('FoodItemsHelp')" v-model="editingObj.isFood" persistent-hint></v-checkbox>
                 <v-text-field :label="$t('Open_Data_Slug')" :hint="$t('open_data_help_text')" persistent-hint v-model="editingObj.openDataSlug" disabled></v-text-field>
 
             </v-form>
@@ -59,7 +60,12 @@ onMounted(() => {
  * component specific state setup logic
  */
 function initializeEditor(){
-    setupState(props.item, props.itemId, {itemDefaults: props.itemDefaults})
+    setupState(props.item, props.itemId, {
+        itemDefaults: props.itemDefaults,
+        newItemFunction: () => {
+            editingObj.value.isFood = true
+        },
+    })
 }
 
 </script>

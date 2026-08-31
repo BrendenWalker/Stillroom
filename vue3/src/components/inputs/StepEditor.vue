@@ -80,7 +80,7 @@
                                                       :disabled="ingredient.noAmount"></v-model-select>
                                     </div>
                                     <div class="flex-col flex-grow-1  ma-1" style="min-width: 15%" v-if="!ingredient.isHeader">
-                                        <v-model-select model="Food" v-model="ingredient.food" density="compact" create hide-details></v-model-select>
+                                        <v-model-select model="Food" v-model="ingredient.food" density="compact" create hide-details :list-params="{isFood: true}"></v-model-select>
                                     </div>
                                     <div class="flex-col ma-1" style="min-width: 15%" :class="{'flex-grow-1': ingredient.isHeader, 'flex-grow-0': !ingredient.isHeader}"
                                          @keydown.tab="event => handleIngredientNoteTab(event, index)">
@@ -203,7 +203,7 @@
                                   :disabled="step.ingredients[editingIngredientIndex].noAmount"
                                   create></v-model-select>
                     <v-model-select model="Food" v-model="step.ingredients[editingIngredientIndex].food" v-if="!step.ingredients[editingIngredientIndex].isHeader"
-                                  create></v-model-select>
+                                  create :list-params="{isFood: true}"></v-model-select>
                     <v-text-field :label="(step.ingredients[editingIngredientIndex].isHeader) ?$t('Headline')  : $t('Note')"
                                   v-model="step.ingredients[editingIngredientIndex].note"></v-text-field>
 
