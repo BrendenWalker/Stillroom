@@ -13,7 +13,7 @@
                 <v-row>
                     <v-col cols="12" md="6">
 
-                        <v-model-select model="Food" v-model="selectedFood" @update:modelValue="refreshPage()">
+                        <v-model-select model="Food" v-model="selectedFood" @update:modelValue="refreshPage()" :list-params="{isFood: true}">
                             <template #append>
                                 <v-btn icon variant="plain">
                                     <v-icon icon="$menu"></v-icon>
@@ -124,7 +124,7 @@
                     </v-model-select>
                 </template>
                 <template v-slot:item.food="{ item }">
-                    <v-model-select model="Food" v-model="item.food" density="compact" hide-details create
+                    <v-model-select model="Food" v-model="item.food" density="compact" hide-details create :list-params="{isFood: true}"
                                   @update:modelValue="item.changed = true"></v-model-select>
                 </template>
                 <template v-slot:item.note="{ item }">

@@ -13,7 +13,7 @@
                                           @update:modelValue="inventoryEntrySelected()">
                             </v-model-select>
 
-                            <v-model-select model="Food" create v-model="food" v-if="['add'].includes(bookingMode)"></v-model-select>
+                            <v-model-select model="Food" create v-model="food" v-if="['add'].includes(bookingMode)" :list-params="{isFood: true}"></v-model-select>
 
                             <v-model-select model="InventoryLocation" v-model="inventoryLocation" v-if="['add','move'].includes(bookingMode)">
                                 <template #append>

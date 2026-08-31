@@ -57,11 +57,14 @@
                             <v-list-item-title>
                                 <b>
                                     <span v-if="e.amount != 0">{{ $n(e.amount) }}&nbsp;</span>
-                                    <span v-if="e.unit">{{ e.unit.name }}&nbsp;</span>
+                                    <span v-if="hasShoppingPack(e.food) && e.food.shoppingMeasure">{{ e.food.shoppingMeasure }}&nbsp;</span>
+                                    <span v-else-if="e.unit">{{ e.unit.name }}&nbsp;</span>
                                 </b>
                                 <span v-if="e.food">
                                     {{ e.food.name }}
                                 </span>
+                                <span v-if="e.amountGrams != null" class="text-medium-emphasis"> ({{ formatGramsLabel(e.amountGrams) }})</span>
+                                <span v-if="entryBuyCount(e) != null" class="text-medium-emphasis"> · {{ $t('Buy') }} {{ entryBuyCount(e) }}</span>
                             </v-list-item-title>
                             <v-list-item-subtitle v-if="e.completedAt">
                                 <v-icon icon="fa-solid fa-check" size="small" color="success"></v-icon>
@@ -142,6 +145,7 @@ import {ErrorMessageType, PreparedMessage, useMessageStore} from "@/stores/Messa
 import ShoppingListsBar from "@/components/display/ShoppingListsBar.vue";
 import {useUserPreferenceStore} from "@/stores/UserPreferenceStore.ts";
 import VModelSelect from "@/components/inputs/VModelSelect.vue";
+import {formatGramsLabel, hasShoppingPack, inStoreShoppingCountDisplay} from "@/utils/foodPack";
 
 const {mobile} = useDisplay()
 
@@ -201,11 +205,17 @@ function shoppingListUpdate(shoppingLists: ShoppingList[]) {
  * add new entry for currently selected food type
  */
 function addEntryForFood() {
-    useShoppingStore().createObject({
-        food: shoppingListFood.value?.food,
+    const food = shoppingListFood.value?.food
+    const sle = {
+        food: food,
         unit: null,
         amount: 1,
-    } as ShoppingListEntry, false).then((r: ShoppingListEntry | undefined) => {
+    } as ShoppingListEntry
+    if (hasShoppingPack(food)) {
+        sle.amountGrams = food.shoppingMeasureGrams!
+        sle.unit = null
+    }
+    useShoppingStore().createObject(sle, false).then((r: ShoppingListEntry | undefined) => {
         if (r != undefined) {
             shoppingListFood.value?.entries.set(r.id!, r)
         }
@@ -229,10 +239,19 @@ function deleteAllEntries() {
 function updateEntryAmount(entry: ShoppingListEntry) {
     let api = new ApiApi()
     api.apiShoppingListEntryPartialUpdate({id: entry.id!, patchedShoppingListEntry: {amount: entry.amount} as PatchedShoppingListEntry}).then(r => {
-
+        useShoppingStore().entries.set(r.id!, r)
+        shoppingListFood.value.entries.set(r.id!, r)
+        useShoppingStore().updateEntriesStructure()
     }).catch(err => {
         useMessageStore().addError(ErrorMessageType.UPDATE_ERROR, err)
     })
+}
+
+function entryBuyCount(entry: ShoppingListEntry): number | null {
+    if (!hasShoppingPack(entry.food) || entry.amountGrams == null) return null
+    const buy = inStoreShoppingCountDisplay(entry.amountGrams, entry.food.shoppingMeasureGrams)
+    if (buy === entry.amount) return null
+    return buy
 }
 
 </script>

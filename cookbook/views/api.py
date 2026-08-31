@@ -85,6 +85,7 @@ from cookbook.helper.permission_helper import (CustomIsAdmin, CustomIsOwner, Cus
                                                get_household_user_ids)
 from cookbook.helper.recipe_search import RecipeSearch
 from cookbook.helper.recipe_url_import import clean_dict, get_from_youtube_scraper, get_images_from_soup
+from cookbook.helper.food_pack import shopping_entry_quantities, shopping_measure_grams_of, shopping_units_to_grams
 from cookbook.helper.shopping_helper import RecipeShoppingEditor
 from cookbook.models import (Automation, BookmarkletImport, ConnectorConfig, CookLog, CustomFilter, ExportLog, Food,
                              FoodInheritField, FoodProperty, ImportLog, Ingredient,
@@ -1055,6 +1056,20 @@ class FoodInheritFieldViewSet(LoggingMixin, viewsets.ReadOnlyModelViewSet):
         return super().get_queryset()
 
 
+@extend_schema_view(
+    list=extend_schema(parameters=[
+        OpenApiParameter(name='root',
+                         description='Return first level children of {obj} with ID [int].  Integer 0 will return root {obj}s.',
+                         type=int),
+        OpenApiParameter(name='tree', description='Return all self and children of {obj} with ID [int].', type=int),
+        OpenApiParameter(name='root_tree', description='Return all items belonging to the tree of the given {obj} id', type=int),
+        OpenApiParameter(
+            name='is_food',
+            description='If true, only uncategorized items and items in a food category. If false, only items in a non-food category.',
+            type=bool,
+        ),
+    ]),
+)
 class FoodViewSet(LoggingMixin, TreeMixin, DeleteRelationMixing):
     queryset = Food.objects
     model = Food
@@ -1086,6 +1101,14 @@ class FoodViewSet(LoggingMixin, TreeMixin, DeleteRelationMixing):
 
     def get_queryset(self):
         self.queryset = super().get_queryset()
+        is_food = self.request.query_params.get('is_food', None)
+        if is_food is not None:
+            if str2bool(is_food):
+                self.queryset = self.queryset.filter(
+                    Q(supermarket_category__isnull=True) | Q(supermarket_category__is_food=True)
+                )
+            else:
+                self.queryset = self.queryset.filter(supermarket_category__is_food=False)
         return self._annotate_and_prefetch(self.queryset)
 
     def get_serializer_class(self):
@@ -1121,7 +1144,12 @@ class FoodViewSet(LoggingMixin, TreeMixin, DeleteRelationMixing):
             if unit and unit is None:
                 raise APIException({'error': 'Unit not found in current space'}, code=status.HTTP_400_BAD_REQUEST)
 
-        ShoppingListEntry.objects.create(food=obj, amount=amount, unit=unit, space=request.space,
+        grams = None
+        if shopping_measure_grams_of(obj) is not None:
+            grams = shopping_units_to_grams(obj, amount)
+            amount, unit, grams = shopping_entry_quantities(obj, amount, None, amount_grams=grams)
+
+        ShoppingListEntry.objects.create(food=obj, amount=amount, unit=unit, amount_grams=grams, space=request.space,
                                          created_by=request.user)
         return Response(content, status=status.HTTP_204_NO_CONTENT)
 
@@ -2225,13 +2253,22 @@ class ShoppingListRecipeViewSet(LoggingMixin, viewsets.ModelViewSet):
 
         if serializer.is_valid():
             entries = []
-            for e in serializer.validated_data['entries']:
+            entry_data = serializer.validated_data['entries']
+            food_ids = [e['food_id'] for e in entry_data if e.get('food_id')]
+            unit_ids = [e['unit_id'] for e in entry_data if e.get('unit_id')]
+            foods = {f.id: f for f in Food.objects.filter(id__in=food_ids)}
+            units = {u.id: u for u in Unit.objects.filter(id__in=unit_ids)}
+            for e in entry_data:
+                food = foods.get(e['food_id']) if e.get('food_id') else None
+                unit = units.get(e['unit_id']) if e.get('unit_id') else None
+                amount, unit_obj, grams = shopping_entry_quantities(food, e['amount'], unit)
                 entry = ShoppingListEntry(
                     list_recipe_id=obj.pk,
-                    amount=e['amount'],
-                    unit_id=e['unit_id'],
+                    amount=amount,
+                    unit=unit_obj,
                     food_id=e['food_id'],
                     ingredient_id=e['ingredient_id'],
+                    amount_grams=grams,
                     created_by_id=request.user.id,
                     space_id=request.space.id,
                 )
@@ -2356,9 +2393,11 @@ class ShoppingListEntryViewSet(LoggingMixin, viewsets.ModelViewSet):
                     bulk_entries.update(checked=checked, updated_at=update_timestamp, completed_at=None)
                 serializer.validated_data['timestamp'] = update_timestamp
 
-                # update the onhand for food if shopping_add_onhand is True
+                # update the onhand for food if shopping_add_onhand is True (food-category items only)
                 if request.user.userpreference.shopping_add_onhand:
-                    foods = Food.objects.filter(id__in=bulk_entries.values('food'))
+                    foods = Food.objects.filter(id__in=bulk_entries.values('food')).filter(
+                        Q(supermarket_category__isnull=True) | Q(supermarket_category__is_food=True)
+                    )
                     household_users = User.objects.filter(id__in=household_user_ids)
                     if checked:
                         for f in foods:

@@ -31,6 +31,15 @@ Each user now has access to the list and can edit it.
 When checking items in viewing mode the change is synced to all other clients that currently have the same list open.
 You can set the syncing interval in your user settings.
 
+## Pack sizes
+
+Foods can store how they are bought at the store (`shopping_measure`, grams per pack, count per pack).
+Shopping list entries then keep `amount_grams` as the canonical quantity and show pack counts on the list.
+
+External clients that read `ShoppingListEntry` payloads may see new fields (`amount_grams`, and on foods
+`shopping_measure`, `ingredient_unit_grams`, `count_per_pack`, `shopping_measure_grams`). Existing
+`amount`/`unit` values remain; when a pack size is set, `amount` is the shopping-unit count and `unit` is empty.
+
 ## Other Features
 There are a few more features worth pointing out
 

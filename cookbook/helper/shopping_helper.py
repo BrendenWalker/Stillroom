@@ -6,6 +6,7 @@ from django.db.models.functions import Coalesce
 from django.utils.translation import gettext as _
 
 from cookbook.connectors.connector_manager import ActionType, ConnectorManager
+from cookbook.helper.food_pack import shopping_entry_quantities
 from cookbook.helper.permission_helper import get_household_user_ids
 from cookbook.models import Ingredient, MealPlan, Recipe, ShoppingListEntry, ShoppingListRecipe, SupermarketCategoryRelation
 
@@ -157,8 +158,12 @@ class RecipeShoppingEditor():
             return True
 
         for sle in ShoppingListEntry.objects.filter(list_recipe=self._shopping_list_recipe):
-            if sle.ingredient: # TODO temporarily dont scale manual entries until ingredient_amount or some other base amount has been migrated to SLE
-                sle.amount = sle.ingredient.amount * Decimal(self._servings_factor)
+            if sle.ingredient:
+                scaled_amount = sle.ingredient.amount * Decimal(self._servings_factor)
+                amount, unit, grams = shopping_entry_quantities(sle.food, scaled_amount, sle.ingredient.unit)
+                sle.amount = amount
+                sle.unit = unit
+                sle.amount_grams = grams
                 sle.save()
         self._shopping_list_recipe.servings = self.servings
         self._shopping_list_recipe.save()
@@ -181,12 +186,15 @@ class RecipeShoppingEditor():
 
         entries = []
         for i in [x for x in add_ingredients if x.food]:
-            entry =  ShoppingListEntry(
+            scaled_amount = i.amount * Decimal(self._servings_factor)
+            amount, unit, grams = shopping_entry_quantities(i.food, scaled_amount, i.unit)
+            entry = ShoppingListEntry(
                 list_recipe=self._shopping_list_recipe,
                 food=i.food,
-                unit=i.unit,
+                unit=unit,
                 ingredient=i,
-                amount=i.amount * Decimal(self._servings_factor),
+                amount=amount,
+                amount_grams=grams,
                 created_by=self.created_by,
                 space=self.space,
             )

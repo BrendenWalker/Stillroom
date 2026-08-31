@@ -24,7 +24,7 @@
                     <v-card-text>
                         <v-row>
                             <v-col cols="12" md="6">
-                                <v-model-select model="Food" v-model="food" hide-details></v-model-select>
+                                <v-model-select model="Food" v-model="food" hide-details :list-params="{isFood: true}"></v-model-select>
                             </v-col>
 
                             <v-col cols="12" md="6">
