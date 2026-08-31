@@ -135,6 +135,35 @@ def test_list_filter(obj_1, obj_2, u1_s1):
     assert response['count'] == 1
 
 
+def test_list_is_food_filter(u1_s1, space_1):
+    with scope(space=space_1):
+        food_cat = SupermarketCategoryFactory(space=space_1, is_food=True, name='produce_is_food')
+        non_food_cat = SupermarketCategoryFactory(space=space_1, is_food=False, name='household_non_food')
+        uncategorized = FoodFactory(space=space_1, name='uncategorized_food_item', has_category=False)
+        in_food_cat = FoodFactory(space=space_1, name='apple_in_food_cat', supermarket_category=food_cat)
+        in_non_food = FoodFactory(space=space_1, name='soap_in_non_food_cat', supermarket_category=non_food_cat)
+
+    def listed(name, is_food=None):
+        url = f'{reverse(LIST_URL)}?query={name}'
+        if is_food is not None:
+            url += f'&is_food={is_food}'
+        r = u1_s1.get(url)
+        assert r.status_code == 200
+        return json.loads(r.content)['count']
+
+    assert listed(uncategorized.name) == 1
+    assert listed(in_food_cat.name) == 1
+    assert listed(in_non_food.name) == 1
+
+    assert listed(uncategorized.name, 'true') == 1
+    assert listed(in_food_cat.name, 'true') == 1
+    assert listed(in_non_food.name, 'true') == 0
+
+    assert listed(uncategorized.name, 'false') == 0
+    assert listed(in_food_cat.name, 'false') == 0
+    assert listed(in_non_food.name, 'false') == 1
+
+
 @pytest.mark.parametrize("arg", [
     ['a_u', 403],
     ['g1_s1', 403],

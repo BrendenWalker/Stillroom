@@ -7,6 +7,7 @@ from cookbook.helper.unit_conversion_helper import BASE_UNITS_WEIGHT, Conversion
 
 # Names treated as a countable "each" when converting recipe amounts to grams.
 # Keep this to piece/count words (not cups, grams, or other measures).
+# Add locale aliases here; migration 0246 has a frozen copy and must not import this set.
 COUNT_UNIT_NAMES = {
     'each', 'ea', 'piece', 'pieces', 'pcs', 'pc', 'pce', 'item', 'items',
     'egg', 'eggs',

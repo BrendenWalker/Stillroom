@@ -10,6 +10,11 @@ technology sections below.
 
 In VSCode, simply check out the git repository, and then via the command palette, choose `Dev Containers: Reopen in container`.
 
+Vue dependencies are installed in the image (this increases image size and build time) and copied into a named volume
+`stillroom-vue3-node-modules` so Vite's native bindings stay Linux-only. Rebuild the container after changing
+`vue3/package.json` or `vue3/yarn.lock`. If the volume is stale, remove it (`docker volume rm stillroom-vue3-node-modules`)
+and recreate the container.
+
 If you need to change python dependencies (requierments.txt) or OS packages, you will need to rebuild the container. If you are
 changing OS package requirements, you will need to update both the main `Dockerfile` and the `.devcontainer/Dockerfile`.
 

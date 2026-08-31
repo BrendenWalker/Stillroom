@@ -7,6 +7,7 @@ from django.urls import reverse
 from django_scopes import scopes_disabled
 
 from cookbook.models import Ingredient, Step
+from cookbook.tests.factories import FoodFactory, SupermarketCategoryFactory
 
 LIST_URL = 'api:ingredient-list'
 DETAIL_URL = 'api:ingredient-detail'
@@ -168,3 +169,48 @@ def test_delete(u1_s1, u1_s2, a1_s1, recipe_1_s1):
 
         assert r.status_code == 204
         assert not Ingredient.objects.filter(pk=i.id).exists()
+
+
+def test_add_rejects_non_food_item(u1_s1, space_1):
+    with scopes_disabled():
+        cat = SupermarketCategoryFactory(space=space_1, is_food=False)
+        food = FoodFactory(space=space_1, supermarket_category=cat)
+    r = u1_s1.post(
+        reverse(LIST_URL),
+        {'food': {'id': food.id, 'name': food.name}, 'unit': {'name': 'each'}, 'amount': 1},
+        content_type='application/json',
+    )
+    assert r.status_code == 400
+    body = json.loads(r.content)
+    assert 'food' in body
+
+
+def test_update_keeps_existing_non_food_assignment(u1_s1, space_1, recipe_1_s1):
+    with scopes_disabled():
+        cat = SupermarketCategoryFactory(space=space_1, is_food=False)
+        food = FoodFactory(space=space_1, supermarket_category=cat)
+        i = recipe_1_s1.steps.first().ingredients.first()
+        i.food = food
+        i.save()
+    r = u1_s1.patch(
+        reverse(DETAIL_URL, args={i.id}),
+        {'note': 'kept non-food assignment'},
+        content_type='application/json',
+    )
+    assert r.status_code == 200
+    assert json.loads(r.content)['note'] == 'kept non-food assignment'
+
+
+def test_update_rejects_switching_to_non_food_item(u1_s1, space_1, recipe_1_s1):
+    with scopes_disabled():
+        cat = SupermarketCategoryFactory(space=space_1, is_food=False)
+        food = FoodFactory(space=space_1, supermarket_category=cat)
+        i = recipe_1_s1.steps.first().ingredients.first()
+    r = u1_s1.patch(
+        reverse(DETAIL_URL, args={i.id}),
+        {'food': {'id': food.id, 'name': food.name}},
+        content_type='application/json',
+    )
+    assert r.status_code == 400
+    body = json.loads(r.content)
+    assert 'food' in body
