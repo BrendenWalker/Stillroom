@@ -1,9 +1,27 @@
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from math import ceil
 
+from django.utils.translation import gettext as _
+
 from cookbook.helper.unit_conversion_helper import BASE_UNITS_WEIGHT, ConversionException, UnitConversionHelper
 
-COUNT_UNIT_NAMES = {'each', 'ea', 'piece', 'pcs', 'pc', 'item'}
+# Names treated as a countable "each" when converting recipe amounts to grams.
+# Keep this to piece/count words (not cups, grams, or other measures).
+COUNT_UNIT_NAMES = {
+    'each', 'ea', 'piece', 'pieces', 'pcs', 'pc', 'pce', 'item', 'items',
+    'egg', 'eggs',
+    'unit', 'units',
+    'count', 'whole',
+    'stk', 'stück', 'stuck', 'stueck', 'stücke', 'stuecke',
+    'stuk', 'stuks',
+    'pieza', 'piezas',
+    'pezzo', 'pezzi', 'pz',
+    'unidade', 'unidades',
+    'szt',
+    'ks', 'kus',
+    'шт', 'штука',
+    '个',
+}
 GRAM_UNIT_NAMES = {'g', 'gram', 'grams'}
 CEIL_EPS = 1e-9
 
@@ -28,31 +46,30 @@ def derive_shopping_measure_grams(ingredient_unit_grams, count_per_pack, shoppin
     return to_decimal(shopping_measure_grams)
 
 
-def validate_count_per_pack_one(ingredient_unit_grams, count_per_pack, shopping_measure_grams):
-    cpp = to_decimal(count_per_pack)
-    if cpp is None or int(cpp) != 1:
-        return None
-    iug = to_decimal(ingredient_unit_grams)
-    smg = to_decimal(shopping_measure_grams)
-    has_i = iug is not None
-    has_s = smg is not None
-    if not has_i and not has_s:
-        return None
-    if not has_i or not has_s:
-        return 'When count per pack is 1, set ingredient unit (grams) and grams in shopping measure to the same value.'
-    if abs(iug - smg) > Decimal('1e-9'):
-        return 'When count per pack is 1, ingredient unit (grams) and grams in shopping measure must match.'
-    return None
-
-
 def apply_food_pack_fields(ingredient_unit_grams, count_per_pack, shopping_measure_grams=None):
     """
-    Derive shopping_measure_grams then validate count_per_pack == 1.
-    Returns (shopping_measure_grams, error_message).
+    Normalize pack fields: reject invalid counts, fill the missing gram field when
+    count_per_pack is 1, then derive shopping_measure_grams from unit grams × count.
+    Returns (ingredient_unit_grams, shopping_measure_grams, error_message).
     """
-    derived = derive_shopping_measure_grams(ingredient_unit_grams, count_per_pack, shopping_measure_grams)
-    error = validate_count_per_pack_one(ingredient_unit_grams, count_per_pack, derived)
-    return derived, error
+    cpp = to_decimal(count_per_pack)
+    iug = to_decimal(ingredient_unit_grams)
+    smg = to_decimal(shopping_measure_grams)
+
+    if cpp is not None:
+        if cpp < 1:
+            return iug, smg, _('Count per pack must be at least 1.')
+        if cpp != cpp.to_integral_value():
+            return iug, smg, _('Count per pack must be a whole number.')
+
+    if cpp is not None and cpp == 1:
+        if iug is None and smg is not None and smg > 0:
+            iug = smg
+        elif smg is None and iug is not None and iug > 0:
+            smg = iug
+
+    derived = derive_shopping_measure_grams(iug, cpp, smg)
+    return iug, derived, None
 
 
 def shopping_measure_grams_of(food):
@@ -93,17 +110,13 @@ def in_store_shopping_count(grams, shopping_measure_grams):
 def _unit_name(unit):
     if unit is None:
         return ''
-    return str(getattr(unit, 'name', '') or '').strip().lower()
+    return str(getattr(unit, 'name', '') or '').strip().lower().rstrip('.')
 
 
 def _is_count_unit(unit):
     if unit is None:
         return True
-    name = _unit_name(unit)
-    if name in COUNT_UNIT_NAMES:
-        return True
-    base = getattr(unit, 'base_unit', None)
-    return not base and name in COUNT_UNIT_NAMES
+    return _unit_name(unit) in COUNT_UNIT_NAMES
 
 
 def _is_gram_unit(unit):

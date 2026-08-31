@@ -30,7 +30,7 @@ from cookbook.helper.ai_helper import get_monthly_token_usage
 from cookbook.helper.image_processing import is_file_type_allowed
 from cookbook.helper.permission_helper import above_space_limit, create_space_for_user, get_household_user_ids
 from cookbook.helper.property_helper import FoodPropertyHelper
-from cookbook.helper.food_availability_helper import is_food_item
+from cookbook.helper.food_availability_helper import is_food_item, lookup_is_food_item
 from cookbook.helper.food_pack import apply_food_pack_fields, shopping_entry_quantities, shopping_measure_grams_of, to_decimal
 from cookbook.helper.shopping_helper import RecipeShoppingEditor
 from cookbook.helper.unit_conversion_helper import UnitConversionHelper
@@ -897,6 +897,7 @@ class FoodSerializer(UniqueFieldsMixin, WritableNestedModelSerializer, ExtendedR
     properties_food_unit = UnitSerializer(allow_null=True, required=False)
     properties_food_amount = CustomDecimalField(required=False)
     ingredient_unit_grams = CustomDecimalField(required=False, allow_null=True)
+    count_per_pack = IntegerField(required=False, allow_null=True, min_value=1)
     shopping_measure_grams = CustomDecimalField(required=False, allow_null=True)
 
     recipe_filter = 'steps__ingredients__food'
@@ -930,13 +931,17 @@ class FoodSerializer(UniqueFieldsMixin, WritableNestedModelSerializer, ExtendedR
                 return getattr(self.instance, name, None)
             return None
 
-        derived, error = apply_food_pack_fields(
+        derived_iug, derived, error = apply_food_pack_fields(
             pick('ingredient_unit_grams'),
             pick('count_per_pack'),
             pick('shopping_measure_grams'),
         )
         if error:
             raise ValidationError({'count_per_pack': error})
+        if derived_iug is not None:
+            attrs['ingredient_unit_grams'] = derived_iug
+        elif 'ingredient_unit_grams' in attrs and attrs['ingredient_unit_grams'] == '':
+            attrs['ingredient_unit_grams'] = None
         if derived is not None:
             attrs['shopping_measure_grams'] = derived
         elif 'shopping_measure_grams' in attrs and attrs['shopping_measure_grams'] == '':
@@ -1028,6 +1033,20 @@ class FoodSerializer(UniqueFieldsMixin, WritableNestedModelSerializer, ExtendedR
         read_only_fields = ('id', 'numchild', 'parent', 'image', 'numrecipe')
 
 
+def _nested_food_allowed_as_ingredient(food, instance=None):
+    """Allow keeping an existing non-food assignment; reject assigning a new one."""
+    if food is None:
+        return True
+    food_id = getattr(food, 'pk', None) if not isinstance(food, dict) else food.get('id')
+    if instance is not None and instance.food_id and food_id and instance.food_id == food_id:
+        return True
+    if isinstance(food, Food):
+        return is_food_item(food)
+    if isinstance(food, dict):
+        return lookup_is_food_item(food_id=food.get('id'), name=food.get('name'))
+    return True
+
+
 class IngredientSimpleSerializer(WritableNestedModelSerializer):
     food = FoodSimpleSerializer(allow_null=True)
     unit = UnitSerializer(allow_null=True)
@@ -1041,6 +1060,17 @@ class IngredientSimpleSerializer(WritableNestedModelSerializer):
     def update(self, instance, validated_data):
         validated_data.pop('original_text', None)
         return super().update(instance, validated_data)
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        if attrs.get('is_header'):
+            return attrs
+        food = attrs.get('food', serializers.empty)
+        if food is serializers.empty:
+            return attrs
+        if not _nested_food_allowed_as_ingredient(food, instance=self.instance):
+            raise ValidationError({'food': _('This item is in a non-food category and cannot be used as a recipe ingredient.')})
+        return attrs
 
     class Meta:
         model = Ingredient
@@ -1524,7 +1554,35 @@ class FoodShoppingSerializer(serializers.ModelSerializer):
     supermarket_category = SupermarketCategorySerializer(read_only=True)
     shopping_lists = ShoppingListSerializer(read_only=True, many=True)
     ingredient_unit_grams = CustomDecimalField(required=False, allow_null=True)
+    count_per_pack = IntegerField(required=False, allow_null=True, min_value=1)
     shopping_measure_grams = CustomDecimalField(required=False, allow_null=True)
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+
+        def pick(name):
+            if name in attrs:
+                return attrs[name]
+            if self.instance is not None:
+                return getattr(self.instance, name, None)
+            return None
+
+        derived_iug, derived, error = apply_food_pack_fields(
+            pick('ingredient_unit_grams'),
+            pick('count_per_pack'),
+            pick('shopping_measure_grams'),
+        )
+        if error:
+            raise ValidationError({'count_per_pack': error})
+        if derived_iug is not None:
+            attrs['ingredient_unit_grams'] = derived_iug
+        if derived is not None:
+            attrs['shopping_measure_grams'] = derived
+        elif 'shopping_measure_grams' in attrs and attrs['shopping_measure_grams'] == '':
+            attrs['shopping_measure_grams'] = None
+        if 'shopping_measure' in attrs and attrs['shopping_measure'] == '':
+            attrs['shopping_measure'] = None
+        return attrs
 
     # TODO duplicate code with FoodSerializer, merge into one or use proper function
     def create(self, validated_data):

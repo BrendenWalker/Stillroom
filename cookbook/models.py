@@ -11,7 +11,7 @@ from django.contrib.auth.models import Group, User
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVectorField
 from django.core.files.uploadedfile import InMemoryUploadedFile, UploadedFile
-from django.core.validators import MinLengthValidator
+from django.core.validators import MinLengthValidator, MinValueValidator
 from django.db import IntegrityError, models
 from django.db.models import Index, Q
 from django.db.models.fields.related import ManyToManyField
@@ -804,7 +804,7 @@ class Food(ExportModelOperationsMixin('food'), TreeModel, PermissionModelMixin):
     preferred_shopping_unit = models.ForeignKey(Unit, on_delete=models.SET_NULL, null=True, blank=True, default=None, related_name='preferred_shopping_unit')
     shopping_measure = models.CharField(max_length=255, blank=True, null=True, default=None)
     ingredient_unit_grams = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True, default=None)
-    count_per_pack = models.IntegerField(null=True, blank=True, default=None)
+    count_per_pack = models.IntegerField(null=True, blank=True, default=None, validators=[MinValueValidator(1)])
     shopping_measure_grams = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True, default=None)
     fdc_id = models.IntegerField(null=True, default=None, blank=True)
 

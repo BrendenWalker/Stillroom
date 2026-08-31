@@ -1056,6 +1056,20 @@ class FoodInheritFieldViewSet(LoggingMixin, viewsets.ReadOnlyModelViewSet):
         return super().get_queryset()
 
 
+@extend_schema_view(
+    list=extend_schema(parameters=[
+        OpenApiParameter(name='root',
+                         description='Return first level children of {obj} with ID [int].  Integer 0 will return root {obj}s.',
+                         type=int),
+        OpenApiParameter(name='tree', description='Return all self and children of {obj} with ID [int].', type=int),
+        OpenApiParameter(name='root_tree', description='Return all items belonging to the tree of the given {obj} id', type=int),
+        OpenApiParameter(
+            name='is_food',
+            description='If true, only uncategorized items and items in a food category. If false, only items in a non-food category.',
+            type=bool,
+        ),
+    ]),
+)
 class FoodViewSet(LoggingMixin, TreeMixin, DeleteRelationMixing):
     queryset = Food.objects
     model = Food

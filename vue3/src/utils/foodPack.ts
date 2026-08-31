@@ -1,6 +1,7 @@
 /**
  * Shopping list stores amount_grams. When shopping_measure_grams is set,
- * the trip list shows ceil(grams / smg) shopping units; editors show exact grams / smg.
+ * the trip list shows ceil(grams / smg) shopping units (what to buy);
+ * editors show exact grams / smg (what the recipes need).
  */
 
 export type FoodPackLike = {
@@ -44,7 +45,7 @@ export function deriveShoppingMeasureGrams({
     return parsePackNumber(shoppingMeasureGrams)
 }
 
-export function validateCountPerPackOneGrams({
+export function applyFoodPackFields({
     ingredientUnitGrams,
     countPerPack,
     shoppingMeasureGrams,
@@ -52,31 +53,28 @@ export function validateCountPerPackOneGrams({
     ingredientUnitGrams?: number | string | null
     countPerPack?: number | string | null
     shoppingMeasureGrams?: number | string | null
-}): { ok: true } | { ok: false, message: string } {
+}): { ingredientUnitGrams: number | null, shoppingMeasureGrams: number | null, error: string | null } {
     const cppRaw = countPerPack === '' || countPerPack == null ? '' : String(countPerPack).trim()
-    if (cppRaw === '') return { ok: true }
-    const cpp = parseInt(cppRaw, 10)
-    if (Number.isNaN(cpp) || cpp !== 1) return { ok: true }
+    let iug = parsePackNumber(ingredientUnitGrams)
+    let smg = parsePackNumber(shoppingMeasureGrams)
 
-    const iug = parsePackNumber(ingredientUnitGrams)
-    const smg = parsePackNumber(shoppingMeasureGrams)
-    const hasI = iug != null
-    const hasS = smg != null
-
-    if (!hasI && !hasS) return { ok: true }
-    if (!hasI || !hasS) {
-        return {
-            ok: false,
-            message: 'When count per pack is 1, set ingredient unit (grams) and grams in shopping measure to the same value.',
+    if (cppRaw !== '') {
+        const cpp = parseInt(cppRaw, 10)
+        if (Number.isNaN(cpp) || cpp < 1) {
+            return { ingredientUnitGrams: iug, shoppingMeasureGrams: smg, error: 'CountPerPackMin' }
+        }
+        if (cpp === 1) {
+            if (iug == null && smg != null && smg > 0) iug = smg
+            else if (smg == null && iug != null && iug > 0) smg = iug
         }
     }
-    if (Math.abs(iug! - smg!) > 1e-9) {
-        return {
-            ok: false,
-            message: 'When count per pack is 1, ingredient unit (grams) and grams in shopping measure must match.',
-        }
-    }
-    return { ok: true }
+
+    const derived = deriveShoppingMeasureGrams({
+        ingredientUnitGrams: iug,
+        countPerPack,
+        shoppingMeasureGrams: smg,
+    })
+    return { ingredientUnitGrams: iug, shoppingMeasureGrams: derived, error: null }
 }
 
 export function gramsToDisplayUnits(grams: unknown, shoppingMeasureGrams: unknown): number {

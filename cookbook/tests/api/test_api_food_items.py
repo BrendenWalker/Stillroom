@@ -107,3 +107,51 @@ def test_shopping_bulk_add_onhand_respects_category_is_food(u1_s1, space_1):
     with scopes_disabled():
         assert Food.objects.get(id=food_item.id).onhand_users.filter(id=user.id).exists()
         assert not Food.objects.get(id=non_food_item.id).onhand_users.filter(id=user.id).exists()
+
+
+INGREDIENT_LIST_URL = 'api:ingredient-list'
+INGREDIENT_DETAIL_URL = 'api:ingredient-detail'
+
+
+def test_ingredient_api_rejects_non_food_item(u1_s1, space_1):
+    with scopes_disabled():
+        non_food_cat = SupermarketCategoryFactory(space=space_1, name='household-ing', is_food=False)
+        sponge = FoodFactory(space=space_1, name='zz-sponge', supermarket_category=non_food_cat)
+
+    r = u1_s1.post(
+        reverse(INGREDIENT_LIST_URL),
+        {'food': {'name': sponge.name}, 'unit': {'name': 'each'}, 'amount': 1},
+        content_type='application/json',
+    )
+    assert r.status_code == 400
+    assert 'food' in json.loads(r.content)
+
+
+def test_ingredient_api_allows_food_item(u1_s1, space_1):
+    with scopes_disabled():
+        food_cat = SupermarketCategoryFactory(space=space_1, is_food=True)
+        flour = FoodFactory(space=space_1, name='zz-flour', supermarket_category=food_cat)
+
+    r = u1_s1.post(
+        reverse(INGREDIENT_LIST_URL),
+        {'food': {'name': flour.name}, 'unit': {'name': 'each'}, 'amount': 1},
+        content_type='application/json',
+    )
+    assert r.status_code == 201, r.content
+
+
+def test_ingredient_api_keeps_existing_non_food_on_unrelated_update(u1_s1, space_1, recipe_1_s1):
+    with scopes_disabled():
+        non_food_cat = SupermarketCategoryFactory(space=space_1, name='legacy-household', is_food=False)
+        sponge = FoodFactory(space=space_1, name='zz-legacy-sponge', supermarket_category=non_food_cat)
+        ingredient = recipe_1_s1.steps.first().ingredients.first()
+        ingredient.food = sponge
+        ingredient.save()
+
+    r = u1_s1.patch(
+        reverse(INGREDIENT_DETAIL_URL, args={ingredient.id}),
+        {'note': 'keep this sponge'},
+        content_type='application/json',
+    )
+    assert r.status_code == 200, r.content
+    assert json.loads(r.content)['note'] == 'keep this sponge'

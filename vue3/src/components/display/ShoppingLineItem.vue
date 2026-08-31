@@ -22,6 +22,7 @@
                             <i class="fas fa-clock-rotate-left text-info fa-fw" v-if="a.delayed"></i> <b>
                             <span :class="{'text-disabled': a.checked || a.delayed}" class="text-no-wrap">
                                 <template v-if="a.amountGrams != null && a.shoppingMeasure">
+                                    <span v-if="a.buyCount != null && a.exactUnits != null && a.buyCount !== a.exactUnits">{{ $t('Buy') }}&nbsp;</span>
                                     <span>{{ $n(a.amount) }}</span>
                                     <span class="ms-1">{{ a.shoppingMeasure }}</span>
                                     <span class="ms-1">({{ formatGramsLabel(a.amountGrams) }})</span>
@@ -81,7 +82,7 @@ import {isDelayed, isEntryVisible, isShoppingListFoodDelayed, isShoppingListFood
 import ShoppingLineItemDialog from "@/components/dialogs/ShoppingLineItemDialog.vue";
 import {pluralString, isSingularAmount} from "@/utils/model_utils.ts";
 import ShoppingListsBar from "@/components/display/ShoppingListsBar.vue";
-import {formatGramsLabel, hasShoppingPack, inStoreShoppingCountDisplay, parsePackNumber} from "@/utils/foodPack";
+import {formatGramsLabel, gramsToDisplayUnits, hasShoppingPack, inStoreShoppingCountDisplay, parsePackNumber} from "@/utils/foodPack";
 
 const emit = defineEmits(['clicked'])
 
@@ -169,16 +170,21 @@ const amounts = computed((): ShoppingLineAmount[] => {
                 if (ua.amountGrams != null && ua.checked == e.checked && ua.delayed == isDelayed(e)) {
                     ua.amountGrams += grams
                     ua.amount = inStoreShoppingCountDisplay(ua.amountGrams, food.shoppingMeasureGrams)
+                    ua.buyCount = ua.amount
+                    ua.exactUnits = gramsToDisplayUnits(ua.amountGrams, food.shoppingMeasureGrams)
                     uaMerged = true
                 }
             })
             if (!uaMerged) {
+                const buyCount = inStoreShoppingCountDisplay(grams, food.shoppingMeasureGrams)
                 unitAmounts.push({
                     key: `pack_${e.checked}_${isDelayed(e)}`,
-                    amount: inStoreShoppingCountDisplay(grams, food.shoppingMeasureGrams),
+                    amount: buyCount,
                     unit: undefined as unknown as Unit,
                     shoppingMeasure: food.shoppingMeasure || null,
                     amountGrams: grams,
+                    exactUnits: gramsToDisplayUnits(grams, food.shoppingMeasureGrams),
+                    buyCount,
                     checked: e.checked,
                     delayed: isDelayed(e)
                 } as ShoppingLineAmount)

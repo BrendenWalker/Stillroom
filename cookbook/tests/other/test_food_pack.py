@@ -8,7 +8,6 @@ from cookbook.helper.food_pack import (
     quantity_to_grams,
     shopping_entry_quantities,
     shopping_units_to_grams,
-    validate_count_per_pack_one,
 )
 
 
@@ -19,22 +18,28 @@ def test_derive_shopping_measure_grams():
     assert derive_shopping_measure_grams(None, None, None) is None
 
 
-def test_validate_count_per_pack_one():
-    assert validate_count_per_pack_one(50, 12, 600) is None
-    assert validate_count_per_pack_one(50, 1, 50) is None
-    assert validate_count_per_pack_one(None, 1, None) is None
-    assert validate_count_per_pack_one(50, 1, None) is not None
-    assert validate_count_per_pack_one(50, 1, 60) is not None
-
-
-def test_apply_food_pack_fields_derives_then_validates():
-    derived, error = apply_food_pack_fields(50, 12, 1)
+def test_apply_food_pack_fields_derives_and_fills_count_one():
+    iug, derived, error = apply_food_pack_fields(50, 12, 1)
     assert error is None
+    assert iug == Decimal('50')
     assert derived == Decimal('600.00')
 
-    derived, error = apply_food_pack_fields(None, 1, 50)
+    iug, derived, error = apply_food_pack_fields(None, 1, 50)
+    assert error is None
+    assert iug == Decimal('50')
+    assert derived == Decimal('50.00')
+
+    iug, derived, error = apply_food_pack_fields(80, 1, None)
+    assert error is None
+    assert iug == Decimal('80')
+    assert derived == Decimal('80.00')
+
+
+def test_apply_food_pack_fields_rejects_invalid_count():
+    _, _, error = apply_food_pack_fields(50, 0, 50)
     assert error is not None
-    assert derived == Decimal('50')
+    _, _, error = apply_food_pack_fields(50, -1, 50)
+    assert error is not None
 
 
 def test_quantity_to_grams_weight_and_each():
@@ -47,6 +52,17 @@ def test_quantity_to_grams_weight_and_each():
     assert quantity_to_grams(food, 3, each) == Decimal('150')
     assert quantity_to_grams(food, 3, None) == Decimal('150')
     assert quantity_to_grams(food, 1, dozen) == Decimal('600')
+
+
+def test_quantity_to_grams_count_unit_aliases():
+    food = SimpleNamespace(ingredient_unit_grams=Decimal('50'), shopping_measure='dozen', shopping_measure_grams=Decimal('600'), space=None)
+    eggs = SimpleNamespace(name='eggs', base_unit='')
+    stk = SimpleNamespace(name='Stk.', base_unit='')
+    cup = SimpleNamespace(name='cup', base_unit='')
+
+    assert quantity_to_grams(food, 3, eggs) == Decimal('150')
+    assert quantity_to_grams(food, 3, stk) == Decimal('150')
+    assert quantity_to_grams(food, 2, cup) is None
 
 
 def test_shopping_entry_quantities_pack_and_legacy():
@@ -63,6 +79,15 @@ def test_shopping_entry_quantities_pack_and_legacy():
     assert grams is None
     assert amount == Decimal('2')
     assert unit is cup
+
+
+def test_parsed_amount_uses_ingredient_unit_not_shopping_packs():
+    """Telegram / free-text '3 eggs' must convert as 3 each, not 3 dozen."""
+    packed = SimpleNamespace(ingredient_unit_grams=Decimal('50'), shopping_measure='dozen', shopping_measure_grams=Decimal('600'), space=None)
+    each = SimpleNamespace(name='each', base_unit='')
+    amount, unit, grams = shopping_entry_quantities(packed, 3, each)
+    assert grams == Decimal('150')
+    assert amount == Decimal('150') / Decimal('600')
 
 
 def test_in_store_shopping_count_ceils():
