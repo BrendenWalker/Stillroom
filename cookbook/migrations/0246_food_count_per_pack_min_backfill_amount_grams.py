@@ -2,8 +2,8 @@
 """
 Normalize count_per_pack and backfill ShoppingListEntry.amount_grams.
 
-Conversion logic is frozen in this file (not imported from cookbook.helper.food_pack)
-so later helper changes cannot break this historical migration.
+Conversion uses only raw row fields (not cookbook.helper.food_pack) so later
+helper changes cannot break this historical migration.
 """
 
 from decimal import Decimal, InvalidOperation
@@ -39,6 +39,9 @@ WEIGHT_TO_GRAMS = {
     'pound': Decimal('1000') / Decimal('2.20462'),
 }
 
+UPDATE_FIELDS = ('amount', 'unit_id', 'amount_grams')
+BATCH_SIZE = 500
+
 
 def _to_decimal(value):
     if value is None or value == '':
@@ -52,52 +55,69 @@ def _to_decimal(value):
     return d
 
 
-def _unit_name(unit):
-    if unit is None:
-        return ''
-    return str(getattr(unit, 'name', '') or '').strip().lower().rstrip('.')
+def _normalize_unit_name(name):
+    return str(name or '').strip().lower().rstrip('.')
 
 
-def _is_count_unit(unit):
-    if unit is None:
-        return True
-    return _unit_name(unit) in COUNT_UNIT_NAMES
-
-
-def quantity_to_grams(food, amount, unit):
+def _quantity_to_grams(
+    amount,
+    unit_id,
+    unit_name,
+    unit_base,
+    ingredient_unit_grams,
+    shopping_measure,
+    shopping_measure_grams,
+):
     """Convert amount+unit to grams using pack fields and weight base units only."""
     amount = _to_decimal(amount)
-    if amount is None or food is None:
+    if amount is None:
         return None
 
-    base = getattr(unit, 'base_unit', None) if unit is not None else None
-    if base in WEIGHT_TO_GRAMS:
-        return amount * WEIGHT_TO_GRAMS[base]
+    if unit_base in WEIGHT_TO_GRAMS:
+        return amount * WEIGHT_TO_GRAMS[unit_base]
 
-    iug = _to_decimal(getattr(food, 'ingredient_unit_grams', None))
-    if _is_count_unit(unit) and iug is not None and iug > 0:
+    iug = _to_decimal(ingredient_unit_grams)
+    is_count = unit_id is None or _normalize_unit_name(unit_name) in COUNT_UNIT_NAMES
+    if is_count and iug is not None and iug > 0:
         return amount * iug
 
-    smg = _to_decimal(getattr(food, 'shopping_measure_grams', None))
-    shopping_measure = str(getattr(food, 'shopping_measure', None) or '').strip().lower()
-    if unit is not None and shopping_measure and _unit_name(unit) == shopping_measure and smg is not None and smg > 0:
+    smg = _to_decimal(shopping_measure_grams)
+    measure = str(shopping_measure or '').strip().lower()
+    name = _normalize_unit_name(unit_name)
+    if unit_id is not None and measure and name == measure and smg is not None and smg > 0:
         return amount * smg
 
     return None
 
 
-def shopping_entry_quantities(food, amount, unit):
-    """Return (amount, unit, amount_grams) to persist on ShoppingListEntry."""
+def packed_entry_quantities(
+    amount,
+    unit_id,
+    unit_name,
+    unit_base,
+    ingredient_unit_grams,
+    shopping_measure,
+    shopping_measure_grams,
+):
+    """Return (amount, unit_id, amount_grams) from raw shopping-entry / food fields."""
     amount = _to_decimal(amount)
     if amount is None:
         amount = Decimal(0)
 
-    grams = quantity_to_grams(food, amount, unit)
-    smg = _to_decimal(getattr(food, 'shopping_measure_grams', None))
+    grams = _quantity_to_grams(
+        amount,
+        unit_id,
+        unit_name,
+        unit_base,
+        ingredient_unit_grams,
+        shopping_measure,
+        shopping_measure_grams,
+    )
+    smg = _to_decimal(shopping_measure_grams)
     if grams is not None and smg is not None and smg > 0:
         return grams / smg, None, grams
 
-    return amount, unit, grams
+    return amount, unit_id, grams
 
 
 def backfill_shopping_amount_grams(apps, schema_editor):
@@ -110,22 +130,41 @@ def backfill_shopping_amount_grams(apps, schema_editor):
             ShoppingListEntry.objects
             .filter(amount_grams__isnull=True, food__shopping_measure_grams__isnull=False)
             .exclude(food__shopping_measure_grams__lte=0)
-            .select_related('food', 'unit')
+            .values(
+                'id',
+                'amount',
+                'unit_id',
+                'unit__name',
+                'unit__base_unit',
+                'food__ingredient_unit_grams',
+                'food__shopping_measure',
+                'food__shopping_measure_grams',
+            )
         )
         to_update = []
-        for sle in entries.iterator():
-            amount, unit, grams = shopping_entry_quantities(sle.food, sle.amount, sle.unit)
+        for row in entries.iterator(chunk_size=BATCH_SIZE):
+            amount, unit_id, grams = packed_entry_quantities(
+                amount=row['amount'],
+                unit_id=row['unit_id'],
+                unit_name=row['unit__name'],
+                unit_base=row['unit__base_unit'],
+                ingredient_unit_grams=row['food__ingredient_unit_grams'],
+                shopping_measure=row['food__shopping_measure'],
+                shopping_measure_grams=row['food__shopping_measure_grams'],
+            )
             if grams is None:
                 continue
-            sle.amount = amount
-            sle.unit_id = None if unit is None else unit.pk
-            sle.amount_grams = grams
-            to_update.append(sle)
-            if len(to_update) >= 500:
-                ShoppingListEntry.objects.bulk_update(to_update, ['amount', 'unit', 'amount_grams'])
+            to_update.append(ShoppingListEntry(
+                pk=row['id'],
+                amount=amount,
+                unit_id=unit_id,
+                amount_grams=grams,
+            ))
+            if len(to_update) >= BATCH_SIZE:
+                ShoppingListEntry.objects.bulk_update(to_update, UPDATE_FIELDS)
                 to_update = []
         if to_update:
-            ShoppingListEntry.objects.bulk_update(to_update, ['amount', 'unit', 'amount_grams'])
+            ShoppingListEntry.objects.bulk_update(to_update, UPDATE_FIELDS)
 
 
 def noop(apps, schema_editor):

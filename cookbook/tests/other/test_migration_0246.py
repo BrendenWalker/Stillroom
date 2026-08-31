@@ -1,6 +1,5 @@
 import importlib
 from decimal import Decimal
-from types import SimpleNamespace
 
 from django.apps import apps
 from django.contrib import auth
@@ -12,33 +11,37 @@ from cookbook.tests.factories import FoodFactory, ShoppingListEntryFactory, Unit
 migration = importlib.import_module(
     'cookbook.migrations.0246_food_count_per_pack_min_backfill_amount_grams'
 )
-shopping_entry_quantities = migration.shopping_entry_quantities
+packed_entry_quantities = migration.packed_entry_quantities
 backfill_shopping_amount_grams = migration.backfill_shopping_amount_grams
 
 
 def test_migration_quantities_count_unit_to_shopping_packs():
-    packed = SimpleNamespace(
+    amount, unit_id, grams = packed_entry_quantities(
+        amount=3,
+        unit_id=1,
+        unit_name='each',
+        unit_base='',
         ingredient_unit_grams=Decimal('50'),
         shopping_measure='dozen',
         shopping_measure_grams=Decimal('600'),
     )
-    each = SimpleNamespace(name='each', base_unit='')
-    amount, unit, grams = shopping_entry_quantities(packed, 3, each)
     assert grams == Decimal('150')
-    assert unit is None
+    assert unit_id is None
     assert amount == Decimal('150') / Decimal('600')
 
 
 def test_migration_quantities_weight_base_unit():
-    packed = SimpleNamespace(
+    amount, unit_id, grams = packed_entry_quantities(
+        amount=200,
+        unit_id=1,
+        unit_name='g',
+        unit_base='g',
         ingredient_unit_grams=Decimal('50'),
         shopping_measure='can',
         shopping_measure_grams=Decimal('400'),
     )
-    gram = SimpleNamespace(name='g', base_unit='g')
-    amount, unit, grams = shopping_entry_quantities(packed, 200, gram)
     assert grams == Decimal('200')
-    assert unit is None
+    assert unit_id is None
     assert amount == Decimal('200') / Decimal('400')
 
 
@@ -53,11 +56,20 @@ def test_backfill_sets_amount_grams_and_clears_unit(u1_s1, space_1):
             shopping_measure_grams=Decimal('600'),
         )
         each = UnitFactory(space=space_1, name='each')
+        cup = UnitFactory(space=space_1, name='cup')
         sle = ShoppingListEntryFactory(
             space=space_1,
             food=food,
             unit=each,
             amount=Decimal('3'),
+            amount_grams=None,
+            created_by=user,
+        )
+        skipped = ShoppingListEntryFactory(
+            space=space_1,
+            food=food,
+            unit=cup,
+            amount=Decimal('2'),
             amount_grams=None,
             created_by=user,
         )
@@ -70,6 +82,11 @@ def test_backfill_sets_amount_grams_and_clears_unit(u1_s1, space_1):
         assert sle.amount_grams == Decimal('150')
         assert sle.unit_id is None
         assert sle.amount == Decimal('150') / Decimal('600')
+
+        skipped.refresh_from_db()
+        assert skipped.amount_grams is None
+        assert skipped.unit_id == cup.pk
+        assert skipped.amount == Decimal('2')
 
         invalid.refresh_from_db()
         assert invalid.count_per_pack is None
