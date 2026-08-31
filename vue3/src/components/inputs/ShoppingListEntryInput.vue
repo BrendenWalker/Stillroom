@@ -41,6 +41,7 @@ import {useShoppingStore} from "@/stores/ShoppingStore";
 import {ErrorMessageType, useMessageStore} from "@/stores/MessageStore";
 import Multiselect from "@vueform/multiselect";
 import {useUserPreferenceStore} from "@/stores/UserPreferenceStore";
+import {hasShoppingPack, shoppingUnitsToGrams} from "@/utils/foodPack";
 
 const props = defineProps({
     shoppingListRecipe: {type: {} as PropType<ShoppingListRecipe>, required: false},
@@ -59,13 +60,22 @@ const loading = ref(false)
 /**
  * add new ingredient from ingredient text input
  */
-function addIngredient(amount: number, unit: Unit | null, food: Food|FoodSimple | null) {
+function addIngredient(amount: number, unit: Unit | null, food: Food|FoodSimple | null, options?: { shoppingUnits?: boolean }) {
+    const packFood = food as Food | undefined
     let sle = {
         amount: Math.max(amount, 1),
         unit: unit,
         food: food,
         shoppingLists: useShoppingStore().shoppingLists.filter(sl => useUserPreferenceStore().deviceSettings.shopping_selected_shopping_lists.includes(sl.id))
     } as ShoppingListEntry
+
+    if (options?.shoppingUnits && packFood && hasShoppingPack(packFood)) {
+        const grams = shoppingUnitsToGrams(Math.max(amount, 1), packFood.shoppingMeasureGrams)
+        if (grams != null) {
+            sle.amountGrams = grams
+            sle.unit = null
+        }
+    }
 
     if (props.mealPlanId) {
         sle.mealplanId = props.mealPlanId
@@ -110,7 +120,7 @@ function createObject(object: any, select$: Multiselect) {
 function selectObject(foodId: number, food: Food, select$: Multiselect) {
     //ingredientInput.value = food.name
     ingredientModelInput.value = {} as Food
-    addIngredient(1, null, food)
+    addIngredient(1, null, food, { shoppingUnits: true })
     return false
 }
 

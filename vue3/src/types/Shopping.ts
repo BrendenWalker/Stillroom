@@ -39,6 +39,8 @@ export type ShoppingLineAmount = {
     unit: Unit,
     checked: boolean,
     delayed: boolean,
+    shoppingMeasure?: string | null,
+    amountGrams?: number | null,
 }
 
 /**

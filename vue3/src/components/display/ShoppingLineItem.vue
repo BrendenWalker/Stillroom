@@ -21,8 +21,15 @@
                             <i class="fas fa-check text-success fa-fw" v-if="a.checked"></i>
                             <i class="fas fa-clock-rotate-left text-info fa-fw" v-if="a.delayed"></i> <b>
                             <span :class="{'text-disabled': a.checked || a.delayed}" class="text-no-wrap">
-                                <span v-if="amounts.length > 1 || (amounts.length == 1 && !isSingularAmount(a.amount)) || a.unit">{{ $n(a.amount) }}</span>
-                                <span class="ms-1" v-if="a.unit">{{ pluralString(a.unit, a.amount) }}</span>
+                                <template v-if="a.amountGrams != null && a.shoppingMeasure">
+                                    <span>{{ $n(a.amount) }}</span>
+                                    <span class="ms-1">{{ a.shoppingMeasure }}</span>
+                                    <span class="ms-1">({{ formatGramsLabel(a.amountGrams) }})</span>
+                                </template>
+                                <template v-else>
+                                    <span v-if="amounts.length > 1 || (amounts.length == 1 && !isSingularAmount(a.amount)) || a.unit">{{ $n(a.amount) }}</span>
+                                    <span class="ms-1" v-if="a.unit">{{ pluralString(a.unit, a.amount) }}</span>
+                                </template>
                             </span>
                             </b>
                         </span>
@@ -74,6 +81,7 @@ import {isDelayed, isEntryVisible, isShoppingListFoodDelayed, isShoppingListFood
 import ShoppingLineItemDialog from "@/components/dialogs/ShoppingLineItemDialog.vue";
 import {pluralString, isSingularAmount} from "@/utils/model_utils.ts";
 import ShoppingListsBar from "@/components/display/ShoppingListsBar.vue";
+import {formatGramsLabel, hasShoppingPack, inStoreShoppingCountDisplay, parsePackNumber} from "@/utils/foodPack";
 
 const emit = defineEmits(['clicked'])
 
@@ -147,10 +155,36 @@ const shoppingList = computed(() => {
  */
 const amounts = computed((): ShoppingLineAmount[] => {
     let unitAmounts: ShoppingLineAmount[] = []
+    const food = props.shoppingListFood.food
+    const packFood = hasShoppingPack(food)
 
     for (let i in entries.value) {
         let e = entries.value[i]
+        const grams = parsePackNumber(e.amountGrams)
+        const usePack = packFood && grams != null && grams > 0
 
+        if (usePack) {
+            let uaMerged = false
+            unitAmounts.forEach(ua => {
+                if (ua.amountGrams != null && ua.checked == e.checked && ua.delayed == isDelayed(e)) {
+                    ua.amountGrams += grams
+                    ua.amount = inStoreShoppingCountDisplay(ua.amountGrams, food.shoppingMeasureGrams)
+                    uaMerged = true
+                }
+            })
+            if (!uaMerged) {
+                unitAmounts.push({
+                    key: `pack_${e.checked}_${isDelayed(e)}`,
+                    amount: inStoreShoppingCountDisplay(grams, food.shoppingMeasureGrams),
+                    unit: undefined as unknown as Unit,
+                    shoppingMeasure: food.shoppingMeasure || null,
+                    amountGrams: grams,
+                    checked: e.checked,
+                    delayed: isDelayed(e)
+                } as ShoppingLineAmount)
+            }
+            continue
+        }
 
         let unit = -1
         if (e.unit !== undefined && e.unit !== null) {
@@ -161,7 +195,7 @@ const amounts = computed((): ShoppingLineAmount[] => {
 
             let uaMerged = false
             unitAmounts.forEach(ua => {
-                if (((ua.unit == null && e.unit == null) || (ua.unit != null && ua.unit.id! == unit)) && ua.checked == e.checked && ua.delayed == isDelayed(e)) {
+                if (ua.amountGrams == null && ((ua.unit == null && e.unit == null) || (ua.unit != null && ua.unit.id! == unit)) && ua.checked == e.checked && ua.delayed == isDelayed(e)) {
                     ua.amount += e.amount
                     uaMerged = true
                 }

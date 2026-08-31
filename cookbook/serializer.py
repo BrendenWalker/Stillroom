@@ -30,6 +30,7 @@ from cookbook.helper.ai_helper import get_monthly_token_usage
 from cookbook.helper.image_processing import is_file_type_allowed
 from cookbook.helper.permission_helper import above_space_limit, create_space_for_user, get_household_user_ids
 from cookbook.helper.property_helper import FoodPropertyHelper
+from cookbook.helper.food_pack import apply_food_pack_fields, shopping_entry_quantities, shopping_measure_grams_of, to_decimal
 from cookbook.helper.shopping_helper import RecipeShoppingEditor
 from cookbook.helper.unit_conversion_helper import UnitConversionHelper
 from cookbook.models import (Automation, BookmarkletImport, Comment, CookLog, CustomFilter,
@@ -132,11 +133,15 @@ class CustomDecimalField(serializers.Field):
     """
 
     def to_representation(self, value):
+        if value is None:
+            return None
         if not isinstance(value, Decimal):
             value = Decimal(value)
         return round(value, 4).normalize()
 
     def to_internal_value(self, data):
+        if data is None:
+            return None
         if isinstance(data, int) or isinstance(data, float):
             return data
         elif isinstance(data, str):
@@ -890,6 +895,8 @@ class FoodSerializer(UniqueFieldsMixin, WritableNestedModelSerializer, ExtendedR
     properties = PropertySerializer(many=True, allow_null=True, required=False)
     properties_food_unit = UnitSerializer(allow_null=True, required=False)
     properties_food_amount = CustomDecimalField(required=False)
+    ingredient_unit_grams = CustomDecimalField(required=False, allow_null=True)
+    shopping_measure_grams = CustomDecimalField(required=False, allow_null=True)
 
     recipe_filter = 'steps__ingredients__food'
     images = ['recipe__image']
@@ -911,6 +918,31 @@ class FoodSerializer(UniqueFieldsMixin, WritableNestedModelSerializer, ExtendedR
             return Food.objects.filter(filter).filter(onhand_users__id__in=shared_users).exists()
         except AttributeError:
             return []
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+
+        def pick(name):
+            if name in attrs:
+                return attrs[name]
+            if self.instance is not None:
+                return getattr(self.instance, name, None)
+            return None
+
+        derived, error = apply_food_pack_fields(
+            pick('ingredient_unit_grams'),
+            pick('count_per_pack'),
+            pick('shopping_measure_grams'),
+        )
+        if error:
+            raise ValidationError({'count_per_pack': error})
+        if derived is not None:
+            attrs['shopping_measure_grams'] = derived
+        elif 'shopping_measure_grams' in attrs and attrs['shopping_measure_grams'] == '':
+            attrs['shopping_measure_grams'] = None
+        if 'shopping_measure' in attrs and attrs['shopping_measure'] == '':
+            attrs['shopping_measure'] = None
+        return attrs
 
     def create(self, validated_data):
         name = validated_data['name'].strip()
@@ -990,6 +1022,7 @@ class FoodSerializer(UniqueFieldsMixin, WritableNestedModelSerializer, ExtendedR
             'id', 'name', 'plural_name', 'description', 'shopping', 'recipe', 'url', 'properties', 'properties_food_amount', 'properties_food_unit', 'fdc_id',
             'food_onhand', 'supermarket_category', 'image', 'parent', 'numchild', 'numrecipe', 'inherit_fields', 'full_name', 'ignore_shopping',
             'substitute', 'substitute_siblings', 'substitute_children', 'substitute_onhand', 'child_inherit_fields', 'open_data_slug', 'shopping_lists',
+            'shopping_measure', 'ingredient_unit_grams', 'count_per_pack', 'shopping_measure_grams',
         )
         read_only_fields = ('id', 'numchild', 'parent', 'image', 'numrecipe')
 
@@ -1489,6 +1522,8 @@ class ShoppingListRecipeSerializer(serializers.ModelSerializer):
 class FoodShoppingSerializer(serializers.ModelSerializer):
     supermarket_category = SupermarketCategorySerializer(read_only=True)
     shopping_lists = ShoppingListSerializer(read_only=True, many=True)
+    ingredient_unit_grams = CustomDecimalField(required=False, allow_null=True)
+    shopping_measure_grams = CustomDecimalField(required=False, allow_null=True)
 
     # TODO duplicate code with FoodSerializer, merge into one or use proper function
     def create(self, validated_data):
@@ -1520,7 +1555,10 @@ class FoodShoppingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Food
-        fields = ('id', 'name', 'plural_name', 'supermarket_category', 'shopping_lists')
+        fields = (
+            'id', 'name', 'plural_name', 'supermarket_category', 'shopping_lists',
+            'shopping_measure', 'ingredient_unit_grams', 'count_per_pack', 'shopping_measure_grams',
+        )
 
 
 class ShoppingListEntrySerializer(WritableNestedModelSerializer):
@@ -1529,6 +1567,7 @@ class ShoppingListEntrySerializer(WritableNestedModelSerializer):
     shopping_lists = ShoppingListSerializer(many=True, required=False)
     list_recipe_data = ShoppingListRecipeSerializer(source='list_recipe', read_only=True)
     amount = CustomDecimalField()
+    amount_grams = CustomDecimalField(required=False, allow_null=True)
     created_by = UserSerializer(read_only=True)
     completed_at = serializers.DateTimeField(allow_null=True, required=False)
     mealplan_id = serializers.IntegerField(required=False, write_only=True,
@@ -1563,6 +1602,38 @@ class ShoppingListEntrySerializer(WritableNestedModelSerializer):
 
         return super().run_validation(data)
 
+    def _apply_pack_quantities(self, validated_data, instance=None):
+        if 'amount' not in validated_data and 'amount_grams' not in validated_data:
+            return validated_data
+
+        food = validated_data.get('food')
+        if food is None and instance is not None:
+            food = instance.food
+        if food is None:
+            return validated_data
+
+        amount = validated_data.get('amount', getattr(instance, 'amount', None) if instance else None)
+        unit = validated_data.get('unit', getattr(instance, 'unit', None) if instance else None)
+        amount_grams = validated_data.get('amount_grams') if 'amount_grams' in validated_data else None
+
+        # Editor +/- sends only amount: treat it as shopping units when the food has pack data
+        if instance is not None and 'amount' in validated_data and 'amount_grams' not in validated_data:
+            smg = shopping_measure_grams_of(food)
+            if smg is not None and smg > 0:
+                amount_dec = to_decimal(amount)
+                if amount_dec is not None:
+                    amount_grams = amount_dec * smg
+
+        amt, unit_out, grams = shopping_entry_quantities(food, amount, unit, amount_grams=amount_grams)
+        if grams is not None:
+            validated_data['amount'] = amt
+            validated_data['amount_grams'] = grams
+            if shopping_measure_grams_of(food) is not None:
+                validated_data['unit'] = None
+            else:
+                validated_data['unit'] = unit_out
+        return validated_data
+
     def create(self, validated_data):
         validated_data['space'] = self.context['request'].space
         validated_data['created_by'] = self.context['request'].user
@@ -1575,6 +1646,7 @@ class ShoppingListEntrySerializer(WritableNestedModelSerializer):
                                                                                   created_by=self.context['request'].user)
             del validated_data['mealplan_id']
 
+        validated_data = self._apply_pack_quantities(validated_data)
         obj = super().create(validated_data)
 
         if self.context['request'].user.userpreference.shopping_update_food_lists and obj.shopping_lists.count() == 0:
@@ -1596,12 +1668,13 @@ class ShoppingListEntrySerializer(WritableNestedModelSerializer):
                 instance.food.onhand_users.add(*User.objects.filter(id__in=get_household_user_ids(self.context['request'].user_space)))
             elif not checked:
                 instance.food.onhand_users.remove(*User.objects.filter(id__in=get_household_user_ids(self.context['request'].user_space)))
+        validated_data = self._apply_pack_quantities(validated_data, instance=instance)
         return super().update(instance, validated_data)
 
     class Meta:
         model = ShoppingListEntry
         fields = (
-            'id', 'list_recipe', 'shopping_lists', 'food', 'unit', 'amount', 'order', 'checked', 'ingredient',
+            'id', 'list_recipe', 'shopping_lists', 'food', 'unit', 'amount', 'amount_grams', 'order', 'checked', 'ingredient',
             'list_recipe_data', 'created_by', 'created_at', 'updated_at', 'completed_at', 'delay_until', 'mealplan_id'
         )
         read_only_fields = ('id', 'created_by', 'created_at')

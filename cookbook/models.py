@@ -801,6 +801,10 @@ class Food(ExportModelOperationsMixin('food'), TreeModel, PermissionModelMixin):
 
     preferred_unit = models.ForeignKey(Unit, on_delete=models.SET_NULL, null=True, blank=True, default=None, related_name='preferred_unit')
     preferred_shopping_unit = models.ForeignKey(Unit, on_delete=models.SET_NULL, null=True, blank=True, default=None, related_name='preferred_shopping_unit')
+    shopping_measure = models.CharField(max_length=255, blank=True, null=True, default=None)
+    ingredient_unit_grams = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True, default=None)
+    count_per_pack = models.IntegerField(null=True, blank=True, default=None)
+    shopping_measure_grams = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True, default=None)
     fdc_id = models.IntegerField(null=True, default=None, blank=True)
 
     open_data_slug = models.CharField(max_length=128, null=True, blank=True, default=None)
@@ -1334,6 +1338,7 @@ class ShoppingListEntry(ExportModelOperationsMixin('shopping_list_entry'), model
     unit = models.ForeignKey(Unit, on_delete=models.SET_NULL, null=True, blank=True)
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE, null=True, blank=True)
     amount = models.DecimalField(default=0, decimal_places=16, max_digits=32)
+    amount_grams = models.DecimalField(default=None, decimal_places=16, max_digits=32, null=True, blank=True)
     order = models.IntegerField(default=0)
     checked = models.BooleanField(default=False)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)

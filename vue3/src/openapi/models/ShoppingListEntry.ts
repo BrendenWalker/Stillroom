@@ -92,6 +92,12 @@ export interface ShoppingListEntry {
      */
     amount: number;
     /**
+     * Required amount in grams when the food has pack data.
+     * @type {number}
+     * @memberof ShoppingListEntry
+     */
+    amountGrams?: number | null;
+    /**
      * 
      * @type {number}
      * @memberof ShoppingListEntry
@@ -182,6 +188,7 @@ export function ShoppingListEntryFromJSONTyped(json: any, ignoreDiscriminator: b
         'food': FoodShoppingFromJSON(json['food']),
         'unit': json['unit'] == null ? undefined : UnitFromJSON(json['unit']),
         'amount': json['amount'],
+        'amountGrams': json['amount_grams'] == null ? undefined : json['amount_grams'],
         'order': json['order'] == null ? undefined : json['order'],
         'checked': json['checked'] == null ? undefined : json['checked'],
         'ingredient': json['ingredient'] == null ? undefined : json['ingredient'],
@@ -212,6 +219,7 @@ export function ShoppingListEntryToJSONTyped(value?: Omit<ShoppingListEntry, 'li
         'food': FoodShoppingToJSON(value['food']),
         'unit': UnitToJSON(value['unit']),
         'amount': value['amount'],
+        'amount_grams': value['amountGrams'],
         'order': value['order'],
         'checked': value['checked'],
         'ingredient': value['ingredient'],
