@@ -732,3 +732,21 @@ def test_shopping_status_checked_excluded(u1_s1, space_1):
 
     r = json.loads(u1_s1.get(reverse(DETAIL_URL, args={food.id})).content)
     assert str(r['shopping']) == 'False'
+
+
+def test_food_kcal_fields(u1_s1, space_1):
+    with scope(space=space_1):
+        food = FoodFactory(space=space_1)
+    r = u1_s1.patch(
+        reverse(DETAIL_URL, args={food.id}),
+        {'kcal': 155, 'kcal_grams': 100},
+        content_type='application/json',
+    )
+    assert r.status_code == 200
+    body = json.loads(r.content)
+    assert float(body['kcal']) == 155
+    assert float(body['kcal_grams']) == 100
+    r = json.loads(u1_s1.get(reverse(DETAIL_URL, args={food.id})).content)
+    assert float(r['kcal']) == 155
+    assert float(r['kcal_grams']) == 100
+

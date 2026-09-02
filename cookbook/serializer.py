@@ -899,6 +899,8 @@ class FoodSerializer(UniqueFieldsMixin, WritableNestedModelSerializer, ExtendedR
     ingredient_unit_grams = CustomDecimalField(required=False, allow_null=True)
     count_per_pack = IntegerField(required=False, allow_null=True, min_value=1)
     shopping_measure_grams = CustomDecimalField(required=False, allow_null=True)
+    kcal = CustomDecimalField(required=False, allow_null=True)
+    kcal_grams = CustomDecimalField(required=False, allow_null=True)
 
     recipe_filter = 'steps__ingredients__food'
     images = ['recipe__image']
@@ -1029,6 +1031,7 @@ class FoodSerializer(UniqueFieldsMixin, WritableNestedModelSerializer, ExtendedR
             'food_onhand', 'supermarket_category', 'image', 'parent', 'numchild', 'numrecipe', 'inherit_fields', 'full_name', 'ignore_shopping',
             'substitute', 'substitute_siblings', 'substitute_children', 'substitute_onhand', 'child_inherit_fields', 'open_data_slug', 'shopping_lists',
             'shopping_measure', 'ingredient_unit_grams', 'count_per_pack', 'shopping_measure_grams',
+            'kcal', 'kcal_grams',
         )
         read_only_fields = ('id', 'numchild', 'parent', 'image', 'numrecipe')
 

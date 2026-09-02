@@ -39,21 +39,24 @@
 
 
 import {ApiApi} from "@/openapi";
-import {onMounted, ref} from "vue";
+import {ref} from "vue";
 import {ErrorMessageType, PreparedMessage, useMessageStore} from "@/stores/MessageStore.ts";
 import {useUserPreferenceStore} from "@/stores/UserPreferenceStore.ts";
 import {THousehold} from "@/types/Models.ts";
-import {useRouter} from "vue-router";
+import {onBeforeRouteLeave, useRouter} from "vue-router";
 import DatabaseModelCol from "@/components/display/DatabaseModelCol.vue";
 
 const router = useRouter()
 
 const loading = ref(false)
 const householdName = ref("")
+const householdSetupPersisted = ref(false)
 
-
-onMounted(() => {
-
+/**
+ * Leaving household setup (nav or skip) marks it complete so it is not shown again.
+ */
+onBeforeRouteLeave(() => {
+    void persistHouseholdComplete()
 })
 
 function createAndJoinHousehold() {
@@ -67,6 +70,7 @@ function createAndJoinHousehold() {
 
             api.apiUserSpaceUpdate({id: userSpace.id!, userSpace: userSpace}).then(r => {
                 useUserPreferenceStore().activeSpace.householdSetupCompleted = true
+                householdSetupPersisted.value = true
                 useMessageStore().addPreparedMessage(PreparedMessage.CREATE_SUCCESS)
 
 
@@ -90,18 +94,27 @@ function createAndJoinHousehold() {
     }
 }
 
-function skipHouseholdSetup() {
-    let api = new ApiApi()
+function persistHouseholdComplete() {
+    if (householdSetupPersisted.value) {
+        return Promise.resolve()
+    }
+    householdSetupPersisted.value = true
 
+    let api = new ApiApi()
     useUserPreferenceStore().activeSpace.householdSetupCompleted = true
     loading.value = true
 
-    api.apiSpacePartialUpdate({id: useUserPreferenceStore().activeSpace.id!, patchedSpace: useUserPreferenceStore().activeSpace}).then(r => {
+    return api.apiSpacePartialUpdate({id: useUserPreferenceStore().activeSpace.id!, patchedSpace: useUserPreferenceStore().activeSpace}).then(r => {
         useUserPreferenceStore().activeSpace = r
     }).catch(err => {
         useMessageStore().addError(ErrorMessageType.UPDATE_ERROR, err)
     }).finally(() => {
         loading.value = false
+    })
+}
+
+function skipHouseholdSetup() {
+    persistHouseholdComplete().finally(() => {
         router.push({name: 'StartPage'})
     })
 }
