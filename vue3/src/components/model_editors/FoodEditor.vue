@@ -41,6 +41,12 @@
                                 <field-help-button :text="$t('ShoppingMeasureHelp')"></field-help-button>
                             </template>
                         </v-text-field>
+                        <v-number-input :label="$t('ShoppingMeasureGrams')" v-model="editingObj.shoppingMeasureGrams" :precision="2" :disabled="isShoppingGramsDerived" clearable>
+                            <template #append>
+                                <field-help-button :text="$t('ShoppingMeasureGramsHelp')"></field-help-button>
+                            </template>
+                        </v-number-input>
+                        <v-alert icon="$help" class="mb-4" density="compact">{{ $t('PerEachHelp') }}</v-alert>
                         <v-number-input :label="$t('IngredientUnitGrams')" v-model="editingObj.ingredientUnitGrams" :precision="2" clearable>
                             <template #append>
                                 <field-help-button :text="$t('IngredientUnitGramsHelp')"></field-help-button>
@@ -51,11 +57,24 @@
                                 <field-help-button :text="$t('CountPerPackHelp')"></field-help-button>
                             </template>
                         </v-number-input>
-                        <v-number-input :label="$t('ShoppingMeasureGrams')" v-model="editingObj.shoppingMeasureGrams" :precision="2" :disabled="isShoppingGramsDerived" clearable>
-                            <template #append>
-                                <field-help-button :text="$t('ShoppingMeasureGramsHelp')"></field-help-button>
-                            </template>
-                        </v-number-input>
+                        <v-alert icon="$help" class="mb-4 mt-2" density="compact">{{ $t('KCalHelp') }}</v-alert>
+                        <v-row dense align="center">
+                            <v-col cols="12" sm="5">
+                                <v-number-input v-model="editingObj.kcal" :precision="2" clearable hide-details control-variant="hidden">
+                                    <template #append>
+                                        <span class="text-body-1 text-medium-emphasis">{{ $t('KCal') }}</span>
+                                    </template>
+                                </v-number-input>
+                            </v-col>
+                            <v-col cols="auto" class="text-body-1 text-medium-emphasis">{{ $t('per') }}</v-col>
+                            <v-col cols="12" sm="5">
+                                <v-number-input v-model="editingObj.kcalGrams" :precision="2" clearable hide-details control-variant="hidden">
+                                    <template #append>
+                                        <span class="text-body-1 text-medium-emphasis">{{ $t('Grams') }}</span>
+                                    </template>
+                                </v-number-input>
+                            </v-col>
+                        </v-row>
                     </v-form>
                 </v-tabs-window-item>
 
