@@ -66,6 +66,7 @@ type GenericListRequestParameter = {
     page: number,
     pageSize: number,
     query: string,
+    isFood?: boolean,
 }
 
 /**
@@ -527,6 +528,7 @@ export const TSupermarketCategory = {
 
     tableHeaders: [
         {title: 'Name', key: 'name'},
+        {title: 'FoodItems', key: 'isFood'},
         {title: 'Actions', key: 'action', align: 'end'},
     ]
 } as Model

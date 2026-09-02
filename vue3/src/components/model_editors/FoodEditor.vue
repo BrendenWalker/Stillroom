@@ -2,7 +2,7 @@
     <model-editor-base
         :loading="loading"
         :dialog="dialog"
-        @save="saveObject(); saveObjectConversions()"
+        @save="saveFood()"
         @delete="deleteObject"
         @close="emit('close'); editingObjChanged = false"
         :is-update="isUpdate()"
@@ -31,6 +31,10 @@
 
                         <v-model-select :label="$t('Category')" v-model="editingObj.supermarketCategory" model="SupermarketCategory" create ></v-model-select>
                         <v-model-select :label="$t('ShoppingList')" :hint="$t('DefaultShoppingListHelp')" v-model="editingObj.shoppingLists" model="ShoppingList" create chips multiple></v-model-select>
+                        <v-text-field :label="$t('ShoppingMeasure')" :hint="$t('ShoppingMeasureHelp')" persistent-hint v-model="editingObj.shoppingMeasure" class="mt-2"></v-text-field>
+                        <v-number-input :label="$t('IngredientUnitGrams')" :hint="$t('IngredientUnitGramsHelp')" persistent-hint v-model="editingObj.ingredientUnitGrams" :precision="2" clearable></v-number-input>
+                        <v-number-input :label="$t('CountPerPack')" :hint="$t('CountPerPackHelp')" persistent-hint v-model="editingObj.countPerPack" :precision="0" clearable :error-messages="packError"></v-number-input>
+                        <v-number-input :label="$t('ShoppingMeasureGrams')" :hint="$t('ShoppingMeasureGramsHelp')" persistent-hint v-model="editingObj.shoppingMeasureGrams" :precision="2" :disabled="isShoppingGramsDerived" clearable></v-number-input>
                     </v-form>
                 </v-tabs-window-item>
 
@@ -127,7 +131,7 @@
                         <v-checkbox :label="$t('OnHand')" :hint="$t('OnHand_help')" v-model="editingObj.foodOnhand" persistent-hint></v-checkbox>
                         <v-checkbox :label="$t('Ignore_Shopping')" :hint="$t('ignore_shopping_help')" v-model="editingObj.ignoreShopping" persistent-hint></v-checkbox>
                         <v-divider class="mt-2 mb-2"></v-divider>
-                        <v-model-select model="Food" v-model="editingObj.substitute" :label="$t('Substitutes')" :hint="$t('substitute_help')" multiple chips></v-model-select>
+                        <v-model-select model="Food" v-model="editingObj.substitute" :label="$t('Substitutes')" :hint="$t('substitute_help')" multiple chips :list-params="{isFood: true}"></v-model-select>
 
                         <!-- TODO re-add reset inheritance button/api call /function (previously annotated field on food -->
                         <v-text-field :label="$t('Open_Data_Slug')" :hint="$t('open_data_help_text')" persistent-hint v-model="editingObj.openDataSlug" disabled></v-text-field>
@@ -160,6 +164,8 @@ import {openFdcPage} from "@/utils/fdc.ts";
 import {DateTime} from "luxon";
 import HierarchyEditor from "@/components/inputs/HierarchyEditor.vue";
 import VModelSelect from "@/components/inputs/VModelSelect.vue";
+import {applyFoodPackFields} from "@/utils/foodPack";
+import {useI18n} from "vue-i18n";
 
 
 const props = defineProps({
@@ -196,6 +202,46 @@ const propertiesAmountFor = computed(() => {
     }
     return amountFor
 })
+
+const {t} = useI18n()
+
+const isShoppingGramsDerived = computed(() => {
+    const iug = editingObj.value.ingredientUnitGrams
+    const cpp = editingObj.value.countPerPack
+    return iug != null && Number(iug) > 0 && cpp != null && Number(cpp) > 0
+})
+
+const packError = computed(() => {
+    const applied = applyFoodPackFields({
+        ingredientUnitGrams: editingObj.value.ingredientUnitGrams,
+        countPerPack: editingObj.value.countPerPack,
+        shoppingMeasureGrams: editingObj.value.shoppingMeasureGrams,
+    })
+    return applied.error ? t(applied.error) : ''
+})
+
+watch(() => [editingObj.value.ingredientUnitGrams, editingObj.value.countPerPack, editingObj.value.shoppingMeasureGrams], () => {
+    const applied = applyFoodPackFields({
+        ingredientUnitGrams: editingObj.value.ingredientUnitGrams,
+        countPerPack: editingObj.value.countPerPack,
+        shoppingMeasureGrams: editingObj.value.shoppingMeasureGrams,
+    })
+    if (applied.error) return
+    if (applied.ingredientUnitGrams != null && applied.ingredientUnitGrams !== editingObj.value.ingredientUnitGrams) {
+        editingObj.value.ingredientUnitGrams = applied.ingredientUnitGrams
+    }
+    if (applied.shoppingMeasureGrams != null && (isShoppingGramsDerived.value || editingObj.value.countPerPack == 1)) {
+        if (applied.shoppingMeasureGrams !== editingObj.value.shoppingMeasureGrams) {
+            editingObj.value.shoppingMeasureGrams = applied.shoppingMeasureGrams
+        }
+    }
+})
+
+function saveFood() {
+    if (packError.value) return
+    saveObject()
+    saveObjectConversions()
+}
 
 const tab = ref("food")
 

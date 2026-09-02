@@ -2,7 +2,7 @@ Django==5.2.15
 cryptography===48.0.1
 django-annoying==0.10.8
 django-cleanup==9.0.0
-django-crispy-forms==2.4
+django-crispy-forms==2.7
 crispy-bootstrap4==2026.2
 djangorestframework==3.17.1
 drf-spectacular==0.29.0
@@ -11,13 +11,13 @@ drf-writable-nested==0.7.2
 django-oauth-toolkit==2.4.0
 django-debug-toolbar==6.2.0
 bleach==6.4.0
-gunicorn==23.0.0
+gunicorn==26.2.0
 lxml==6.1.0
 Markdown==3.10.3
-Pillow==12.2.0
+Pillow==12.3.0
 psycopg2-binary==2.9.10
 python-dotenv==1.2.3
-requests==2.33.0
+requests==2.34.2
 requests_hardened==1.2.1
 six==1.17.0
 webdavclient3==3.14.6
@@ -29,7 +29,7 @@ beautifulsoup4==4.12.3
 microdata==0.8.0
 mock==5.2.0
 Jinja2==3.1.6
-django-allauth[mfa,socialaccount]==65.15.0
+django-allauth[mfa,socialaccount]==65.19.1
 recipe-scrapers==15.11.0
 django-scopes==2.0.0
 django-treebeard==4.7.1

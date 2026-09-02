@@ -64,6 +64,30 @@ export interface FoodShopping {
      * @memberof FoodShopping
      */
     readonly shoppingLists: Array<ShoppingList>;
+    /**
+     * How you buy it, e.g. dozen, 12 oz can, loaf.
+     * @type {string}
+     * @memberof FoodShopping
+     */
+    shoppingMeasure?: string | null;
+    /**
+     * Grams per each when used in a recipe.
+     * @type {number}
+     * @memberof FoodShopping
+     */
+    ingredientUnitGrams?: number | null;
+    /**
+     * Number of items in a typical pack, e.g. 12 for a dozen.
+     * @type {number}
+     * @memberof FoodShopping
+     */
+    countPerPack?: number | null;
+    /**
+     * Total grams in a typical shopping measure.
+     * @type {number}
+     * @memberof FoodShopping
+     */
+    shoppingMeasureGrams?: number | null;
 }
 
 /**
@@ -91,6 +115,10 @@ export function FoodShoppingFromJSONTyped(json: any, ignoreDiscriminator: boolea
         'pluralName': json['plural_name'] == null ? undefined : json['plural_name'],
         'supermarketCategory': SupermarketCategoryFromJSON(json['supermarket_category']),
         'shoppingLists': ((json['shopping_lists'] as Array<any>).map(ShoppingListFromJSON)),
+        'shoppingMeasure': json['shopping_measure'] == null ? undefined : json['shopping_measure'],
+        'ingredientUnitGrams': json['ingredient_unit_grams'] == null ? undefined : json['ingredient_unit_grams'],
+        'countPerPack': json['count_per_pack'] == null ? undefined : json['count_per_pack'],
+        'shoppingMeasureGrams': json['shopping_measure_grams'] == null ? undefined : json['shopping_measure_grams'],
     };
 }
 
@@ -108,6 +136,10 @@ export function FoodShoppingToJSONTyped(value?: Omit<FoodShopping, 'supermarket_
         'id': value['id'],
         'name': value['name'],
         'plural_name': value['pluralName'],
+        'shopping_measure': value['shoppingMeasure'],
+        'ingredient_unit_grams': value['ingredientUnitGrams'],
+        'count_per_pack': value['countPerPack'],
+        'shopping_measure_grams': value['shoppingMeasureGrams'],
     };
 }
 

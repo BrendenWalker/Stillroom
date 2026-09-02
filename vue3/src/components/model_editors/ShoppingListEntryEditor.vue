@@ -12,7 +12,8 @@
         :editing-object="editingObj">
         <v-card-text>
             <v-form :disabled="loading">
-                <v-number-input v-model="editingObj.amount" control-variant="split" :precision="2">
+                <v-number-input v-model="editingObj.amount" control-variant="split" :precision="2"
+                                :hint="amountHint" :persistent-hint="!!amountHint">
                     <template #prepend>
                         <v-btn icon="" @click="editingObj.amount = editingObj.amount / 2">
                             <v-icon icon="fa-solid fa-divide"></v-icon>
@@ -24,7 +25,8 @@
                         </v-btn>
                     </template>
                 </v-number-input>
-                <v-model-select model="Unit" create v-model="editingObj.unit"></v-model-select>
+                <v-text-field v-if="hasPack" :model-value="editingObj.food?.shoppingMeasure || ''" :label="$t('ShoppingMeasure')" disabled></v-text-field>
+                <v-model-select v-else model="Unit" create v-model="editingObj.unit"></v-model-select>
                 <v-model-select model="Food" create v-model="editingObj.food"></v-model-select>
             </v-form>
         </v-card-text>
@@ -34,12 +36,13 @@
 
 <script setup lang="ts">
 
-import {onMounted, PropType, watch} from "vue";
+import {onMounted, PropType, watch, computed} from "vue";
 import {ShoppingListEntry} from "@/openapi";
 import ModelEditorBase from "@/components/model_editors/ModelEditorBase.vue";
 import {useModelEditorFunctions} from "@/composables/useModelEditorFunctions";
 import ModelSelect from "@/components/inputs/ModelSelect.vue";
 import VModelSelect from "@/components/inputs/VModelSelect.vue";
+import {formatGramsLabel, hasShoppingPack, shoppingUnitsToGrams} from "@/utils/foodPack";
 
 const props = defineProps({
     item: {type: {} as PropType<ShoppingListEntry>, required: false, default: null},
@@ -50,6 +53,14 @@ const props = defineProps({
 
 const emit = defineEmits(['create', 'save', 'delete', 'close', 'changedState'])
 const {setupState, deleteObject, saveObject, isUpdate, editingObjName, loading, editingObj, editingObjChanged, modelClass} = useModelEditorFunctions<ShoppingListEntry>('ShoppingListEntry', emit)
+
+const hasPack = computed(() => hasShoppingPack(editingObj.value.food))
+const amountHint = computed(() => {
+    if (!hasPack.value) return ''
+    const grams = shoppingUnitsToGrams(editingObj.value.amount, editingObj.value.food?.shoppingMeasureGrams)
+    if (grams == null) return ''
+    return formatGramsLabel(grams)
+})
 
 /**
  * watch prop changes and re-initialize editor

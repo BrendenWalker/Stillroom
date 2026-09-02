@@ -14,7 +14,7 @@
             <v-form>
                 <v-row>
                     <v-col>
-                        <v-model-select model="Food" v-model="editingObj.food"></v-model-select>
+                        <v-model-select model="Food" v-model="editingObj.food" :list-params="{isFood: true}"></v-model-select>
                     </v-col>
                 </v-row>
                 <v-row>
