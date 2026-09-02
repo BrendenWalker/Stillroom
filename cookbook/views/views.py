@@ -17,7 +17,7 @@ from django.core.cache import caches
 from django.core.exceptions import ValidationError, PermissionDenied, BadRequest
 from django.core.management import call_command
 from django.db import models
-from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
+from django.http import HttpResponseRedirect, JsonResponse, HttpResponse, Http404
 from django.shortcuts import get_object_or_404, render
 from django.templatetags.static import static
 from django.urls import reverse, reverse_lazy
@@ -530,11 +530,38 @@ def offline(request):
     return render(request, 'offline.html', {})
 
 
+# Vite HMR does not emit cookbook/static/vue3/service-worker.js. Serve a worker
+# that unregisters itself so a leftover production SW cannot cache HMR assets.
+_DEV_NOOP_SERVICE_WORKER = b"""\
+self.addEventListener('install', function () {
+    self.skipWaiting();
+});
+self.addEventListener('activate', function (event) {
+    event.waitUntil((async function () {
+        await self.registration.unregister();
+        const clients = await self.clients.matchAll({type: 'window'});
+        for (const client of clients) {
+            if (client.navigate) {
+                client.navigate(client.url);
+            }
+        }
+    })());
+});
+"""
+
+
 def service_worker(request):
-    with open(os.path.join(BASE_DIR, 'cookbook', 'static', 'vue3', 'service-worker.js'), 'rb') as service_worker_file:
-        response = HttpResponse(content=service_worker_file)
-        response['Content-Type'] = 'text/javascript'
-        return response
+    path = os.path.join(BASE_DIR, 'cookbook', 'static', 'vue3', 'service-worker.js')
+    try:
+        with open(path, 'rb') as service_worker_file:
+            content = service_worker_file.read()
+    except FileNotFoundError:
+        if settings.DEBUG:
+            response = HttpResponse(_DEV_NOOP_SERVICE_WORKER, content_type='text/javascript')
+            response['Cache-Control'] = 'no-store'
+            return response
+        raise Http404()
+    return HttpResponse(content, content_type='text/javascript')
 
 
 def test(request):

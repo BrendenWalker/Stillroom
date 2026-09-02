@@ -806,6 +806,8 @@ class Food(ExportModelOperationsMixin('food'), TreeModel, PermissionModelMixin):
     ingredient_unit_grams = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True, default=None)
     count_per_pack = models.IntegerField(null=True, blank=True, default=None, validators=[MinValueValidator(1)])
     shopping_measure_grams = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True, default=None)
+    kcal = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True, default=None)
+    kcal_grams = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True, default=None)
     fdc_id = models.IntegerField(null=True, default=None, blank=True)
 
     open_data_slug = models.CharField(max_length=128, null=True, blank=True, default=None)
