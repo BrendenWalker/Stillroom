@@ -13,8 +13,8 @@
         <template #item="{item, props: itemProps}">
             <v-list-item v-bind="itemProps">
                 <template #append>
-                    <span class="text-caption" :style="{color: coverageColor(item.raw.coverage)}">
-                        {{ item.raw.coverage }}%
+                    <span class="text-caption" :style="{color: coverageColor(item.coverage)}">
+                        {{ item.coverage }}%
                     </span>
                 </template>
             </v-list-item>

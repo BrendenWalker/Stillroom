@@ -49,7 +49,10 @@ def index(request, path=None, resource=None):
         return HttpResponseRedirect(reverse('view_invite', args=[value]))
 
     if request.user.is_authenticated or re.search(r'/recipe/\d+/', request.path[:512]) and request.GET.get('share'):
-        return render(request, 'frontend/stillroom.html', {})
+        response = render(request, 'frontend/stillroom.html', {})
+        if settings.DEBUG:
+            response['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+        return response
     else:
         return HttpResponseRedirect(reverse('account_login') + '?next=' + request.path)
 
@@ -533,12 +536,15 @@ def offline(request):
 # Vite HMR does not emit cookbook/static/vue3/service-worker.js. Serve a worker
 # that unregisters itself so a leftover production SW cannot cache HMR assets.
 _DEV_NOOP_SERVICE_WORKER = b"""\
+// stillroom-debug-uninstall-v2
 self.addEventListener('install', function () {
     self.skipWaiting();
 });
 self.addEventListener('activate', function (event) {
     event.waitUntil((async function () {
         await self.registration.unregister();
+        const keys = await caches.keys();
+        await Promise.all(keys.map(function (key) { return caches.delete(key); }));
         const clients = await self.clients.matchAll({type: 'window'});
         for (const client of clients) {
             if (client.navigate) {
@@ -549,19 +555,61 @@ self.addEventListener('activate', function (event) {
 });
 """
 
+_REFRESH_APP_HTML = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Refreshing Stillroom</title>
+    <meta http-equiv="Cache-Control" content="no-store">
+</head>
+<body>
+<p>Clearing cached files and reloading Stillroom…</p>
+<script>
+(async function () {
+    try {
+        if ('serviceWorker' in navigator) {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(regs.map(function (reg) { return reg.unregister(); }));
+        }
+        if (window.caches) {
+            const keys = await caches.keys();
+            await Promise.all(keys.map(function (key) { return caches.delete(key); }));
+        }
+    } catch (err) {
+        console.warn('Error clearing app cache', err);
+    }
+    window.location.replace('/');
+})();
+</script>
+</body>
+</html>
+"""
+
+
+def refresh_app(request):
+    response = HttpResponse(_REFRESH_APP_HTML)
+    response['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+    return response
+
 
 def service_worker(request):
+    # In DEBUG, never serve the production Workbox worker. It precaches hashed
+    # Vue files and will keep showing a stale meal-plan editor after source
+    # changes. The noop worker uninstalls itself, clears caches, and reloads.
+    if settings.DEBUG:
+        response = HttpResponse(_DEV_NOOP_SERVICE_WORKER, content_type='text/javascript')
+        response['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+        return response
+
     path = os.path.join(BASE_DIR, 'cookbook', 'static', 'vue3', 'service-worker.js')
     try:
         with open(path, 'rb') as service_worker_file:
             content = service_worker_file.read()
     except FileNotFoundError:
-        if settings.DEBUG:
-            response = HttpResponse(_DEV_NOOP_SERVICE_WORKER, content_type='text/javascript')
-            response['Cache-Control'] = 'no-store'
-            return response
         raise Http404()
-    return HttpResponse(content, content_type='text/javascript')
+    response = HttpResponse(content, content_type='text/javascript')
+    response['Cache-Control'] = 'no-store'
+    return response
 
 
 def test(request):
