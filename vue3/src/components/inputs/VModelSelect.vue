@@ -6,8 +6,8 @@
         v-model:search="search"
         autocomplete="suppress"
         no-filter
-        :items="items"
-        :item-title="itemLabelAttribute"
+        :items="autocompleteItems"
+        item-title="title"
         item-value="id"
         :label="label"
         :hint="props.hint"
@@ -21,63 +21,32 @@
         :placeholder="props.placeholder"
         :loading="loading"
         return-object
-        @keydown.enter.exact="createItem(search, false); console.log('triggered enter keydown')"
-        @keydown.shift.enter="createItem(search, true); console.log('triggered shift enter keydown')"
+        auto-select-first
+        @keydown.enter.exact="createItem(search, false)"
+        @keydown.shift.enter="createItem(search, true)"
         @keydown.shift.e.prevent="editDialog = true"
         @blur="hasFocus = false"
-        @focus="hasFocus = true; "
+        @focus="onFocus"
+        @update:menu="onMenuUpdate"
     >
         <template #prepend v-if="$slots.prepend">
             <slot name="prepend"></slot>
         </template>
 
-        <template v-slot:chip="{ props, item }" v-if="props.chips">
-            <v-chip
-                v-bind="props"
-                :text="item.title"
-                :prepend-avatar="(modelClass.model.name == 'Recipe') ? item.raw.image : undefined"
-            ></v-chip>
+        <template #prepend-item v-if="showCreate">
+            <v-list-item :title="search" @mousedown.prevent @click="createItem(search, false)">
+                <template #append>
+                    <v-icon icon="$create" color="success"></v-icon>
+                </template>
+            </v-list-item>
         </template>
 
         <template #no-data>
-            <v-list-item v-if="hasLoadedOnce">
-                {{ $t('No_Results') }}
-            </v-list-item>
+            <v-list-item :title="loading ? '…' : $t('No_Results')"></v-list-item>
         </template>
 
-        <template v-slot:item="{ props, item }">
-            <v-list-item v-if="item.raw.id == undefined"
-                         :title="item.title"
-                         @click.exact="createItem(search, false); console.log('triggered click ITEM')"
-                         @click.shift="createItem(search, true); console.log('triggered click ITEM SHIFT')"
-            >
-                <template #append>
-                    <v-icon icon="$create" color="success">
-
-                    </v-icon>
-                </template>
-            </v-list-item>
-            <!-- normal items -> normal rendering -->
-            <v-list-item v-if="item.raw.id > 0"
-                         v-bind="props"
-                         :title="item.title"
-            >
-                <template #prepend v-if="modelClass.model.name == 'Recipe'">
-                    <v-avatar :image="item.raw.image" v-if="item.raw.image"></v-avatar>
-                    <v-avatar image="../../assets/recipe_no_image.svg" v-else></v-avatar>
-                </template>
-
-
-            </v-list-item>
-            <!-- render special info item last -->
-            <v-list-item v-if="item.raw.id == -1"
-                         size="small"
-                         density="compact"
-                         disabled
-                         v-bind="props"
-                         :title="item.title"
-            >
-            </v-list-item>
+        <template #append-item v-if="hasMoreItems">
+            <v-list-item density="compact" disabled :title="$t('ModelSelectResultsHelp')"></v-list-item>
         </template>
 
         <template #menu-footer v-if="!mobile && (!props.multiple || props.create)">
@@ -132,7 +101,7 @@ const props = defineProps({
     model: {type: String as PropType<EditorSupportedModels>, required: true},
     id: {type: String, required: false, default: Math.floor(Math.random() * 10000).toString()},
     create: {type: Boolean, default: false},
-    searchOnLoad: {type: Boolean, default: false},
+    searchOnLoad: {type: Boolean, default: true},
     limit: {type: Number, default: 25},
     listParams: {type: Object, default: () => ({})},
 
@@ -166,6 +135,14 @@ const lastAddedItem = ref<EditorSupportedTypes>(undefined)
 const items = ref([] as EditorSupportedTypes[])
 
 const search = ref<string | undefined>(undefined)
+
+const autocompleteItems = computed(() => {
+    const labelKey = itemLabelAttribute.value
+    return items.value.map((item: any) => ({
+        ...item,
+        title: item?.[labelKey] ?? item?.name ?? String(item?.id ?? ''),
+    }))
+})
 
 /**
  * determine if the user should be able to create a new item based on create prop and if the item is already present
@@ -267,6 +244,22 @@ onMounted(() => {
     updateAutoselectValue(props.modelValue)
 })
 
+function onFocus() {
+    hasFocus.value = true
+    if (!hasLoadedOnce.value) {
+        loading.value = true
+        searchItems()
+    }
+}
+
+function onMenuUpdate(open: boolean) {
+    if (open) {
+        hasFocus.value = true
+        loading.value = true
+        searchItems()
+    }
+}
+
 /**
  * debounce search to prevent race conditions
  */
@@ -282,30 +275,29 @@ function searchItems() {
     let query = (search.value == undefined) ? '' : search.value
     if (query.startsWith(' ')) {
         console.log('search query starts with space')
+        loading.value = false
+        return
+    }
+    if (!modelClass.value || typeof modelClass.value.list !== 'function') {
+        loading.value = false
         return
     }
     console.log('search query is', query)
     loading.value = true
     return modelClass.value.list({query: query, page: 1, pageSize: props.limit, ...props.listParams}).then((r: any) => {
-        if (modelClass.value.model.isPaginated) {
-            hasMoreItems.value = !!r.next
-            items.value = r.results
-        } else {
-            hasMoreItems.value = false
-            items.value = r
-        }
+        const results = modelClass.value.model.isPaginated ? (r?.results ?? []) : (r ?? [])
+        hasMoreItems.value = !!(modelClass.value.model.isPaginated && r?.next)
+        items.value = Array.isArray(results) ? results : []
 
-        if (showCreate.value) {
-            let createItem = {}
-            createItem[itemLabelAttribute.value] = search.value
-            items.value.splice(0, 0, createItem)
-        }
-
-        if (hasMoreItems.value) {
-            let infoItem = {id: -1}
-            infoItem[itemLabelAttribute.value] = t('ModelSelectResultsHelp')
-            items.value.push(infoItem)
-        }
+        // keep the current selection in the list so v-autocomplete can still display it
+        const selected = Array.isArray(autoselectValue.value)
+            ? autoselectValue.value
+            : (autoselectValue.value ? [autoselectValue.value] : [])
+        selected.forEach((sel: EditorSupportedTypes) => {
+            if (sel?.id && !items.value.some((i: EditorSupportedTypes) => i.id === sel.id)) {
+                items.value.unshift(sel)
+            }
+        })
 
     }).catch((err: any) => {
 
