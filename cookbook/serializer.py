@@ -2137,12 +2137,39 @@ class UnitExportSerializer(UnitSerializer):
         fields = ('name', 'plural_name', 'description')
 
 
+_FOOD_EXPORT_DETAIL_FIELDS = (
+    'shopping_measure',
+    'ingredient_unit_grams',
+    'count_per_pack',
+    'shopping_measure_grams',
+    'kcal',
+    'kcal_grams',
+)
+
+
 class FoodExportSerializer(FoodSerializer):
     supermarket_category = SupermarketCategoryExportSerializer(allow_null=True, required=False)
 
     class Meta:
         model = Food
-        fields = ('name', 'plural_name', 'ignore_shopping', 'supermarket_category',)
+        fields = (
+            'name', 'plural_name', 'ignore_shopping', 'supermarket_category',
+            *_FOOD_EXPORT_DETAIL_FIELDS,
+        )
+
+    def create(self, validated_data):
+        details = {field: validated_data.get(field) for field in _FOOD_EXPORT_DETAIL_FIELDS}
+        food = super().create(validated_data)
+        update_fields = []
+        for field, incoming in details.items():
+            if incoming in (None, ''):
+                continue
+            if getattr(food, field) in (None, ''):
+                setattr(food, field, incoming)
+                update_fields.append(field)
+        if update_fields:
+            food.save(update_fields=update_fields)
+        return food
 
 
 class IngredientExportSerializer(WritableNestedModelSerializer):
