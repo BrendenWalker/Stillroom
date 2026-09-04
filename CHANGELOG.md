@@ -13,19 +13,20 @@ Back up before upgrading. Apply migrations **0244–0248**. Pack-size fields and
 
 ### Added
 
-- This Week meal planner: week/day cards, recipe picker, keyword filter, copy-yesterday, per-plan and per-day kcal (#35)
+- Meal Planner (`/this-week`): week/day cards, recipe picker, keyword filter, copy-yesterday, per-plan and per-day kcal; calendar planner stays at `/mealplan` (#35)
 - Per-serving kcal from food calorie density and ingredient grams (read-only `kcal_per_serving` on recipe and meal plan APIs) (#35)
 - Food calorie fields (`kcal`, `kcal_grams`) on the Details tab; migrations 0247–0248 (#29)
 - Shopping pack sizes (`shopping_measure`, grams per pack, count per pack, shopping `amount_grams`) with pack counts on the list; migrations 0244–0246 (#17)
 - Generic / non-food catalog items via supermarket category “Food items”; those foods stay on shopping lists but are excluded from recipe ingredients, pantry auto-fill, and on-hand updates; `?is_food=` food API filter (#17)
-- Native recipe export/import includes pack and kcal food fields (#33)
+- Native recipe export/import includes pack and kcal food fields; import fills empty Details only and still accepts Tandoor Default zips (#33)
 - Default Breakfast/Lunch/Dinner meal types for spaces that have none (#31)
 - Field help popovers on the food Details tab (#29)
 - Public GitHub Releases workflow and `CHANGELOG.md`
 
 ### Changed
 
-- GitHub/docs URLs and leftover product copy from TandoorNG/Tandoor to Stillroom; Docker image name unchanged
+- Nav: Calendar for the existing meal-plan calendar; Meal Planner for the weekly view (#36)
+- User-facing help, docs, and English copy from Tandoor to Stillroom; Docker image name unchanged (#36)
 - Food editor: pack and calorie fields on a Details tab (#29)
 - Shopping list shows buy-count + measure + grams when pack metadata exists; recipe-to-list and Telegram paths set `amount_grams` (#17)
 - Leaving first-run welcome or household setup marks it completed so the wizard does not return (#29)
