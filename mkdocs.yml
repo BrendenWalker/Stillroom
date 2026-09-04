@@ -29,6 +29,7 @@ plugins:
 
 nav:
   - Home: 'index.md'
+  - Releases: https://github.com/BrendenWalker/Stillroom/releases
   - Installation:
       - Docker: install/docker.md
       - Kubernetes: install/kubernetes.md
@@ -57,6 +58,7 @@ nav:
       - Translations: contribute/translations.md
       - Documentation: contribute/documentation.md
       - Code: contribute/guidelines.md
+      - Releasing: contribute/releasing.md
       - Installation: contribute/installation.md
       - IDE Setup:
           - VSCode: contribute/vscode.md
