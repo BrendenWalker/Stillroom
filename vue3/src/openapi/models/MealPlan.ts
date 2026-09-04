@@ -118,6 +118,12 @@ export interface MealPlan {
      * @memberof MealPlan
      */
     addshopping?: boolean;
+    /**
+     * kcal per recipe serving, from Food.kcal / kcal_grams
+     * @type {number}
+     * @memberof MealPlan
+     */
+    readonly kcalPerServing?: number;
 }
 
 /**
@@ -159,6 +165,7 @@ export function MealPlanFromJSONTyped(json: any, ignoreDiscriminator: boolean): 
         'mealTypeName': json['meal_type_name'],
         'shopping': json['shopping'],
         'addshopping': json['addshopping'] == null ? undefined : json['addshopping'],
+        'kcalPerServing': json['kcal_per_serving'] == null ? undefined : json['kcal_per_serving'],
     };
 }
 
@@ -166,7 +173,7 @@ export function MealPlanToJSON(json: any): MealPlan {
     return MealPlanToJSONTyped(json, false);
 }
 
-export function MealPlanToJSONTyped(value?: Omit<MealPlan, 'note_markdown'|'created_by'|'recipe_name'|'meal_type_name'|'shopping'> | null, ignoreDiscriminator: boolean = false): any {
+export function MealPlanToJSONTyped(value?: Omit<MealPlan, 'note_markdown'|'created_by'|'recipe_name'|'meal_type_name'|'shopping'|'kcal_per_serving'> | null, ignoreDiscriminator: boolean = false): any {
     if (value == null) {
         return value;
     }

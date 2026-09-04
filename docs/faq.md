@@ -129,8 +129,8 @@ To create a superuser you need to
 3. run `python manage.py createsuperuser` and follow the steps shown.
 
 
-## Why cant I get support for my manual setup?
-Even though I would love to help everyone get Stillroom up and running I have only so much time that I can spend on this  roject besides work, family and other life things. Due to the countless problems that can occur when manually installing I simply do not have the time to help solving each one.
+## Why can't I get support for my manual setup?
+Even though I would love to help everyone get Stillroom up and running I have only so much time that I can spend on this project besides work, family and other life things. Due to the countless problems that can occur when manually installing I simply do not have the time to help solving each one.
 
 You can install Stillroom manually but please do not expect me or anyone to help you with that. As a general advice: If you do it manually do NOT change anything at first and slowly work yourself to your dream setup.
 
@@ -141,7 +141,7 @@ Postgres requires manual intervention when updating from one major version to an
 2. stop the DB / down the container
 3. move your postgres directory in order to keep it as a backup (e.g. `mv postgres postgres_old`)
 4. update postgres to the new major version (for Docker just change the version number and pull)
-5. start the db / up the container (do not start tandoor as it will automatically perform the database migrations which will conflict with loading the dump)
+5. start the db / up the container (do not start stillroom as it will automatically perform the database migrations which will conflict with loading the dump)
 6. if not using docker, you might need to create the same postgres user you had in the old database
 7. load the postgres dump (for Docker `'/usr/local/bin/docker-compose exec -T <postgres_container_name> psql -U <postgres_user_name> <postgres_database_name> < /path/to/dump.sql`)
 

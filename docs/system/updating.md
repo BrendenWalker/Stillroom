@@ -1,19 +1,9 @@
 The Updating process depends on your chosen method of [installation](/install/docker)
 
 While intermediate updates can be skipped when updating please make sure to
-**read the release notes** in case some special action is required to update.
+**[read the release notes](https://github.com/BrendenWalker/Stillroom/releases)** in case some special action is required to update.
 
-## Shopping pack sizes (migrations 0244–0246)
-
-These migrations add pack/grams fields on foods (`shopping_measure`, `ingredient_unit_grams`,
-`count_per_pack`, `shopping_measure_grams`) and `amount_grams` on shopping list entries.
-
-0246 backfills `amount_grams` for existing entries when the food already has `shopping_measure_grams`.
-Entries that cannot be converted are left unchanged (`amount_grams` stays null). The backfill also
-clears invalid `count_per_pack` values below 1.
-
-The new fields are additive. Rolling back means reversing the migrations; converted `amount`/`unit`
-values on shopping entries are not restored. Take a backup before upgrading if you need a rollback path.
+Notable changes are also listed in [`CHANGELOG.md`](https://github.com/BrendenWalker/Stillroom/blob/develop/CHANGELOG.md).
 
 ## Docker
 For all setups using Docker the updating process look something like this
@@ -51,18 +41,18 @@ grep -E 'POSTGRES|DATABASE' ~/.docker/compose/.env
 docker ps -a --format 'table {{.ID}}\t{{.Names}}\t{{.Image}}\t{{.Status}}' | awk 'NR == 1 || /postgres/ || /recipes/'
 ```
 
-2. Export the tandoor database
+2. Export the stillroom database
 
 ``` bash
-docker exec -t {{database_container}} pg_dumpall -U {{djangouser}} > ~/tandoor.sql
+docker exec -t {{database_container}} pg_dumpall -U {{djangouser}} > ~/stillroom.sql
 ```
 
-3. Stop the tandoor application
+3. Stop the stillroom application
 ``` bash
 docker compose down
 ```
 
-4. Rename the tandoor volume
+4. Rename the stillroom volume
 
 ``` bash
 mv ./postgresql ./postgresql.old
@@ -89,7 +79,7 @@ docker compose pull && docker compose up -d db_recipes
 7. Import the database export
 
 ``` bash
-cat ~/tandoor.sql | docker exec -i {{database_container}} psql postgres -U {{djangouser}}
+cat ~/stillroom.sql | docker exec -i {{database_container}} psql postgres -U {{djangouser}}
 ```
 
 8. Install postgres extensions

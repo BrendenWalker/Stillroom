@@ -30,7 +30,7 @@ msgstr "Domyślne"
 
 #: .\cookbook\forms.py:90
 msgid ""
-"To prevent duplicates recipes with the same name as existing ones are "
+"To prevent duplicates, recipes with the same name as existing ones are "
 "ignored. Check this box to import everything."
 msgstr ""
 "Aby zapobiec duplikatom, przepisy o tej samej nazwie co istniejące zostaną "
@@ -538,7 +538,7 @@ msgstr "Ten typ pliku jest niedozwolony."
 
 #: .\cookbook\serializer.py:444 .\cookbook\views\views.py:97
 msgid ""
-"You have the reached the maximum amount of spaces that can be owned by you."
+"You have reached the maximum number of spaces that can be owned by you."
 msgstr "Zapełniłeś maksymalną przestrzeń, która jest przypisana do Ciebie."
 
 #: .\cookbook\serializer.py:457
@@ -937,7 +937,7 @@ msgstr "Informacje o języku Markdown"
 #: .\cookbook\templates\markdown_info.html:14
 msgid ""
 "\n"
-"        Markdown is lightweight markup language that can be used to format "
+"        Markdown is a lightweight markup language that can be used to format "
 "plain text easily.\n"
 "        This site uses the <a href=\"https://python-markdown.github.io/\" "
 "target=\"_blank\">Python Markdown</a> library to\n"
@@ -1265,7 +1265,7 @@ msgstr ""
 #: .\cookbook\templates\search_info.html:48
 msgid ""
 " \n"
-"            Raw search is similar to Web except will take puncuation "
+"            Raw search is similar to Web except will take punctuation "
 "operators such as '|', '&' and '()'\n"
 "            "
 msgstr ""
@@ -1284,7 +1284,7 @@ msgid ""
 "            For example searching for 'apple' will create x trigrams 'app', "
 "'ppl', 'ple' and will create a score of how closely words match the "
 "generated trigrams.\n"
-"            One benefit of searching trigams is that a search for 'sandwich' "
+"            One benefit of searching trigrams is that a search for 'sandwich' "
 "will find misspelled words such as 'sandwhich' that would be missed by other "
 "methods.\n"
 "            "
@@ -1979,7 +1979,7 @@ msgstr ""
 #, fuzzy
 #| msgid "Filter meal plans from date (inclusive)."
 msgid ""
-"Filter meal plans from date (inclusive). If nothing is given its today - 90 "
+"Filter meal plans from date (inclusive). If nothing is given it's today - 90 "
 "days."
 msgstr "Filtruj plany posiłków od daty początkowej (włącznie)."
 
@@ -1987,7 +1987,7 @@ msgstr "Filtruj plany posiłków od daty początkowej (włącznie)."
 #, fuzzy
 #| msgid "Filter meal plans to date (inclusive)."
 msgid ""
-"Filter meal plans to date (inclusive). If nothing is given its today + 360 "
+"Filter meal plans to date (inclusive). If nothing is given it's today + 360 "
 "days."
 msgstr "Filtruj plany posiłków do daty końcowej (włącznie)."
 
@@ -2171,7 +2171,7 @@ msgid "Filter recipes last cooked on the given date or before."
 msgstr "Filtruj przepisy przygotowane w podanym dniu lub wcześniej."
 
 #: .\cookbook\views\api.py:1759 .\cookbook\views\api.py:1760
-msgid "Filter recipes lasts viewed on the given date."
+msgid "Filter recipes last viewed on the given date."
 msgstr "Filtruj przepisy wyświetlane ostatnio w podanym dniu."
 
 #: .\cookbook\views\api.py:1762
@@ -2319,8 +2319,8 @@ msgstr ""
 "przeglądarce (Ctrl+P), aby zapisać przepis jako PDF."
 
 #: .\cookbook\views\api.py:3365
-msgid "This feature is not yet available in the hosted version of tandoor!"
-msgstr "Ta funkcja nie jest jeszcze dostępna w hostowanej wersji tandoor!"
+msgid "This feature is not yet available in the hosted version of Stillroom!"
+msgstr "Ta funkcja nie jest jeszcze dostępna w hostowanej wersji Stillroom!"
 
 #: .\cookbook\views\api.py:3386
 msgid "Sync successful!"
@@ -2379,7 +2379,7 @@ msgstr ""
 "hasła."
 
 #: .\cookbook\views\views.py:362
-msgid "Passwords dont match!"
+msgid "Passwords don't match!"
 msgstr "Hasła się nie zgadzają!"
 
 #: .\cookbook\views\views.py:370

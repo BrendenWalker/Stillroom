@@ -39,4 +39,6 @@ Guides for contributing specific types of features can be found [here](/contribu
 Before writing any code, please make sure that you review [contribution guidelines](/contribute/guidelines/) and
 [VSCode](/contribute/vscode) or [PyCharm](/contribute/pycharm) specific configurations.
 
+Maintainers cutting a version should follow [Releasing](/contribute/releasing/).
+
 There is no contributor license agreement. You keep your copyright.

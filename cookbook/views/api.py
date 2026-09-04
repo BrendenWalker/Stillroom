@@ -529,6 +529,15 @@ class TreeMixin(MergeMixin, FuzzyFilterMixin):
             return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
 
+def ai_unexpected_error_response():
+    """Log the exception server-side and return a generic 500 without leaking details."""
+    traceback.print_exc()
+    return Response(
+        {'error': True, 'msg': 'An unexpected error occurred while processing your AI request.'},
+        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+    )
+
+
 def paginate(func):
     """
     pagination decorator for custom ViewSet actions
@@ -1323,13 +1332,8 @@ class FoodViewSet(LoggingMixin, TreeMixin, DeleteRelationMixing):
                     'msg': 'The AI could not process your request. \n\n' + err.message,
                 }
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
-            except Exception as err:
-                traceback.print_exc()
-                response = {
-                    'error': True,
-                    'msg': 'An unexpected error occurred while processing your AI request. \n\n' + str(err),
-                }
-                return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            except Exception:
+                return ai_unexpected_error_response()
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def destroy(self, *args, **kwargs):
@@ -1509,9 +1513,9 @@ class CalendarRenderer(BaseRenderer):
 
 
 MealPlanViewQueryParameters = [
-    OpenApiParameter(name='from_date', description=_('Filter meal plans from date (inclusive). If nothing is given its today - 90 days.'), type=str,
+    OpenApiParameter(name='from_date', description=_('Filter meal plans from date (inclusive). If nothing is given it\'s today - 90 days.'), type=str,
                      examples=[DateExample]),
-    OpenApiParameter(name='to_date', description=_('Filter meal plans to date (inclusive). If nothing is given its today + 360 days.'), type=str,
+    OpenApiParameter(name='to_date', description=_('Filter meal plans to date (inclusive). If nothing is given it\'s today + 360 days.'), type=str,
                      examples=[DateExample]),
     OpenApiParameter(name='meal_type',
                      description=_('Filter meal plans with MealType ID. For multiple repeat parameter.'), type=str,
@@ -1544,7 +1548,18 @@ class MealPlanViewSet(LoggingMixin, viewsets.ModelViewSet):
         if meal_type:
             queryset = queryset.filter(meal_type__in=meal_type)
 
-        return queryset
+        return queryset.select_related('recipe', 'meal_type', 'created_by').prefetch_related(
+            'recipe__steps',
+            'recipe__steps__ingredients',
+            'recipe__steps__ingredients__food',
+            'recipe__steps__ingredients__unit',
+            'recipe__steps__ingredients__unit__unit_conversion_base_relation',
+            'recipe__steps__ingredients__unit__unit_conversion_base_relation__base_unit',
+            'recipe__steps__ingredients__unit__unit_conversion_base_relation__food',
+            'recipe__steps__ingredients__unit__unit_conversion_converted_relation',
+            'recipe__steps__ingredients__unit__unit_conversion_converted_relation__converted_unit',
+            'recipe__steps__ingredients__unit__unit_conversion_converted_relation__food',
+        )
 
     def get_serializer_class(self):
         if self.action == 'ical':
@@ -1790,8 +1805,8 @@ class RecipePagination(PageNumberPagination):
     OpenApiParameter(name='cookedon_gte', description=_('Filter recipes last cooked on the given date or after.'), type=OpenApiTypes.DATE),
     OpenApiParameter(name='cookedon_lte', description=_('Filter recipes last cooked on the given date or before.'), type=OpenApiTypes.DATE),
 
-    OpenApiParameter(name='viewedon_gte', description=_('Filter recipes lasts viewed on the given date.'), type=OpenApiTypes.DATE, ),
-    OpenApiParameter(name='viewedon_lte', description=_('Filter recipes lasts viewed on the given date.'), type=OpenApiTypes.DATE, ),
+    OpenApiParameter(name='viewedon_gte', description=_('Filter recipes last viewed on the given date.'), type=OpenApiTypes.DATE, ),
+    OpenApiParameter(name='viewedon_lte', description=_('Filter recipes last viewed on the given date.'), type=OpenApiTypes.DATE, ),
 
     OpenApiParameter(name='createdby', description=_('Filter recipes for ones created by the given user ID'), type=int),
     OpenApiParameter(name='internal', description=_('If only internal recipes should be returned. [''true''/''<b>false</b>'']'), type=bool),
@@ -1856,7 +1871,20 @@ class RecipeViewSet(LoggingMixin, viewsets.ModelViewSet, DeleteRelationMixing):
         params = {x: self.request.GET.get(x) if len({**self.request.GET}[x]) == 1 else self.request.GET.getlist(x) for x
                   in list(self.request.GET)}
         search = RecipeSearch(self.request, **params)
-        self.queryset = search.get_queryset(self.queryset).prefetch_related('keywords', 'cooklog_set')
+        self.queryset = search.get_queryset(self.queryset).prefetch_related(
+            'keywords',
+            'cooklog_set',
+            'steps',
+            'steps__ingredients',
+            'steps__ingredients__food',
+            'steps__ingredients__unit',
+            'steps__ingredients__unit__unit_conversion_base_relation',
+            'steps__ingredients__unit__unit_conversion_base_relation__base_unit',
+            'steps__ingredients__unit__unit_conversion_base_relation__food',
+            'steps__ingredients__unit__unit_conversion_converted_relation',
+            'steps__ingredients__unit__unit_conversion_converted_relation__converted_unit',
+            'steps__ingredients__unit__unit_conversion_converted_relation__food',
+        )
         return self.queryset
 
     def list(self, request, *args, **kwargs):
@@ -2140,13 +2168,8 @@ class RecipeViewSet(LoggingMixin, viewsets.ModelViewSet, DeleteRelationMixing):
                     'msg': 'The AI could not process your request. \n\n' + err.message,
                 }
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
-            except Exception as err:
-                traceback.print_exc()
-                response = {
-                    'error': True,
-                    'msg': 'An unexpected error occurred while processing your AI request. \n\n' + str(err),
-                }
-                return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            except Exception:
+                return ai_unexpected_error_response()
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @extend_schema(responses=RecipeSerializer(many=False))
@@ -2993,13 +3016,8 @@ class AiStepSortView(APIView):
                     'msg': 'The AI could not process your request. \n\n' + err.message,
                 }
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
-            except Exception as err:
-                traceback.print_exc()
-                response = {
-                    'error': True,
-                    'msg': 'An unexpected error occurred while processing your AI request. \n\n' + str(err),
-                }
-                return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            except Exception:
+                return ai_unexpected_error_response()
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -3407,7 +3425,7 @@ def get_recipe_file(request, pk):
 def sync_all(request):
     if request.space.demo or settings.HOSTED:
         messages.add_message(request, messages.ERROR,
-                             _('This feature is not yet available in the hosted version of tandoor!'))
+                             _('This feature is not yet available in the hosted version of Stillroom!'))
         return redirect('index')
 
     monitors = Sync.objects.filter(active=True).filter(space=request.user.userspace_set.filter(active=1).first().space)

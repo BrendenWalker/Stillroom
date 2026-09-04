@@ -1,4 +1,4 @@
-Configurations for debugging django, volar, testing, linting and formatting are all include in the project files.
+Configurations for debugging django, volar, testing, linting and formatting are all included in the project files.
 
 ## Extensions
 
