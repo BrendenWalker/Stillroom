@@ -158,6 +158,12 @@ export interface Recipe {
      */
     readonly foodProperties: any | null;
     /**
+     * kcal per serving from ingredient Food.kcal / kcal_grams
+     * @type {number}
+     * @memberof Recipe
+     */
+    readonly kcalPerServing?: number;
+    /**
      * 
      * @type {number}
      * @memberof Recipe
@@ -256,6 +262,7 @@ export function RecipeFromJSONTyped(json: any, ignoreDiscriminator: boolean): Re
         'nutrition': json['nutrition'] == null ? undefined : NutritionInformationFromJSON(json['nutrition']),
         'properties': json['properties'] == null ? undefined : ((json['properties'] as Array<any>).map(PropertyFromJSON)),
         'foodProperties': json['food_properties'],
+        'kcalPerServing': json['kcal_per_serving'] == null ? undefined : json['kcal_per_serving'],
         'servings': json['servings'] == null ? undefined : json['servings'],
         'filePath': json['file_path'] == null ? undefined : json['file_path'],
         'servingsText': json['servings_text'] == null ? undefined : json['servings_text'],
@@ -272,7 +279,7 @@ export function RecipeToJSON(json: any): Recipe {
     return RecipeToJSONTyped(json, false);
 }
 
-export function RecipeToJSONTyped(value?: Omit<Recipe, 'image'|'created_by'|'created_at'|'updated_at'|'food_properties'|'rating'|'last_cooked'> | null, ignoreDiscriminator: boolean = false): any {
+export function RecipeToJSONTyped(value?: Omit<Recipe, 'image'|'created_by'|'created_at'|'updated_at'|'food_properties'|'kcal_per_serving'|'rating'|'last_cooked'> | null, ignoreDiscriminator: boolean = false): any {
     if (value == null) {
         return value;
     }

@@ -142,6 +142,12 @@ export interface RecipeOverview {
      * @memberof RecipeOverview
      */
     readonly recent: string;
+    /**
+     * kcal per serving from ingredient Food.kcal / kcal_grams
+     * @type {number}
+     * @memberof RecipeOverview
+     */
+    readonly kcalPerServing?: number;
 }
 
 /**
@@ -194,6 +200,7 @@ export function RecipeOverviewFromJSONTyped(json: any, ignoreDiscriminator: bool
         'lastCooked': (json['last_cooked'] == null ? null : new Date(json['last_cooked'])),
         '_new': json['new'],
         'recent': json['recent'],
+        'kcalPerServing': json['kcal_per_serving'] == null ? undefined : json['kcal_per_serving'],
     };
 }
 
@@ -201,7 +208,7 @@ export function RecipeOverviewToJSON(json: any): RecipeOverview {
     return RecipeOverviewToJSONTyped(json, false);
 }
 
-export function RecipeOverviewToJSONTyped(value?: Omit<RecipeOverview, 'image'|'keywords'|'working_time'|'waiting_time'|'created_by'|'created_at'|'updated_at'|'internal'|'servings'|'servings_text'|'rating'|'last_cooked'|'new'|'recent'> | null, ignoreDiscriminator: boolean = false): any {
+export function RecipeOverviewToJSONTyped(value?: Omit<RecipeOverview, 'image'|'keywords'|'working_time'|'waiting_time'|'created_by'|'created_at'|'updated_at'|'internal'|'servings'|'servings_text'|'rating'|'last_cooked'|'new'|'recent'|'kcal_per_serving'> | null, ignoreDiscriminator: boolean = false): any {
     if (value == null) {
         return value;
     }
