@@ -194,7 +194,7 @@ msgstr ""
 
 #: .\cookbook\forms.py:177
 msgid ""
-"To prevent duplicates recipes with the same name as existing ones are "
+"To prevent duplicates, recipes with the same name as existing ones are "
 "ignored. Check this box to import everything."
 msgstr ""
 
@@ -1408,7 +1408,7 @@ msgstr ""
 #: .\cookbook\templates\markdown_info.html:14
 msgid ""
 "\n"
-"        Markdown is lightweight markup language that can be used to format "
+"        Markdown is a lightweight markup language that can be used to format "
 "plain text easily.\n"
 "        This site uses the <a href=\"https://python-markdown.github.io/\" "
 "target=\"_blank\">Python Markdown</a> library to\n"
@@ -1719,7 +1719,7 @@ msgstr ""
 #: .\cookbook\templates\search_info.html:48
 msgid ""
 " \n"
-"            Raw search is similar to Web except will take puncuation "
+"            Raw search is similar to Web except will take punctuation "
 "operators such as '|', '&' and '()'\n"
 "            "
 msgstr ""
@@ -1733,7 +1733,7 @@ msgid ""
 "            For example searching for 'apple' will create x trigrams 'app', "
 "'ppl', 'ple' and will create a score of how closely words match the "
 "generated trigrams.\n"
-"            One benefit of searching trigams is that a search for 'sandwich' "
+"            One benefit of searching trigrams is that a search for 'sandwich' "
 "will find misspelled words such as 'sandwhich' that would be missed by other "
 "methods.\n"
 "            "
@@ -2386,7 +2386,7 @@ msgstr ""
 
 #: .\cookbook\views\api.py:773
 msgid ""
-"Filter recipes lasts viewed on or after YYYY-MM-DD. Prepending - filters on "
+"Filter recipes last viewed on or after YYYY-MM-DD. Prepending - filters on "
 "or before date."
 msgstr ""
 
@@ -2432,7 +2432,7 @@ msgstr ""
 
 #: .\cookbook\views\api.py:1303 .\cookbook\views\data.py:28
 #: .\cookbook\views\edit.py:120 .\cookbook\views\new.py:90
-msgid "This feature is not yet available in the hosted version of tandoor!"
+msgid "This feature is not yet available in the hosted version of Stillroom!"
 msgstr ""
 
 #: .\cookbook\views\api.py:1325
@@ -2589,7 +2589,7 @@ msgid ""
 msgstr ""
 
 #: .\cookbook\views\views.py:470
-msgid "Passwords dont match!"
+msgid "Passwords don't match!"
 msgstr ""
 
 #: .\cookbook\views\views.py:478

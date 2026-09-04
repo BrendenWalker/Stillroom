@@ -254,7 +254,7 @@ CopyMeThat can export `.zip` files containing an `.html` file as well as a folde
 Cookmate allows you to export a `.mcb` file which you can simply upload to Stillroom and import all your recipes.
 
 ## Cooklang
-Cooklang allows you to import a `.cook` file into tandoor. Does not yet support attaching images or importing a zip file.
+Cooklang allows you to import a `.cook` file into Stillroom. Does not yet support attaching images or importing a zip file.
 
 ## RecetteTek
 

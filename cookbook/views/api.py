@@ -1509,9 +1509,9 @@ class CalendarRenderer(BaseRenderer):
 
 
 MealPlanViewQueryParameters = [
-    OpenApiParameter(name='from_date', description=_('Filter meal plans from date (inclusive). If nothing is given its today - 90 days.'), type=str,
+    OpenApiParameter(name='from_date', description=_('Filter meal plans from date (inclusive). If nothing is given it\'s today - 90 days.'), type=str,
                      examples=[DateExample]),
-    OpenApiParameter(name='to_date', description=_('Filter meal plans to date (inclusive). If nothing is given its today + 360 days.'), type=str,
+    OpenApiParameter(name='to_date', description=_('Filter meal plans to date (inclusive). If nothing is given it\'s today + 360 days.'), type=str,
                      examples=[DateExample]),
     OpenApiParameter(name='meal_type',
                      description=_('Filter meal plans with MealType ID. For multiple repeat parameter.'), type=str,
@@ -1801,8 +1801,8 @@ class RecipePagination(PageNumberPagination):
     OpenApiParameter(name='cookedon_gte', description=_('Filter recipes last cooked on the given date or after.'), type=OpenApiTypes.DATE),
     OpenApiParameter(name='cookedon_lte', description=_('Filter recipes last cooked on the given date or before.'), type=OpenApiTypes.DATE),
 
-    OpenApiParameter(name='viewedon_gte', description=_('Filter recipes lasts viewed on the given date.'), type=OpenApiTypes.DATE, ),
-    OpenApiParameter(name='viewedon_lte', description=_('Filter recipes lasts viewed on the given date.'), type=OpenApiTypes.DATE, ),
+    OpenApiParameter(name='viewedon_gte', description=_('Filter recipes last viewed on the given date.'), type=OpenApiTypes.DATE, ),
+    OpenApiParameter(name='viewedon_lte', description=_('Filter recipes last viewed on the given date.'), type=OpenApiTypes.DATE, ),
 
     OpenApiParameter(name='createdby', description=_('Filter recipes for ones created by the given user ID'), type=int),
     OpenApiParameter(name='internal', description=_('If only internal recipes should be returned. [''true''/''<b>false</b>'']'), type=bool),
@@ -3431,7 +3431,7 @@ def get_recipe_file(request, pk):
 def sync_all(request):
     if request.space.demo or settings.HOSTED:
         messages.add_message(request, messages.ERROR,
-                             _('This feature is not yet available in the hosted version of tandoor!'))
+                             _('This feature is not yet available in the hosted version of Stillroom!'))
         return redirect('index')
 
     monitors = Sync.objects.filter(active=True).filter(space=request.user.userspace_set.filter(active=1).first().space)

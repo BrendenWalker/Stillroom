@@ -97,7 +97,7 @@ def space_overview(request):
             if create_form.is_valid():
                 if Space.objects.filter(created_by=request.user).count() >= request.user.userpreference.max_owned_spaces:
                     messages.add_message(request, messages.ERROR,
-                                         _('You have the reached the maximum amount of spaces that can be owned by you.') + f' ({request.user.userpreference.max_owned_spaces})')
+                                         _('You have reached the maximum number of spaces that can be owned by you.') + f' ({request.user.userpreference.max_owned_spaces})')
                     return HttpResponseRedirect(reverse('view_space_overview'))
 
                 created_space = Space.objects.create(name=create_form.cleaned_data['name'],
@@ -362,7 +362,7 @@ def setup(request):
             form = UserCreateForm(request.POST)
             if form.is_valid():
                 if form.cleaned_data['password'] != form.cleaned_data['password_confirm']:
-                    form.add_error('password', _('Passwords dont match!'))
+                    form.add_error('password', _('Passwords don\'t match!'))
                 else:
                     user = User(username=form.cleaned_data['name'], is_superuser=True, is_staff=True)
                     try:

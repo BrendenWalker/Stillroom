@@ -51,18 +51,18 @@ grep -E 'POSTGRES|DATABASE' ~/.docker/compose/.env
 docker ps -a --format 'table {{.ID}}\t{{.Names}}\t{{.Image}}\t{{.Status}}' | awk 'NR == 1 || /postgres/ || /recipes/'
 ```
 
-2. Export the tandoor database
+2. Export the stillroom database
 
 ``` bash
-docker exec -t {{database_container}} pg_dumpall -U {{djangouser}} > ~/tandoor.sql
+docker exec -t {{database_container}} pg_dumpall -U {{djangouser}} > ~/stillroom.sql
 ```
 
-3. Stop the tandoor application
+3. Stop the stillroom application
 ``` bash
 docker compose down
 ```
 
-4. Rename the tandoor volume
+4. Rename the stillroom volume
 
 ``` bash
 mv ./postgresql ./postgresql.old
@@ -89,7 +89,7 @@ docker compose pull && docker compose up -d db_recipes
 7. Import the database export
 
 ``` bash
-cat ~/tandoor.sql | docker exec -i {{database_container}} psql postgres -U {{djangouser}}
+cat ~/stillroom.sql | docker exec -i {{database_container}} psql postgres -U {{djangouser}}
 ```
 
 8. Install postgres extensions

@@ -54,7 +54,7 @@ const {t} = useI18n()
 const availableDefaultPages = ref([
     {page: 'SEARCH', label: t('Search')},
     {page: 'SHOPPING', label: t('Shopping_list')},
-    {page: 'PLAN', label: t('Meal_Plan')},
+    {page: 'PLAN', label: t('Calendar')},
     {page: 'BOOKS', label: t('Books')},
 ])
 
