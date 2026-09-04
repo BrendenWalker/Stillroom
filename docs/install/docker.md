@@ -1,5 +1,5 @@
 !!! success "Recommended Installation"
-    Setting up this application using Docker is recommended. This does not mean that other options are bad, but its the only method 
+    Setting up this application using Docker is recommended. This does not mean that other options are bad, but it's the only method 
     that is officially maintained and gets regularly tested. 
 
 This guide shows you some basic setups using Docker and docker compose. For configuration options see the [configuration page](https://github.com/BrendenWalker/Stillroom/blob/develop/docs/system/configuration.md).

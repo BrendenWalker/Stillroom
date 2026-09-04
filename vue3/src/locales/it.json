@@ -106,7 +106,7 @@
   "ConnectorConfigHelp": "Con i connettori puoi sincronizzare automaticamente dati da Stillroom con servizi esterni. ",
   "Continue": "Continua",
   "Conversion": "Conversione",
-  "ConversionsHelp": "Con le conversioni è possibile calcolare la quantità di un alimento in diverse unità. Attualmente, questo metodo viene utilizzato solo per il calcolo delle proprietà, ma in futuro potrebbe essere utilizzato anche in altre parti del tandoor. ",
+  "ConversionsHelp": "Con le conversioni è possibile calcolare la quantità di un alimento in diverse unità. Attualmente, questo metodo viene utilizzato solo per il calcolo delle proprietà, ma in futuro potrebbe essere utilizzato anche in altre parti di Stillroom. ",
   "ConvertUsingAI": "Converti utilizzando AI",
   "CookLog": "Registro di cucina",
   "CookLogHelp": "Le voci nel registro di cucina per le ricette. ",

@@ -37,9 +37,9 @@
                 <v-window v-model="window">
                     <v-window-item value="start">
                         <h2>Welcome to Stillroom</h2>
-                        <p class="mt-3">Stillroom is one of the most most powerful recipe management suits available. It has constantly been improved since its first
+                        <p class="mt-3">Stillroom is one of the most powerful recipe management suites available. It has constantly been improved since its first
                             version in 2018.
-                            This knowledgebase explains all important features and concepts. Explore it to find out how Stillroom can help you improve your daily cooking
+                            This knowledge base explains all important features and concepts. Explore it to find out how Stillroom can help you improve your daily cooking
                             routine or search
                             for specific features to help you understand them.</p>
 
@@ -58,11 +58,11 @@
 
                     </v-window-item>
                     <v-window-item value="space">
-                        <p class="mt-3">All your data is stored in a Space where you can invite other people to collaborate on your recipe database. Typcially the members of a
+                        <p class="mt-3">All your data is stored in a Space where you can invite other people to collaborate on your recipe database. Typically the members of a
                             space
                             belong to one family/household/organization.</p>
 
-                        <p class="mt-3">While everyone can access all recipes by default, Books, Shopping Lists and Mealplans are not shared by default. You can share them with
+                        <p class="mt-3">While everyone can access all recipes by default, Books, Shopping Lists and Meal Plans are not shared by default. You can share them with
                             other
                             members of your space
                             using the settings.
@@ -79,7 +79,7 @@
                     <v-window-item value="recipes">
                         <p class="mt-3">Recipes are the foundation of your Stillroom space. A Recipe has one or more steps that contain ingredients, instructions and other
                             information.
-                            Ingredients in turn consist of an amount, a unit and a food, allowing recipes to be scaled, nutrition's to be calculated and shopping to be organized.
+                            Ingredients in turn consist of an amount, a unit and a food, allowing recipes to be scaled, nutrition to be calculated and shopping to be organized.
                         </p>
 
                         <p class="mt-3">Besides manually creating them you can also import them from various different places.
@@ -113,7 +113,7 @@
 
                     </v-window-item>
                     <v-window-item value="ai">
-                        <p class="mt-3">Stillroom has several functions that allow you to use AI to automatically perform certain tasks like importing recipes from a PDFs or images.
+                        <p class="mt-3">Stillroom has several functions that allow you to use AI to automatically perform certain tasks like importing recipes from PDFs or images.
                         </p>
 
                         <p class="mt-3" v-if="useUserPreferenceStore().serverSettings.hosted">
@@ -187,7 +187,7 @@
                             be created through the Keyword Editor.
                         </p>
 
-                        <p class="mt-3">Typical keywords include meal types (breakfast, lunch, dinner, ...), couise (american, italian, ...) or diet (vegan, vegetarian, ..).
+                        <p class="mt-3">Typical keywords include meal types (breakfast, lunch, dinner, ...), cuisine (american, italian, ...) or diet (vegan, vegetarian, ..).
 
                         </p>
                         <p class="mt-3">Tip: Using Emojis in Keywords makes them easy to recognize.
@@ -203,8 +203,8 @@
                         <p class="mt-3">A Recipe consists of multiple Steps.
                         </p>
 
-                        <p class="mt-3">Each Step has Ingreditens (which are at least a Food but typically consist of amount,
-                            Unit and Food). A Step can also contain instuctions, times, files or link to another Recipe.
+                        <p class="mt-3">Each Step has Ingredients (which are at least a Food but typically consist of amount,
+                            Unit and Food). A Step can also contain instructions, times, files or link to another Recipe.
                         </p>
                         <p class="mt-3">Additionally a Recipe can have Properties, Comments, Keywords and more.
                         </p>
@@ -222,7 +222,7 @@
                             You can then go to a Food, set its FDC ID and Stillroom can automatically pull the properties you want from the FDC database.
                         </p>
                         <p class="mt-3">When adding a Property to the Recipe it will just be statically displayed in the Recipe view.
-                            Adding properties to a Foods will allow Stillroom to calculate the properties for all the Ingredients in a Recipe based
+                            Adding properties to Foods will allow Stillroom to calculate the properties for all the Ingredients in a Recipe based
                             on the Foods and their respective Units and Amounts.
                         </p>
 
@@ -235,17 +235,17 @@
                             {{ $t('Property') }}
                         </v-btn>
                         <h3>Editor</h3>
-                        <p class="mt-3">Adding Properties manually to every food can be cumbersome. To make it easier you can import the Community curated
+                        <p class="mt-3">Adding Properties manually to every food can be cumbersome. To make it easier you can import the community-curated
                             Open Data Database. If that is not enough you can open the Property Editor through the context menu on your recipe.
                         </p>
 
-                        <p class="mt-3">Here you can view all Foods in a Recipe and their respective properties. You can also quickly assign FDC ID's to both
+                        <p class="mt-3">Here you can view all Foods in a Recipe and their respective properties. You can also quickly assign FDC IDs to both
                             Foods and Property Types and import the data from the FDC Database.
                         </p>
                         <h3>View</h3>
 
                         <p class="mt-3">
-                            Properties are shown below every recipe as soon as you setup your first Property Types.
+                            Properties are shown below every recipe as soon as you set up your first Property Types.
                             A small warning triangle is shown if there are missing values for one of the Foods in the recipe.
                         </p>
                         <p class="mt-3">
@@ -261,7 +261,7 @@
                             Here you can quickly search through your recipes and open them.
                         </p>
                         <p class="mt-3">
-                            If you need a bit more fine tuning for your search you can open the advances search and search for all kinds of different things like keywords,
+                            If you need a bit more fine tuning for your search you can open the advanced search and search for all kinds of different things like keywords,
                             foods or ratings.
                         </p>
 
@@ -283,12 +283,12 @@
                         </p>
                     </v-window-item>
                     <v-window-item value="books">
-                        <p class="mt-3">Books are a a way to structure and explore your recipe collection. They are similar to keywords but show you a bit more details when
+                        <p class="mt-3">Books are a way to structure and explore your recipe collection. They are similar to keywords but show you a bit more details when
                             looking through them.
                         </p>
 
                         <p class="mt-3">After creating a new Book on the books page you can either add recipes manually or you can add a Saved Search Filter to automatically
-                            load recipes into your book based on pre defined search criteria.
+                            load recipes into your book based on predefined search criteria.
                         </p>
 
                         <v-btn color="primary" variant="tonal" prepend-icon="$books" class="me-2" :to="{name: 'BooksPage', }">
@@ -297,7 +297,7 @@
                     </v-window-item>
                     <v-window-item value="shopping">
                         <p class="mt-3">
-                            You can add inidivitual Foods (including non Food items of course) or whole recipes to your shopping list.
+                            You can add individual Foods (including non-food items of course) or whole recipes to your shopping list.
                             By default only you can see the entries you make, by going to the settings you can share them with other users and they can share them with you.
                         </p>
 
@@ -314,13 +314,13 @@
 
                         <v-list>
                             <v-list-item>Postpone: Hide the entry from the shopping list for a certain time (specified in the settings)</v-list-item>
-                            <v-list-item>Ignore: Check this Food of the list and do not add it again when adding a recipe to the shopping list</v-list-item>
+                            <v-list-item>Ignore: Check this Food off the list and do not add it again when adding a recipe to the shopping list</v-list-item>
                             <v-list-item>Edit: Open the Food's Editor</v-list-item>
                             <v-list-item>Delete all: Delete all entries associated with this line.</v-list-item>
                         </v-list>
 
                         <p class="mt-3">
-                            The Shopping list automatically syncronizes when multiple people have it open so you can shop with multiple devices.
+                            The Shopping list automatically synchronizes when multiple people have it open so you can shop with multiple devices.
                         </p>
                         <p class="mt-3">
                             Through the menu you can also configure which information you want to be displayed or how the list should be sorted.
@@ -336,7 +336,7 @@
                     <v-window-item value="meal_plan">
                         <p class="mt-3">
                             To plan what you want to eat you can create a Meal Plan. Each Meal Plan consists of at least a title or a recipe, a date and a Meal Type.
-                            Meal Plan entries a private by default and can either be shared individually or using a preset in the meal plan settings.
+                            Meal Plan entries are private by default and can either be shared individually or using a preset in the meal plan settings.
 
                         </p>
 
