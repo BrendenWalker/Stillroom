@@ -36,7 +36,7 @@ To contribute to the project you are required to use the following packages with
 
 User-facing changes go in the `[Unreleased]` section of [`CHANGELOG.md`](https://github.com/BrendenWalker/Stillroom/blob/develop/CHANGELOG.md), unless the pull request is labeled `skip-changelog`. Label breaking API, settings, or database migrations `breaking-change`.
 
-Cutting a version tag is a separate maintainer step and requires that changelog heading first. See [Releasing](/contribute/releasing/).
+Cutting a version tags `main` after the `develop` → `main` release pull request. The tagged commit must already have the changelog heading. See [Releasing](/contribute/releasing/).
 
 ## Testing
 

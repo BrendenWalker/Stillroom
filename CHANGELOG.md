@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-09-04
+
 Back up before upgrading. Apply migrations **0244–0248**. Pack-size fields and shopping `amount_grams` are additive; **0246** backfills grams when conversion is possible and clears `count_per_pack` below 1; unconverted shopping entries stay unchanged. Rolling back does not restore converted shopping `amount`/`unit`. **0247** adds food `kcal` / `kcal_grams`; **0248** copies from existing calorie/grams properties only when those food fields are null. After upgrade, check foods’ Details tab (pack sizes and kcal). Mark non-food supermarket categories (soap, bags) with Food items unchecked. Integrations may see new optional fields on Food, ShoppingListEntry, SupermarketCategory, Recipe, and MealPlan (`kcal_per_serving` is read-only). Image remains `ghcr.io/brendenwalker/stillroom`.
 
 ### Added
@@ -36,4 +38,5 @@ Back up before upgrading. Apply migrations **0244–0248**. Pack-size fields and
 - Native recipe export dropping Details-tab food values on import (#33)
 - Debug frontend serving stale cached assets (#29, #31)
 
-[Unreleased]: https://github.com/BrendenWalker/Stillroom/commits/develop
+[Unreleased]: https://github.com/BrendenWalker/Stillroom/compare/0.1.0...develop
+[0.1.0]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.0
