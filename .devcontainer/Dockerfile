@@ -5,6 +5,7 @@ ENV PYTHONUNBUFFERED=1
 
 EXPOSE 8000
 EXPOSE 8080
+EXPOSE 5173
 
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get install -y --no-install-recommends \
@@ -35,6 +36,7 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y --no-install-recommends nodejs \
     && corepack enable \
+    && corepack prepare yarn@1.22.22 --activate \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -43,3 +45,12 @@ RUN python -m pip install --upgrade pip \
     && pip install wheel==0.45.1 \
     && pip install -r /tmp/pip-tmp/requirements.txt --no-cache-dir \
     && rm -rf /tmp/pip-tmp
+
+# Install Vue deps in the image so native bindings match this Linux OS.
+# The workspace bind-mount hides /workspaces/.../node_modules; setup-frontend.sh
+# copies these into a container-only volume after create.
+COPY vue3/package.json vue3/yarn.lock /opt/vue3-deps/
+WORKDIR /opt/vue3-deps
+RUN yarn install --frozen-lockfile \
+    && yarn cache clean
+WORKDIR /

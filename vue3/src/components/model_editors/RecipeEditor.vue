@@ -194,7 +194,7 @@ import StepEditor from "@/components/inputs/StepEditor.vue";
 import {VueDraggable} from "vue-draggable-plus";
 import PropertiesEditor from "@/components/inputs/PropertiesEditor.vue";
 import {useFileApi} from "@/composables/useFileApi";
-import {VFileUpload} from 'vuetify/labs/VFileUpload'
+import {VFileUpload} from 'vuetify/components/VFileUpload'
 import ClosableHelpAlert from "@/components/display/ClosableHelpAlert.vue";
 import {useDisplay} from "vuetify";
 import {isSpaceAtRecipeLimit} from "@/utils/logic_utils";

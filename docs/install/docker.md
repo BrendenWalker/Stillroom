@@ -1,12 +1,12 @@
 !!! success "Recommended Installation"
-    Setting up this application using Docker is recommended. This does not mean that other options are bad, but its the only method 
+    Setting up this application using Docker is recommended. This does not mean that other options are bad, but it's the only method 
     that is officially maintained and gets regularly tested. 
 
-This guide shows you some basic setups using Docker and docker compose. For configuration options see the [configuration page](https://github.com/BrendenWalker/TandoorNG/blob/develop/docs/system/configuration.md).
+This guide shows you some basic setups using Docker and docker compose. For configuration options see the [configuration page](https://github.com/BrendenWalker/Stillroom/blob/develop/docs/system/configuration.md).
 
 ## **Versions**
 
-There are different versions (tags) released on [GitHub Container Registry](https://github.com/BrendenWalker/TandoorNG/pkgs/container/stillroom).
+There are different versions (tags) released on [GitHub Container Registry](https://github.com/BrendenWalker/Stillroom/pkgs/container/stillroom).
 
 -   **latest** Default image. The one you should use if you don't know that you need anything else.
 -   **beta** Partially stable version that gets updated every now and then. Expect to have some problems.
@@ -47,9 +47,9 @@ The main, and also recommended, installation option for this application is Dock
 1. Choose your `docker-compose.yml` from the examples below.
 2. Download the `.env` configuration file with `wget`
     ```shell
-    wget https://raw.githubusercontent.com/BrendenWalker/TandoorNG/develop/.env.template -O .env
+    wget https://raw.githubusercontent.com/BrendenWalker/Stillroom/develop/.env.template -O .env
     ```
-3. **Edit it accordingly** (you NEED to set `SECRET_KEY`, `ALLOWED_HOSTS` and `POSTGRES_PASSWORD`), see [configuration page](https://github.com/BrendenWalker/TandoorNG/blob/develop/docs/system/configuration.md).
+3. **Edit it accordingly** (you NEED to set `SECRET_KEY`, `ALLOWED_HOSTS` and `POSTGRES_PASSWORD`), see [configuration page](https://github.com/BrendenWalker/Stillroom/blob/develop/docs/system/configuration.md).
 4. Start your container using `docker-compose up -d`.
 
 ### **Plain**
@@ -58,7 +58,7 @@ This configuration exposes the application through a containerized nginx web ser
 Be aware that having some other web server or container running on your host machine on port 80 will block this from working.
 
 ```shell
-wget https://raw.githubusercontent.com/BrendenWalker/TandoorNG/develop/docs/install/docker/plain/docker-compose.yml
+wget https://raw.githubusercontent.com/BrendenWalker/Stillroom/develop/docs/install/docker/plain/docker-compose.yml
 ```
 
 ~~~yaml
@@ -79,7 +79,7 @@ If you use Traefik, this configuration is the one for you.
     [this little example](traefik.md) might be for you.
 
 ```shell
-wget https://raw.githubusercontent.com/BrendenWalker/TandoorNG/develop/docs/install/docker/traefik-nginx/docker-compose.yml
+wget https://raw.githubusercontent.com/BrendenWalker/Stillroom/develop/docs/install/docker/traefik-nginx/docker-compose.yml
 ```
 
 ~~~yaml
@@ -106,7 +106,7 @@ LETSENCRYPT_EMAIL=
 ```
 
 ```shell
-wget https://raw.githubusercontent.com/BrendenWalker/TandoorNG/develop/docs/install/docker/nginx-proxy/docker-compose.yml
+wget https://raw.githubusercontent.com/BrendenWalker/Stillroom/develop/docs/install/docker/nginx-proxy/docker-compose.yml
 ```
 
 ~~~yaml
@@ -137,7 +137,7 @@ Follow the guide for installing DockSTARTer and then run `ds` then select 'Confi
 ## **Additional Information**
 
 ### **Nginx Config**
-The Docker container includes a nginx service. Its default configuration is pulled from the [http.d](https://github.com/BrendenWalker/TandoorNG/tree/develop/http.d) folder
+The Docker container includes a nginx service. Its default configuration is pulled from the [http.d](https://github.com/BrendenWalker/Stillroom/tree/develop/http.d) folder
 in the repository. 
 
 You can setup a volume to link to the ```/opt/recipes/http.d``` folder inside your container to change the configuration. Keep in mind that you will not receive any updates on the configuration 

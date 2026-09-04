@@ -33,7 +33,7 @@
                                           @update:modelValue="inventoryEntrySelected()">
                             </v-model-select>
 
-                            <v-model-select model="Food" allow-create v-model="food" v-if="['add'].includes(bookingMode)"></v-model-select>
+                            <v-model-select model="Food" allow-create v-model="food" v-if="['add'].includes(bookingMode)" :list-params="{isFood: true}"></v-model-select>
 
                             <v-card variant="outlined" class="mb-4" v-if="inventoryEntry">
                                 <v-card-title>
@@ -196,7 +196,7 @@ import ModelSelect from "@/components/inputs/ModelSelect.vue";
 import {computed, onMounted, ref, watch} from "vue";
 import {ApiApi, ApiInventoryEntryListRequest, Food, Ingredient, InventoryEntry, InventoryLocation, Unit} from "@/openapi";
 import {useUserPreferenceStore} from "@/stores/UserPreferenceStore.ts";
-import {VDateInput} from "vuetify/labs/VDateInput";
+import {VDateInput} from "vuetify/components/VDateInput";
 import {ErrorMessageType, PreparedMessage, useMessageStore} from "@/stores/MessageStore.ts";
 import {useI18n} from "vue-i18n";
 import {VDataTableUpdateOptions} from "@/vuetify.ts";

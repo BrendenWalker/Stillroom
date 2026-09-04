@@ -85,6 +85,7 @@ from cookbook.helper.permission_helper import (CustomIsAdmin, CustomIsOwner, Cus
                                                get_household_user_ids)
 from cookbook.helper.recipe_search import RecipeSearch
 from cookbook.helper.recipe_url_import import clean_dict, get_from_youtube_scraper, get_images_from_soup
+from cookbook.helper.food_pack import shopping_entry_quantities, shopping_measure_grams_of, shopping_units_to_grams
 from cookbook.helper.shopping_helper import RecipeShoppingEditor
 from cookbook.models import (Automation, BookmarkletImport, ConnectorConfig, CookLog, CustomFilter, ExportLog, Food,
                              FoodInheritField, FoodProperty, ImportLog, Ingredient,
@@ -1055,6 +1056,20 @@ class FoodInheritFieldViewSet(LoggingMixin, viewsets.ReadOnlyModelViewSet):
         return super().get_queryset()
 
 
+@extend_schema_view(
+    list=extend_schema(parameters=[
+        OpenApiParameter(name='root',
+                         description='Return first level children of {obj} with ID [int].  Integer 0 will return root {obj}s.',
+                         type=int),
+        OpenApiParameter(name='tree', description='Return all self and children of {obj} with ID [int].', type=int),
+        OpenApiParameter(name='root_tree', description='Return all items belonging to the tree of the given {obj} id', type=int),
+        OpenApiParameter(
+            name='is_food',
+            description='If true, only uncategorized items and items in a food category. If false, only items in a non-food category.',
+            type=bool,
+        ),
+    ]),
+)
 class FoodViewSet(LoggingMixin, TreeMixin, DeleteRelationMixing):
     queryset = Food.objects
     model = Food
@@ -1086,6 +1101,14 @@ class FoodViewSet(LoggingMixin, TreeMixin, DeleteRelationMixing):
 
     def get_queryset(self):
         self.queryset = super().get_queryset()
+        is_food = self.request.query_params.get('is_food', None)
+        if is_food is not None:
+            if str2bool(is_food):
+                self.queryset = self.queryset.filter(
+                    Q(supermarket_category__isnull=True) | Q(supermarket_category__is_food=True)
+                )
+            else:
+                self.queryset = self.queryset.filter(supermarket_category__is_food=False)
         return self._annotate_and_prefetch(self.queryset)
 
     def get_serializer_class(self):
@@ -1121,7 +1144,12 @@ class FoodViewSet(LoggingMixin, TreeMixin, DeleteRelationMixing):
             if unit and unit is None:
                 raise APIException({'error': 'Unit not found in current space'}, code=status.HTTP_400_BAD_REQUEST)
 
-        ShoppingListEntry.objects.create(food=obj, amount=amount, unit=unit, space=request.space,
+        grams = None
+        if shopping_measure_grams_of(obj) is not None:
+            grams = shopping_units_to_grams(obj, amount)
+            amount, unit, grams = shopping_entry_quantities(obj, amount, None, amount_grams=grams)
+
+        ShoppingListEntry.objects.create(food=obj, amount=amount, unit=unit, amount_grams=grams, space=request.space,
                                          created_by=request.user)
         return Response(content, status=status.HTTP_204_NO_CONTENT)
 
@@ -1481,9 +1509,9 @@ class CalendarRenderer(BaseRenderer):
 
 
 MealPlanViewQueryParameters = [
-    OpenApiParameter(name='from_date', description=_('Filter meal plans from date (inclusive). If nothing is given its today - 90 days.'), type=str,
+    OpenApiParameter(name='from_date', description=_('Filter meal plans from date (inclusive). If nothing is given it\'s today - 90 days.'), type=str,
                      examples=[DateExample]),
-    OpenApiParameter(name='to_date', description=_('Filter meal plans to date (inclusive). If nothing is given its today + 360 days.'), type=str,
+    OpenApiParameter(name='to_date', description=_('Filter meal plans to date (inclusive). If nothing is given it\'s today + 360 days.'), type=str,
                      examples=[DateExample]),
     OpenApiParameter(name='meal_type',
                      description=_('Filter meal plans with MealType ID. For multiple repeat parameter.'), type=str,
@@ -1516,7 +1544,18 @@ class MealPlanViewSet(LoggingMixin, viewsets.ModelViewSet):
         if meal_type:
             queryset = queryset.filter(meal_type__in=meal_type)
 
-        return queryset
+        return queryset.select_related('recipe', 'meal_type', 'created_by').prefetch_related(
+            'recipe__steps',
+            'recipe__steps__ingredients',
+            'recipe__steps__ingredients__food',
+            'recipe__steps__ingredients__unit',
+            'recipe__steps__ingredients__unit__unit_conversion_base_relation',
+            'recipe__steps__ingredients__unit__unit_conversion_base_relation__base_unit',
+            'recipe__steps__ingredients__unit__unit_conversion_base_relation__food',
+            'recipe__steps__ingredients__unit__unit_conversion_converted_relation',
+            'recipe__steps__ingredients__unit__unit_conversion_converted_relation__converted_unit',
+            'recipe__steps__ingredients__unit__unit_conversion_converted_relation__food',
+        )
 
     def get_serializer_class(self):
         if self.action == 'ical':
@@ -1762,8 +1801,8 @@ class RecipePagination(PageNumberPagination):
     OpenApiParameter(name='cookedon_gte', description=_('Filter recipes last cooked on the given date or after.'), type=OpenApiTypes.DATE),
     OpenApiParameter(name='cookedon_lte', description=_('Filter recipes last cooked on the given date or before.'), type=OpenApiTypes.DATE),
 
-    OpenApiParameter(name='viewedon_gte', description=_('Filter recipes lasts viewed on the given date.'), type=OpenApiTypes.DATE, ),
-    OpenApiParameter(name='viewedon_lte', description=_('Filter recipes lasts viewed on the given date.'), type=OpenApiTypes.DATE, ),
+    OpenApiParameter(name='viewedon_gte', description=_('Filter recipes last viewed on the given date.'), type=OpenApiTypes.DATE, ),
+    OpenApiParameter(name='viewedon_lte', description=_('Filter recipes last viewed on the given date.'), type=OpenApiTypes.DATE, ),
 
     OpenApiParameter(name='createdby', description=_('Filter recipes for ones created by the given user ID'), type=int),
     OpenApiParameter(name='internal', description=_('If only internal recipes should be returned. [''true''/''<b>false</b>'']'), type=bool),
@@ -1828,7 +1867,20 @@ class RecipeViewSet(LoggingMixin, viewsets.ModelViewSet, DeleteRelationMixing):
         params = {x: self.request.GET.get(x) if len({**self.request.GET}[x]) == 1 else self.request.GET.getlist(x) for x
                   in list(self.request.GET)}
         search = RecipeSearch(self.request, **params)
-        self.queryset = search.get_queryset(self.queryset).prefetch_related('keywords', 'cooklog_set')
+        self.queryset = search.get_queryset(self.queryset).prefetch_related(
+            'keywords',
+            'cooklog_set',
+            'steps',
+            'steps__ingredients',
+            'steps__ingredients__food',
+            'steps__ingredients__unit',
+            'steps__ingredients__unit__unit_conversion_base_relation',
+            'steps__ingredients__unit__unit_conversion_base_relation__base_unit',
+            'steps__ingredients__unit__unit_conversion_base_relation__food',
+            'steps__ingredients__unit__unit_conversion_converted_relation',
+            'steps__ingredients__unit__unit_conversion_converted_relation__converted_unit',
+            'steps__ingredients__unit__unit_conversion_converted_relation__food',
+        )
         return self.queryset
 
     def list(self, request, *args, **kwargs):
@@ -2225,13 +2277,22 @@ class ShoppingListRecipeViewSet(LoggingMixin, viewsets.ModelViewSet):
 
         if serializer.is_valid():
             entries = []
-            for e in serializer.validated_data['entries']:
+            entry_data = serializer.validated_data['entries']
+            food_ids = [e['food_id'] for e in entry_data if e.get('food_id')]
+            unit_ids = [e['unit_id'] for e in entry_data if e.get('unit_id')]
+            foods = {f.id: f for f in Food.objects.filter(id__in=food_ids)}
+            units = {u.id: u for u in Unit.objects.filter(id__in=unit_ids)}
+            for e in entry_data:
+                food = foods.get(e['food_id']) if e.get('food_id') else None
+                unit = units.get(e['unit_id']) if e.get('unit_id') else None
+                amount, unit_obj, grams = shopping_entry_quantities(food, e['amount'], unit)
                 entry = ShoppingListEntry(
                     list_recipe_id=obj.pk,
-                    amount=e['amount'],
-                    unit_id=e['unit_id'],
+                    amount=amount,
+                    unit=unit_obj,
                     food_id=e['food_id'],
                     ingredient_id=e['ingredient_id'],
+                    amount_grams=grams,
                     created_by_id=request.user.id,
                     space_id=request.space.id,
                 )
@@ -2356,9 +2417,11 @@ class ShoppingListEntryViewSet(LoggingMixin, viewsets.ModelViewSet):
                     bulk_entries.update(checked=checked, updated_at=update_timestamp, completed_at=None)
                 serializer.validated_data['timestamp'] = update_timestamp
 
-                # update the onhand for food if shopping_add_onhand is True
+                # update the onhand for food if shopping_add_onhand is True (food-category items only)
                 if request.user.userpreference.shopping_add_onhand:
-                    foods = Food.objects.filter(id__in=bulk_entries.values('food'))
+                    foods = Food.objects.filter(id__in=bulk_entries.values('food')).filter(
+                        Q(supermarket_category__isnull=True) | Q(supermarket_category__is_food=True)
+                    )
                     household_users = User.objects.filter(id__in=household_user_ids)
                     if checked:
                         for f in foods:
@@ -3368,7 +3431,7 @@ def get_recipe_file(request, pk):
 def sync_all(request):
     if request.space.demo or settings.HOSTED:
         messages.add_message(request, messages.ERROR,
-                             _('This feature is not yet available in the hosted version of tandoor!'))
+                             _('This feature is not yet available in the hosted version of Stillroom!'))
         return redirect('index')
 
     monitors = Sync.objects.filter(active=True).filter(space=request.user.userspace_set.filter(active=1).first().space)

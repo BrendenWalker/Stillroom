@@ -25,11 +25,41 @@
 
                         <v-row>
                             <v-col cols="12" md="6">
-                                <v-model-select model="Recipe" v-model="editingObj.recipe"
-                                             @update:modelValue="editingObj.servings = editingObj.recipe ? editingObj.recipe.servings : 1"></v-model-select>
-                                <!--                                <v-number-input label="Days" control-variant="split" :min="1"></v-number-input>-->
-                                <!--TODO create days input with +/- synced to date -->
+                                <v-text-field
+                                    v-if="!editingObj.recipe"
+                                    :label="$t('Recipe')"
+                                    :placeholder="$t('Search')"
+                                    v-model="recipeQuery"
+                                    clearable
+                                    hide-details
+                                    autocomplete="off"
+                                    prepend-inner-icon="$recipes"
+                                    :loading="recipeLoading"
+                                    @click:clear="clearRecipe"
+                                ></v-text-field>
+                                <v-list
+                                    v-if="!editingObj.recipe"
+                                    class="border rounded mt-1"
+                                    density="compact"
+                                    max-height="280"
+                                    style="overflow-y: auto"
+                                >
+                                    <v-list-subheader>{{ recipeChoices.length }} {{ $t('Recipes') }}</v-list-subheader>
+                                    <v-list-item
+                                        v-for="r in recipeChoices"
+                                        :key="r.id"
+                                        :title="r.name"
+                                        @click="selectRecipe(r)"
+                                    >
+                                        <template #prepend>
+                                            <v-avatar size="32" :image="r.image" v-if="r.image"></v-avatar>
+                                        </template>
+                                    </v-list-item>
+                                    <v-list-item v-if="recipeLoading && recipeChoices.length === 0" title="…" disabled></v-list-item>
+                                    <v-list-item v-else-if="!recipeLoading && recipeChoices.length === 0" :title="$t('No_Results')" disabled></v-list-item>
+                                </v-list>
                                 <recipe-card :recipe="editingObj.recipe" :servings="editingObj.servings" v-if="editingObj && editingObj.recipe" link-target="_blank"></recipe-card>
+                                <v-btn variant="text" size="small" class="mt-1" v-if="editingObj.recipe" @click="clearRecipe">{{ $t('Clear') }}</v-btn>
                                 <v-btn prepend-icon="$shopping" color="create" class="mt-1" v-if="!editingObj.shopping && editingObj.recipe && isUpdate()">
                                     {{ $t('Add') }}
                                     <add-to-shopping-dialog :recipe="editingObj.recipe" :meal-plan="editingObj"
@@ -80,7 +110,23 @@
                                     </v-btn-group>
                                 </v-input>
 
-                                <v-model-select model="MealType" create v-model="editingObj.mealType"></v-model-select>
+                                <div class="mb-4">
+                                    <div class="text-subtitle-2 mb-1">{{ $t('Meal_Type') }}</div>
+                                    <div class="text-caption text-medium-emphasis mb-2">{{ $t('MealTypeHelp') }}</div>
+                                    <v-chip-group
+                                        :model-value="editingObj.mealType?.id"
+                                        @update:model-value="selectMealTypeById"
+                                        column
+                                    >
+                                        <v-chip
+                                            v-for="mt in mealTypes"
+                                            :key="mt.id"
+                                            :value="mt.id"
+                                            filter
+                                            variant="outlined"
+                                        >{{ mt.name }}</v-chip>
+                                    </v-chip-group>
+                                </div>
                                 <v-number-input control-variant="split" :min="0" v-model="editingObj.servings" :label="$t('Servings')" :precision="2"></v-number-input>
                             </v-col>
 
@@ -111,24 +157,21 @@
 <script setup lang="ts">
 
 import {nextTick, onMounted, onUnmounted, PropType, ref, toRaw, watch} from "vue";
-import {ApiApi, MealPlan, MealType, ShoppingListRecipe} from "@/openapi";
+import {ApiApi, MealPlan, MealType, RecipeOverview} from "@/openapi";
 import ModelEditorBase from "@/components/model_editors/ModelEditorBase.vue";
 import {useModelEditorFunctions} from "@/composables/useModelEditorFunctions";
 import {DateTime} from "luxon";
 import {adjustDateRangeLength, shiftDateRange} from "@/utils/date_utils";
-import ModelSelect from "@/components/inputs/ModelSelect.vue";
+import {useDebounceFn} from "@vueuse/core";
 import RecipeCard from "@/components/display/RecipeCard.vue";
-import {VDateInput} from "vuetify/labs/VDateInput";
+import {VDateInput} from "vuetify/components/VDateInput";
 import {useUserPreferenceStore} from "@/stores/UserPreferenceStore";
 import {ErrorMessageType, MessageType, useMessageStore} from "@/stores/MessageStore";
-import ShoppingLineItem from "@/components/display/ShoppingLineItem.vue";
 import {useShoppingStore} from "@/stores/ShoppingStore";
-import ShoppingListEntryInput from "@/components/inputs/ShoppingListEntryInput.vue";
 import ClosableHelpAlert from "@/components/display/ClosableHelpAlert.vue";
 import {useMealPlanStore} from "@/stores/MealPlanStore";
 import AddToShoppingDialog from "@/components/dialogs/AddToShoppingDialog.vue";
 import ShoppingListView from "@/components/display/ShoppingListView.vue";
-import VModelSelect from "@/components/inputs/VModelSelect.vue";
 
 const props = defineProps({
     item: {type: {} as PropType<MealPlan>, required: false, default: null},
@@ -165,6 +208,81 @@ const tab = ref('plan')
 const dateRangeValue = ref([] as Date[])
 const timePickerMenu = ref(false)
 const mealPlanTime = ref('12:00')
+const recipeQuery = ref('')
+const recipeChoices = ref([] as RecipeOverview[])
+const recipeLoading = ref(false)
+const mealTypes = ref([] as MealType[])
+
+const DEFAULT_MEAL_TYPE_SEED = [
+    {name: 'Breakfast', order: 0, time: '08:00:00', color: '#ddbf86'},
+    {name: 'Lunch', order: 1, time: '12:00:00', color: '#82aa8b'},
+    {name: 'Dinner', order: 2, time: '18:00:00', color: '#385f84'},
+]
+
+function selectMealTypeById(id: number | null) {
+    const mealType = mealTypes.value.find((mt) => mt.id === id)
+    if (mealType) {
+        editingObj.value.mealType = mealType
+    }
+}
+
+function loadMealTypes() {
+    const api = new ApiApi()
+    return api.apiMealTypeList({page: 1, pageSize: 50}).then(async (r) => {
+        let results = r.results ?? []
+        if (results.length === 0) {
+            for (const seed of DEFAULT_MEAL_TYPE_SEED) {
+                await api.apiMealTypeCreate({mealType: seed as MealType})
+            }
+            results = (await api.apiMealTypeList({page: 1, pageSize: 50})).results ?? []
+        }
+        mealTypes.value = results
+        if (!editingObj.value.mealType && results.length > 0) {
+            const preferred = useUserPreferenceStore().userSettings.defaultMealType
+            editingObj.value.mealType = results.find((mt) => mt.id === preferred?.id) ?? results[0]
+        }
+    }).catch((err: any) => {
+        useMessageStore().addError(ErrorMessageType.FETCH_ERROR, err)
+        mealTypes.value = []
+    })
+}
+
+function selectRecipe(recipe: RecipeOverview) {
+    editingObj.value.recipe = recipe
+    editingObj.value.servings = recipe.servings ?? 1
+    recipeQuery.value = recipe.name
+}
+
+function clearRecipe() {
+    editingObj.value.recipe = undefined
+    recipeQuery.value = ''
+    searchRecipes()
+}
+
+function searchRecipes() {
+    recipeLoading.value = true
+    const api = new ApiApi()
+    return api.apiRecipeList({query: recipeQuery.value || '', page: 1, pageSize: 25}).then((r) => {
+        recipeChoices.value = r.results ?? []
+    }).catch((err: any) => {
+        useMessageStore().addError(ErrorMessageType.FETCH_ERROR, err)
+        recipeChoices.value = []
+    }).finally(() => {
+        recipeLoading.value = false
+    })
+}
+
+const debouncedSearchRecipes = useDebounceFn(searchRecipes, 300)
+
+watch(recipeQuery, (value) => {
+    if (editingObj.value.recipe && value === editingObj.value.recipe.name) {
+        return
+    }
+    if (editingObj.value.recipe && value !== editingObj.value.recipe.name) {
+        editingObj.value.recipe = undefined
+    }
+    debouncedSearchRecipes()
+})
 
 watch(() => editingObj.value.mealType, (newType, oldType) => {
     if (newType?.time && newType?.time !== oldType?.time) {
@@ -248,6 +366,12 @@ function initializeEditor() {
 
             initializeDateRange()
 
+            recipeQuery.value = editingObj.value.recipe?.name ?? ''
+            if (!editingObj.value.recipe) {
+                searchRecipes()
+            }
+            loadMealTypes()
+
             nextTick(() => {
                 editingObjChanged.value = false
             })
@@ -257,6 +381,11 @@ function initializeEditor() {
                 mealPlanTime.value = DateTime.fromJSDate(editingObj.value.fromDate).toFormat('HH:mm')
             }
             initializeDateRange()
+            recipeQuery.value = editingObj.value.recipe?.name ?? ''
+            if (!editingObj.value.recipe) {
+                searchRecipes()
+            }
+            loadMealTypes()
         }
     },)
 

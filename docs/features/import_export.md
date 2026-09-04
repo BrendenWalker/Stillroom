@@ -4,7 +4,7 @@ to offer the best experience possible and allow you to freely choose where your 
 The module is built with maximum flexibility and expandability in mind and allows to easily add new
 integrations to allow you to both import and export your recipes into whatever format you desire.
 
-Feel like there is an important integration missing? Just take a look at the [integration issues](https://github.com/BrendenWalker/TandoorNG/issues?q=is%3Aissue+is%3Aopen+label%3Aintegration) or open a new one
+Feel like there is an important integration missing? Just take a look at the [integration issues](https://github.com/BrendenWalker/Stillroom/issues?q=is%3Aissue+is%3Aopen+label%3Aintegration) or open a new one
 if your favorite one is missing.
 
 !!! info "Export"
@@ -254,7 +254,7 @@ CopyMeThat can export `.zip` files containing an `.html` file as well as a folde
 Cookmate allows you to export a `.mcb` file which you can simply upload to Stillroom and import all your recipes.
 
 ## Cooklang
-Cooklang allows you to import a `.cook` file into tandoor. Does not yet support attaching images or importing a zip file.
+Cooklang allows you to import a `.cook` file into Stillroom. Does not yet support attaching images or importing a zip file.
 
 ## RecetteTek
 

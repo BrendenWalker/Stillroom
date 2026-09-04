@@ -254,6 +254,42 @@ export interface PatchedFood {
      * @memberof PatchedFood
      */
     shoppingLists?: Array<ShoppingList>;
+    /**
+     * How you buy it, e.g. dozen, 12 oz can, loaf.
+     * @type {string}
+     * @memberof PatchedFood
+     */
+    shoppingMeasure?: string | null;
+    /**
+     * Grams per each when used in a recipe.
+     * @type {number}
+     * @memberof PatchedFood
+     */
+    ingredientUnitGrams?: number | null;
+    /**
+     * Number of items in a typical pack, e.g. 12 for a dozen.
+     * @type {number}
+     * @memberof PatchedFood
+     */
+    countPerPack?: number | null;
+    /**
+     * Total grams in a typical shopping measure.
+     * @type {number}
+     * @memberof PatchedFood
+     */
+    shoppingMeasureGrams?: number | null;
+    /**
+     * Kilocalories for the stated gram amount.
+     * @type {number}
+     * @memberof PatchedFood
+     */
+    kcal?: number | null;
+    /**
+     * Grams the kilocalorie value applies to.
+     * @type {number}
+     * @memberof PatchedFood
+     */
+    kcalGrams?: number | null;
 }
 
 /**
@@ -298,6 +334,12 @@ export function PatchedFoodFromJSONTyped(json: any, ignoreDiscriminator: boolean
         'childInheritFields': json['child_inherit_fields'] == null ? undefined : ((json['child_inherit_fields'] as Array<any>).map(FoodInheritFieldFromJSON)),
         'openDataSlug': json['open_data_slug'] == null ? undefined : json['open_data_slug'],
         'shoppingLists': json['shopping_lists'] == null ? undefined : ((json['shopping_lists'] as Array<any>).map(ShoppingListFromJSON)),
+        'shoppingMeasure': json['shopping_measure'] == null ? undefined : json['shopping_measure'],
+        'ingredientUnitGrams': json['ingredient_unit_grams'] == null ? undefined : json['ingredient_unit_grams'],
+        'countPerPack': json['count_per_pack'] == null ? undefined : json['count_per_pack'],
+        'shoppingMeasureGrams': json['shopping_measure_grams'] == null ? undefined : json['shopping_measure_grams'],
+        'kcal': json['kcal'] == null ? undefined : json['kcal'],
+        'kcalGrams': json['kcal_grams'] == null ? undefined : json['kcal_grams'],
     };
 }
 
@@ -332,6 +374,12 @@ export function PatchedFoodToJSONTyped(value?: Omit<PatchedFood, 'shopping'|'par
         'child_inherit_fields': value['childInheritFields'] == null ? undefined : ((value['childInheritFields'] as Array<any>).map(FoodInheritFieldToJSON)),
         'open_data_slug': value['openDataSlug'],
         'shopping_lists': value['shoppingLists'] == null ? undefined : ((value['shoppingLists'] as Array<any>).map(ShoppingListToJSON)),
+        'shopping_measure': value['shoppingMeasure'],
+        'ingredient_unit_grams': value['ingredientUnitGrams'],
+        'count_per_pack': value['countPerPack'],
+        'shopping_measure_grams': value['shoppingMeasureGrams'],
+        'kcal': value['kcal'],
+        'kcal_grams': value['kcalGrams'],
     };
 }
 

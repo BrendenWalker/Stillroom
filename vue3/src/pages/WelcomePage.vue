@@ -182,7 +182,7 @@ import {useUserPreferenceStore} from "@/stores/UserPreferenceStore.ts";
 import OpenDataImportSettings from "@/components/settings/OpenDataImportSettings.vue";
 import {TFood, TInventoryEntry, TInventoryLocation, TKeyword, TMealPlan, TRecipe, TRecipeBook, TShoppingListEntry, TSupermarket, TUnit} from "@/types/Models.ts";
 import ModelEditDialog from "@/components/dialogs/ModelEditDialog.vue";
-import {RouteLocationRaw, useRouter} from "vue-router";
+import {onBeforeRouteLeave, RouteLocationRaw, useRouter} from "vue-router";
 
 const router = useRouter()
 
@@ -190,9 +190,18 @@ const space = ref<undefined | Space>(undefined)
 const householdName = ref("")
 const stepper = ref("1")
 const loading = ref(false)
+const welcomeFinished = ref(false)
 
 onMounted(() => {
     loadSpace()
+})
+
+/**
+ * Leaving the welcome wizard (nav, skip, or finish) marks first-run setup complete
+ * so it is not shown again on later visits to the start page.
+ */
+onBeforeRouteLeave(() => {
+    void persistWelcomeComplete()
 })
 
 /**
@@ -200,17 +209,39 @@ onMounted(() => {
  * @param target
  */
 function finishWelcome(target: RouteLocationRaw = {name: 'StartPage'}) {
-    if (space.value) {
-        space.value.spaceSetupCompleted = true
-        space.value.householdSetupCompleted = true
-        loading.value = true
-        updateSpace().then(() => {
+    loading.value = true
+    persistWelcomeComplete().then((ok) => {
+        if (ok) {
             router.push(target)
-            loading.value = false
-        })
-    } else {
-        useMessageStore().addMessage(MessageType.ERROR, "Space not loaded yet", 5000)
+        }
+    }).finally(() => {
+        loading.value = false
+    })
+}
+
+/**
+ * persist first-run completion locally (so redirects stop immediately) and to the API
+ */
+function persistWelcomeComplete(): Promise<boolean> {
+    if (welcomeFinished.value) {
+        return Promise.resolve(true)
     }
+
+    const store = useUserPreferenceStore()
+    if (!space.value) {
+        space.value = store.activeSpace
+    }
+    if (!space.value?.id) {
+        useMessageStore().addMessage(MessageType.ERROR, "Space not loaded yet", 5000)
+        return Promise.resolve(false)
+    }
+
+    welcomeFinished.value = true
+    space.value.spaceSetupCompleted = true
+    space.value.householdSetupCompleted = true
+    store.activeSpace = Object.assign({}, space.value)
+
+    return updateSpace().then(() => true)
 }
 
 /**

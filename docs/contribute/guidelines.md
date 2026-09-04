@@ -10,7 +10,7 @@ If you want to contribute bug fixes or small tweaks then your pull requests are 
 
 ## License
 
-Stillroom is licensed under AGPL v3 with a Commons Clause selling exception. See [LICENSE.md](https://github.com/BrendenWalker/TandoorNG/blob/develop/LICENSE.md).
+Stillroom is licensed under AGPL v3 with a Commons Clause selling exception. See [LICENSE.md](https://github.com/BrendenWalker/Stillroom/blob/develop/LICENSE.md).
 
 There is no contributor license agreement. A pull request licenses your contribution under the same terms as the rest of this repository. You keep your copyright.
 
@@ -31,6 +31,12 @@ To contribute to the project you are required to use the following packages with
      flake8 file.py --ignore=E501 | isort -q file.py | yapf -i file.py
      prettier --write file.vue
     ```
+
+## Changelog
+
+User-facing changes go in the `[Unreleased]` section of [`CHANGELOG.md`](https://github.com/BrendenWalker/Stillroom/blob/develop/CHANGELOG.md), unless the pull request is labeled `skip-changelog`. Label breaking API, settings, or database migrations `breaking-change`.
+
+Cutting a version tags `main` after the `develop` → `main` release pull request. The tagged commit must already have the changelog heading. See [Releasing](/contribute/releasing/).
 
 ## Testing
 

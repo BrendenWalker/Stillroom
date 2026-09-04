@@ -16,7 +16,7 @@ See [here](/contribute/translations/) for further information on how to contribu
 ## Issues and Feature Requests
 
 The most basic but also crucial way of contributing is reporting issues and commenting on ideas and feature requests
-over at [GitHub issues](https://github.com/BrendenWalker/TandoorNG/issues).
+over at [GitHub issues](https://github.com/BrendenWalker/Stillroom/issues).
 
 Without feedback, improvement can't happen, so don't hesitate to say what you want to say.
 
@@ -38,5 +38,7 @@ Guides for contributing specific types of features can be found [here](/contribu
 
 Before writing any code, please make sure that you review [contribution guidelines](/contribute/guidelines/) and
 [VSCode](/contribute/vscode) or [PyCharm](/contribute/pycharm) specific configurations.
+
+Maintainers cutting a version should follow [Releasing](/contribute/releasing/).
 
 There is no contributor license agreement. You keep your copyright.

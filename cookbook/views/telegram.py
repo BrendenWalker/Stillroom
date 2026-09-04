@@ -6,8 +6,9 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 
-from cookbook.helper.ingredient_parser import IngredientParser
 from cookbook.helper.HelperFunctions import safe_request
+from cookbook.helper.food_pack import shopping_entry_quantities
+from cookbook.helper.ingredient_parser import IngredientParser
 from cookbook.helper.permission_helper import group_required
 from cookbook.models import ShoppingListEntry, TelegramBot
 
@@ -54,8 +55,10 @@ def hook(request, token):
             amount, unit, food, note = ingredient_parser.parse(data['message']['text'])
             f = ingredient_parser.get_food(food)
             u = ingredient_parser.get_unit(unit)
+            amount = max(1, amount)
+            amount, u, grams = shopping_entry_quantities(f, amount, u)
 
-            ShoppingListEntry.objects.create(food=f, unit=u, amount=max(1, amount), created_by=request.user, space=request.space)
+            ShoppingListEntry.objects.create(food=f, unit=u, amount=amount, amount_grams=grams, created_by=request.user, space=request.space)
 
             return JsonResponse({'data': data['message']['text']})
     except Exception:

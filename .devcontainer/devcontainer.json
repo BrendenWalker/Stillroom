@@ -2,10 +2,24 @@
 {
 	"name": "Stillroom Dev Container",
 	"build": { "context": "..", "dockerfile": "Dockerfile" },
-	"forwardPorts": [8000, 8080],
+	"features": {
+		"ghcr.io/devcontainers/features/github-cli:1": {}
+	},
+	"forwardPorts": [8000, 8080, 5173],
+	"portsAttributes": {
+		"8000": { "label": "Django" },
+		"8080": { "label": "Gunicorn" },
+		"5173": { "label": "Vite" }
+	},
 	"remoteUser": "root",
 	"updateRemoteUserUID": false,
 	"overrideCommand": true,
+	// Keep Vue native bindings (rolldown/vite) Linux-only. A host bind-mount
+	// would otherwise overlay Windows/macOS node_modules into the container.
+	"mounts": [
+		"source=stillroom-vue3-node-modules,target=${containerWorkspaceFolder}/vue3/node_modules,type=volume"
+	],
+	"onCreateCommand": "bash .devcontainer/setup-frontend.sh",
 	"customizations": {
 		"vscode": {
 			"extensions": [

@@ -92,6 +92,12 @@ export interface PatchedShoppingListEntry {
      */
     amount?: number;
     /**
+     * Required amount in grams when the food has pack data.
+     * @type {number}
+     * @memberof PatchedShoppingListEntry
+     */
+    amountGrams?: number | null;
+    /**
      * 
      * @type {number}
      * @memberof PatchedShoppingListEntry
@@ -176,6 +182,7 @@ export function PatchedShoppingListEntryFromJSONTyped(json: any, ignoreDiscrimin
         'food': json['food'] == null ? undefined : FoodShoppingFromJSON(json['food']),
         'unit': json['unit'] == null ? undefined : UnitFromJSON(json['unit']),
         'amount': json['amount'] == null ? undefined : json['amount'],
+        'amountGrams': json['amount_grams'] == null ? undefined : json['amount_grams'],
         'order': json['order'] == null ? undefined : json['order'],
         'checked': json['checked'] == null ? undefined : json['checked'],
         'ingredient': json['ingredient'] == null ? undefined : json['ingredient'],
@@ -206,6 +213,7 @@ export function PatchedShoppingListEntryToJSONTyped(value?: Omit<PatchedShopping
         'food': FoodShoppingToJSON(value['food']),
         'unit': UnitToJSON(value['unit']),
         'amount': value['amount'],
+        'amount_grams': value['amountGrams'],
         'order': value['order'],
         'checked': value['checked'],
         'ingredient': value['ingredient'],

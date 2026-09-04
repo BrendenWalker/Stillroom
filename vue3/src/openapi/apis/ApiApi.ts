@@ -1314,6 +1314,7 @@ export interface ApiFoodListRequest {
     rootTree?: number;
     tree?: number;
     updatedAt?: string;
+    isFood?: boolean;
 }
 
 export interface ApiFoodMergeUpdateRequest {
@@ -9329,6 +9330,10 @@ export class ApiApi extends runtime.BaseAPI {
 
         if (requestParameters['updatedAt'] != null) {
             queryParameters['updated_at'] = requestParameters['updatedAt'];
+        }
+
+        if (requestParameters['isFood'] != null) {
+            queryParameters['is_food'] = requestParameters['isFood'];
         }
 
         const headerParameters: runtime.HTTPHeaders = {};

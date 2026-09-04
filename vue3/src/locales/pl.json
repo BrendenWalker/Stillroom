@@ -815,7 +815,7 @@
   "CodeHelp": "W przypadku korzystania z kodów kreskowych można tutaj wprowadzić ich wartości. Jeśli nie, kod zostanie wygenerowany automatycznie i będzie można go umieścić na produktach (np. torebkach strunowych, etykietach itp.).",
   "CollapseAll": "Zwiń wszystko",
   "Columns": "Kolumny",
-  "ConversionsHelp": "Dzięki funkcji przeliczania można obliczyć ilość produktu spożywczego w różnych jednostkach. Obecnie funkcja ta służy wyłącznie do obliczania wartości nieruchomości, ale w przyszłości może znaleźć zastosowanie również w innych częściach serwisu tandoor. ",
+  "ConversionsHelp": "Dzięki funkcji przeliczania można obliczyć ilość produktu spożywczego w różnych jednostkach. Obecnie funkcja ta służy wyłącznie do obliczania wartości nieruchomości, ale w przyszłości może znaleźć zastosowanie również w innych częściach serwisu Stillroom. ",
   "CookLog": "Dziennik gotowania",
   "CookLogHelp": "Wpisy w dzienniku kulinarnym dotyczące przepisów. ",
   "Cooked": "Ugotowane",

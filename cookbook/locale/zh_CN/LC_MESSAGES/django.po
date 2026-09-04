@@ -25,7 +25,7 @@ msgstr "默认"
 
 #: .\cookbook\forms.py:90
 msgid ""
-"To prevent duplicates recipes with the same name as existing ones are "
+"To prevent duplicates, recipes with the same name as existing ones are "
 "ignored. Check this box to import everything."
 msgstr ""
 "为防止重复，忽略与现有同名的菜谱。选中此框可导入所有内容（危险操作，请先备"
@@ -515,7 +515,7 @@ msgstr "不允许上传该文件类型。"
 
 #: .\cookbook\serializer.py:444 .\cookbook\views\views.py:97
 msgid ""
-"You have the reached the maximum amount of spaces that can be owned by you."
+"You have reached the maximum number of spaces that can be owned by you."
 msgstr "你拥有的空间数量已经达到上限。"
 
 #: .\cookbook\serializer.py:457
@@ -899,7 +899,7 @@ msgstr "Markdown 信息"
 #: .\cookbook\templates\markdown_info.html:14
 msgid ""
 "\n"
-"        Markdown is lightweight markup language that can be used to format "
+"        Markdown is a lightweight markup language that can be used to format "
 "plain text easily.\n"
 "        This site uses the <a href=\"https://python-markdown.github.io/\" "
 "target=\"_blank\">Python Markdown</a> library to\n"
@@ -1198,7 +1198,7 @@ msgstr ""
 #: .\cookbook\templates\search_info.html:48
 msgid ""
 " \n"
-"            Raw search is similar to Web except will take puncuation "
+"            Raw search is similar to Web except will take punctuation "
 "operators such as '|', '&' and '()'\n"
 "            "
 msgstr ""
@@ -1216,7 +1216,7 @@ msgid ""
 "            For example searching for 'apple' will create x trigrams 'app', "
 "'ppl', 'ple' and will create a score of how closely words match the "
 "generated trigrams.\n"
-"            One benefit of searching trigams is that a search for 'sandwich' "
+"            One benefit of searching trigrams is that a search for 'sandwich' "
 "will find misspelled words such as 'sandwhich' that would be missed by other "
 "methods.\n"
 "            "
@@ -1496,16 +1496,16 @@ msgid ""
 "\n"
 "        Stillroom is an open source free software application. It can "
 "be found on\n"
-"        <a href=\"https://github.com/BrendenWalker/TandoorNG\">GitHub</a>.\n"
+"        <a href=\"https://github.com/BrendenWalker/Stillroom\">GitHub</a>.\n"
 "        Changelogs can be found <a href=\"https://github.com/BrendenWalker/"
-"TandoorNG/releases\">here</a>.\n"
+"Stillroom/releases\">here</a>.\n"
 "    "
 msgstr ""
 "\n"
 "        Stillroom 是一款开源自由软件。你可以在\n"
-"        <a href=\"https://github.com/BrendenWalker/TandoorNG\">GitHub</a> 上找"
+"        <a href=\"https://github.com/BrendenWalker/Stillroom\">GitHub</a> 上找"
 "到它。\n"
-"        更新日志可在<a href=\"https://github.com/BrendenWalker/TandoorNG/"
+"        更新日志可在<a href=\"https://github.com/BrendenWalker/Stillroom/"
 "releases\">此处</a>查看。\n"
 "    "
 
@@ -1549,14 +1549,14 @@ msgstr "好的"
 msgid ""
 "Serving media files directly using gunicorn/python is <b>not recommend</b>!\n"
 "            Please follow the steps described\n"
-"            <a href=\"https://github.com/BrendenWalker/TandoorNG/releases/"
+"            <a href=\"https://github.com/BrendenWalker/Stillroom/releases/"
 "tag/0.8.1\">here</a> to update\n"
 "            your installation.\n"
 "        "
 msgstr ""
 "<b>不推荐</b> 使用 gunicorn/python 提供媒体文件！\n"
 "            请按照\n"
-"            <a href=\"https://github.com/BrendenWalker/TandoorNG/releases/"
+"            <a href=\"https://github.com/BrendenWalker/Stillroom/releases/"
 "tag/0.8.1\">这里</a> 描述的步骤\n"
 "            操作更新安装。\n"
 "        "
@@ -1862,13 +1862,13 @@ msgstr "你没有剩余积分可用 AI 功能，或者你的空间未启用 AI �
 
 #: .\cookbook\views\api.py:1484
 msgid ""
-"Filter meal plans from date (inclusive). If nothing is given its today - 90 "
+"Filter meal plans from date (inclusive). If nothing is given it's today - 90 "
 "days."
 msgstr "筛选从指定日期（含）起的膳食计划。如果未指定，默认为今天往前推 90 天。"
 
 #: .\cookbook\views\api.py:1486
 msgid ""
-"Filter meal plans to date (inclusive). If nothing is given its today + 360 "
+"Filter meal plans to date (inclusive). If nothing is given it's today + 360 "
 "days."
 msgstr ""
 "筛选截止到指定日期（含）的膳食计划。如果未指定，默认为今天往后推 360 天。"
@@ -2015,7 +2015,7 @@ msgid "Filter recipes last cooked on the given date or before."
 msgstr "筛选最后烹饪在指定日期当天或之前的食谱。"
 
 #: .\cookbook\views\api.py:1759 .\cookbook\views\api.py:1760
-msgid "Filter recipes lasts viewed on the given date."
+msgid "Filter recipes last viewed on the given date."
 msgstr "筛选最后查看在指定日期的食谱。"
 
 #: .\cookbook\views\api.py:1762
@@ -2133,7 +2133,7 @@ msgid ""
 msgstr "PDF 导出不再可用。请使用浏览器的打印功能（Ctrl+P）将食谱保存为 PDF。"
 
 #: .\cookbook\views\api.py:3365
-msgid "This feature is not yet available in the hosted version of tandoor!"
+msgid "This feature is not yet available in the hosted version of Stillroom!"
 msgstr "此功能在 Stillroom 的托管版本中尚不可用！"
 
 #: .\cookbook\views\api.py:3386
@@ -2186,7 +2186,7 @@ msgstr ""
 "据，请参阅 Django 文档，了解如何重置密码。"
 
 #: .\cookbook\views\views.py:362
-msgid "Passwords dont match!"
+msgid "Passwords don't match!"
 msgstr "密码不匹配！"
 
 #: .\cookbook\views\views.py:370

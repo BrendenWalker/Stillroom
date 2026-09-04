@@ -29,6 +29,9 @@ from cookbook.helper.HelperFunctions import str2bool
 from cookbook.helper.ai_helper import get_monthly_token_usage
 from cookbook.helper.image_processing import is_file_type_allowed
 from cookbook.helper.permission_helper import above_space_limit, create_space_for_user, get_household_user_ids
+from cookbook.helper.food_availability_helper import is_food_item, lookup_is_food_item
+from cookbook.helper.food_pack import apply_food_pack_fields, shopping_entry_quantities, shopping_measure_grams_of, to_decimal
+from cookbook.helper.kcal_helper import recipe_kcal_per_serving
 from cookbook.helper.property_helper import FoodPropertyHelper
 from cookbook.helper.shopping_helper import RecipeShoppingEditor
 from cookbook.helper.unit_conversion_helper import UnitConversionHelper
@@ -132,11 +135,15 @@ class CustomDecimalField(serializers.Field):
     """
 
     def to_representation(self, value):
+        if value is None:
+            return None
         if not isinstance(value, Decimal):
             value = Decimal(value)
         return round(value, 4).normalize()
 
     def to_internal_value(self, data):
+        if data is None:
+            return None
         if isinstance(data, int) or isinstance(data, float):
             return data
         elif isinstance(data, str):
@@ -441,7 +448,7 @@ class SpaceSerializer(WritableNestedModelSerializer):
     def create(self, validated_data):
         if Space.objects.filter(created_by=self.context['request'].user).count() >= self.context['request'].user.userpreference.max_owned_spaces:
             raise serializers.ValidationError(
-                _('You have the reached the maximum amount of spaces that can be owned by you.') + f' ({self.context['request'].user.userpreference.max_owned_spaces})')
+                _('You have reached the maximum number of spaces that can be owned by you.') + f' ({self.context['request'].user.userpreference.max_owned_spaces})')
 
         name = None
         if 'name' in validated_data:
@@ -778,7 +785,7 @@ class SupermarketCategorySerializer(UniqueFieldsMixin, WritableNestedModelSerial
 
     class Meta:
         model = SupermarketCategory
-        fields = ('id', 'name', 'description', 'open_data_slug')
+        fields = ('id', 'name', 'description', 'is_food', 'open_data_slug')
 
 
 class SupermarketCategoryRelationSerializer(WritableNestedModelSerializer):
@@ -890,6 +897,11 @@ class FoodSerializer(UniqueFieldsMixin, WritableNestedModelSerializer, ExtendedR
     properties = PropertySerializer(many=True, allow_null=True, required=False)
     properties_food_unit = UnitSerializer(allow_null=True, required=False)
     properties_food_amount = CustomDecimalField(required=False)
+    ingredient_unit_grams = CustomDecimalField(required=False, allow_null=True)
+    count_per_pack = IntegerField(required=False, allow_null=True, min_value=1)
+    shopping_measure_grams = CustomDecimalField(required=False, allow_null=True)
+    kcal = CustomDecimalField(required=False, allow_null=True)
+    kcal_grams = CustomDecimalField(required=False, allow_null=True)
 
     recipe_filter = 'steps__ingredients__food'
     images = ['recipe__image']
@@ -911,6 +923,35 @@ class FoodSerializer(UniqueFieldsMixin, WritableNestedModelSerializer, ExtendedR
             return Food.objects.filter(filter).filter(onhand_users__id__in=shared_users).exists()
         except AttributeError:
             return []
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+
+        def pick(name):
+            if name in attrs:
+                return attrs[name]
+            if self.instance is not None:
+                return getattr(self.instance, name, None)
+            return None
+
+        derived_iug, derived, error = apply_food_pack_fields(
+            pick('ingredient_unit_grams'),
+            pick('count_per_pack'),
+            pick('shopping_measure_grams'),
+        )
+        if error:
+            raise ValidationError({'count_per_pack': error})
+        if derived_iug is not None:
+            attrs['ingredient_unit_grams'] = derived_iug
+        elif 'ingredient_unit_grams' in attrs and attrs['ingredient_unit_grams'] == '':
+            attrs['ingredient_unit_grams'] = None
+        if derived is not None:
+            attrs['shopping_measure_grams'] = derived
+        elif 'shopping_measure_grams' in attrs and attrs['shopping_measure_grams'] == '':
+            attrs['shopping_measure_grams'] = None
+        if 'shopping_measure' in attrs and attrs['shopping_measure'] == '':
+            attrs['shopping_measure'] = None
+        return attrs
 
     def create(self, validated_data):
         name = validated_data['name'].strip()
@@ -990,8 +1031,24 @@ class FoodSerializer(UniqueFieldsMixin, WritableNestedModelSerializer, ExtendedR
             'id', 'name', 'plural_name', 'description', 'shopping', 'recipe', 'url', 'properties', 'properties_food_amount', 'properties_food_unit', 'fdc_id',
             'food_onhand', 'supermarket_category', 'image', 'parent', 'numchild', 'numrecipe', 'inherit_fields', 'full_name', 'ignore_shopping',
             'substitute', 'substitute_siblings', 'substitute_children', 'substitute_onhand', 'child_inherit_fields', 'open_data_slug', 'shopping_lists',
+            'shopping_measure', 'ingredient_unit_grams', 'count_per_pack', 'shopping_measure_grams',
+            'kcal', 'kcal_grams',
         )
         read_only_fields = ('id', 'numchild', 'parent', 'image', 'numrecipe')
+
+
+def _nested_food_allowed_as_ingredient(food, instance=None):
+    """Allow keeping an existing non-food assignment; reject assigning a new one."""
+    if food is None:
+        return True
+    food_id = getattr(food, 'pk', None) if not isinstance(food, dict) else food.get('id')
+    if instance is not None and instance.food_id and food_id and instance.food_id == food_id:
+        return True
+    if isinstance(food, Food):
+        return is_food_item(food)
+    if isinstance(food, dict):
+        return lookup_is_food_item(food_id=food.get('id'), name=food.get('name'))
+    return True
 
 
 class IngredientSimpleSerializer(WritableNestedModelSerializer):
@@ -1007,6 +1064,17 @@ class IngredientSimpleSerializer(WritableNestedModelSerializer):
     def update(self, instance, validated_data):
         validated_data.pop('original_text', None)
         return super().update(instance, validated_data)
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        if attrs.get('is_header'):
+            return attrs
+        food = attrs.get('food', serializers.empty)
+        if food is serializers.empty:
+            return attrs
+        if not _nested_food_allowed_as_ingredient(food, instance=self.instance):
+            raise ValidationError({'food': _('This item is in a non-food category and cannot be used as a recipe ingredient.')})
+        return attrs
 
     class Meta:
         model = Ingredient
@@ -1165,6 +1233,11 @@ class RecipeOverviewSerializer(RecipeBaseSerializer):
     rating = CustomDecimalField(required=False, allow_null=True, read_only=True)
     last_cooked = serializers.DateTimeField(required=False, allow_null=True, read_only=True)
     created_by = UserSerializer(read_only=True)
+    kcal_per_serving = serializers.SerializerMethodField()
+
+    @extend_schema_field(CustomDecimalField)
+    def get_kcal_per_serving(self, obj):
+        return CustomDecimalField().to_representation(recipe_kcal_per_serving(obj))
 
     def create(self, validated_data):
         pass
@@ -1177,7 +1250,8 @@ class RecipeOverviewSerializer(RecipeBaseSerializer):
         fields = (
             'id', 'name', 'description', 'image', 'keywords', 'working_time',
             'waiting_time', 'created_by', 'created_at', 'updated_at',
-            'internal', 'private', 'servings', 'servings_text', 'rating', 'last_cooked', 'new', 'recent'
+            'internal', 'private', 'servings', 'servings_text', 'rating', 'last_cooked', 'new', 'recent',
+            'kcal_per_serving',
         )
         # TODO having these readonly fields makes "RecipeOverview.ts" (API Client) not generate the RecipeOverviewToJSON second else block which leads to errors when using the api
         # TODO find a solution (custom schema?) to have these fields readonly (to save performance) and generate a proper client (two serializers would probably do the trick)
@@ -1186,7 +1260,8 @@ class RecipeOverviewSerializer(RecipeBaseSerializer):
         #                     'internal', 'servings', 'servings_text', 'rating', 'last_cooked', 'new', 'recent']
         read_only_fields = ['image', 'keywords', 'working_time',
                             'waiting_time', 'created_by', 'created_at', 'updated_at',
-                            'internal', 'servings', 'servings_text', 'diameter', 'diameter_text', 'rating', 'last_cooked', 'new', 'recent']
+                            'internal', 'servings', 'servings_text', 'diameter', 'diameter_text', 'rating', 'last_cooked', 'new', 'recent',
+                            'kcal_per_serving']
 
 
 class RecipeSerializer(RecipeBaseSerializer):
@@ -1198,7 +1273,12 @@ class RecipeSerializer(RecipeBaseSerializer):
     rating = CustomDecimalField(required=False, allow_null=True, read_only=True)
     last_cooked = serializers.DateTimeField(required=False, allow_null=True, read_only=True)
     food_properties = serializers.SerializerMethodField('get_food_properties')
+    kcal_per_serving = serializers.SerializerMethodField()
     created_by = UserSerializer(read_only=True)
+
+    @extend_schema_field(CustomDecimalField)
+    def get_kcal_per_serving(self, obj):
+        return CustomDecimalField().to_representation(recipe_kcal_per_serving(obj))
 
     @extend_schema_field(serializers.JSONField)
     def get_food_properties(self, obj):
@@ -1216,10 +1296,10 @@ class RecipeSerializer(RecipeBaseSerializer):
         model = Recipe
         fields = (
             'id', 'name', 'description', 'image', 'keywords', 'steps', 'working_time', 'waiting_time', 'created_by', 'created_at', 'updated_at', 'source_url',
-            'internal', 'show_ingredient_overview', 'nutrition', 'properties', 'food_properties', 'servings', 'file_path', 'servings_text', 'diameter', 'diameter_text', 'rating',
-            'last_cooked', 'private', 'shared'
+            'internal', 'show_ingredient_overview', 'nutrition', 'properties', 'food_properties', 'kcal_per_serving', 'servings', 'file_path', 'servings_text', 'diameter',
+            'diameter_text', 'rating', 'last_cooked', 'private', 'shared'
         )
-        read_only_fields = ['image', 'created_by', 'created_at', 'food_properties']
+        read_only_fields = ['image', 'created_by', 'created_at', 'food_properties', 'kcal_per_serving']
 
     def validate(self, data):
         above_limit, msg = above_space_limit(self.context['request'].space)
@@ -1378,8 +1458,13 @@ class MealPlanSerializer(SpacedModelSerializer, WritableNestedModelSerializer):
     servings = CustomDecimalField()
     shopping = serializers.SerializerMethodField('in_shopping')
     addshopping = serializers.BooleanField(write_only=True, required=False)
+    kcal_per_serving = serializers.SerializerMethodField()
 
     to_date = serializers.DateTimeField(required=False)
+
+    @extend_schema_field(CustomDecimalField)
+    def get_kcal_per_serving(self, obj):
+        return CustomDecimalField().to_representation(recipe_kcal_per_serving(obj.recipe))
 
     @extend_schema_field(str)
     def get_note_markdown(self, obj):
@@ -1447,9 +1532,9 @@ class MealPlanSerializer(SpacedModelSerializer, WritableNestedModelSerializer):
         fields = (
             'id', 'title', 'recipe', 'servings', 'note', 'note_markdown',
             'from_date', 'to_date', 'meal_type', 'created_by', 'recipe_name',
-            'meal_type_name', 'shopping', 'addshopping'
+            'meal_type_name', 'shopping', 'addshopping', 'kcal_per_serving'
         )
-        read_only_fields = ('created_by',)
+        read_only_fields = ('created_by', 'kcal_per_serving')
 
 
 class AutoMealPlanSerializer(serializers.Serializer):
@@ -1489,6 +1574,36 @@ class ShoppingListRecipeSerializer(serializers.ModelSerializer):
 class FoodShoppingSerializer(serializers.ModelSerializer):
     supermarket_category = SupermarketCategorySerializer(read_only=True)
     shopping_lists = ShoppingListSerializer(read_only=True, many=True)
+    ingredient_unit_grams = CustomDecimalField(required=False, allow_null=True)
+    count_per_pack = IntegerField(required=False, allow_null=True, min_value=1)
+    shopping_measure_grams = CustomDecimalField(required=False, allow_null=True)
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+
+        def pick(name):
+            if name in attrs:
+                return attrs[name]
+            if self.instance is not None:
+                return getattr(self.instance, name, None)
+            return None
+
+        derived_iug, derived, error = apply_food_pack_fields(
+            pick('ingredient_unit_grams'),
+            pick('count_per_pack'),
+            pick('shopping_measure_grams'),
+        )
+        if error:
+            raise ValidationError({'count_per_pack': error})
+        if derived_iug is not None:
+            attrs['ingredient_unit_grams'] = derived_iug
+        if derived is not None:
+            attrs['shopping_measure_grams'] = derived
+        elif 'shopping_measure_grams' in attrs and attrs['shopping_measure_grams'] == '':
+            attrs['shopping_measure_grams'] = None
+        if 'shopping_measure' in attrs and attrs['shopping_measure'] == '':
+            attrs['shopping_measure'] = None
+        return attrs
 
     # TODO duplicate code with FoodSerializer, merge into one or use proper function
     def create(self, validated_data):
@@ -1520,7 +1635,10 @@ class FoodShoppingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Food
-        fields = ('id', 'name', 'plural_name', 'supermarket_category', 'shopping_lists')
+        fields = (
+            'id', 'name', 'plural_name', 'supermarket_category', 'shopping_lists',
+            'shopping_measure', 'ingredient_unit_grams', 'count_per_pack', 'shopping_measure_grams',
+        )
 
 
 class ShoppingListEntrySerializer(WritableNestedModelSerializer):
@@ -1529,6 +1647,7 @@ class ShoppingListEntrySerializer(WritableNestedModelSerializer):
     shopping_lists = ShoppingListSerializer(many=True, required=False)
     list_recipe_data = ShoppingListRecipeSerializer(source='list_recipe', read_only=True)
     amount = CustomDecimalField()
+    amount_grams = CustomDecimalField(required=False, allow_null=True)
     created_by = UserSerializer(read_only=True)
     completed_at = serializers.DateTimeField(allow_null=True, required=False)
     mealplan_id = serializers.IntegerField(required=False, write_only=True,
@@ -1563,6 +1682,38 @@ class ShoppingListEntrySerializer(WritableNestedModelSerializer):
 
         return super().run_validation(data)
 
+    def _apply_pack_quantities(self, validated_data, instance=None):
+        if 'amount' not in validated_data and 'amount_grams' not in validated_data:
+            return validated_data
+
+        food = validated_data.get('food')
+        if food is None and instance is not None:
+            food = instance.food
+        if food is None:
+            return validated_data
+
+        amount = validated_data.get('amount', getattr(instance, 'amount', None) if instance else None)
+        unit = validated_data.get('unit', getattr(instance, 'unit', None) if instance else None)
+        amount_grams = validated_data.get('amount_grams') if 'amount_grams' in validated_data else None
+
+        # Editor +/- sends only amount: treat it as shopping units when the food has pack data
+        if instance is not None and 'amount' in validated_data and 'amount_grams' not in validated_data:
+            smg = shopping_measure_grams_of(food)
+            if smg is not None and smg > 0:
+                amount_dec = to_decimal(amount)
+                if amount_dec is not None:
+                    amount_grams = amount_dec * smg
+
+        amt, unit_out, grams = shopping_entry_quantities(food, amount, unit, amount_grams=amount_grams)
+        if grams is not None:
+            validated_data['amount'] = amt
+            validated_data['amount_grams'] = grams
+            if shopping_measure_grams_of(food) is not None:
+                validated_data['unit'] = None
+            else:
+                validated_data['unit'] = unit_out
+        return validated_data
+
     def create(self, validated_data):
         validated_data['space'] = self.context['request'].space
         validated_data['created_by'] = self.context['request'].user
@@ -1575,6 +1726,7 @@ class ShoppingListEntrySerializer(WritableNestedModelSerializer):
                                                                                   created_by=self.context['request'].user)
             del validated_data['mealplan_id']
 
+        validated_data = self._apply_pack_quantities(validated_data)
         obj = super().create(validated_data)
 
         if self.context['request'].user.userpreference.shopping_update_food_lists and obj.shopping_lists.count() == 0:
@@ -1589,19 +1741,22 @@ class ShoppingListEntrySerializer(WritableNestedModelSerializer):
         if 'mealplan_id' in validated_data:
             del validated_data['mealplan_id']
 
-        # update the onhand for food if shopping_add_onhand is True
+        # update the onhand for food if shopping_add_onhand is True and the item is a food item
         if user.userpreference.shopping_add_onhand:
             if checked := validated_data.get('checked', None):
                 validated_data['completed_at'] = timezone.now()
-                instance.food.onhand_users.add(*User.objects.filter(id__in=get_household_user_ids(self.context['request'].user_space)))
+                if is_food_item(instance.food):
+                    instance.food.onhand_users.add(*User.objects.filter(id__in=get_household_user_ids(self.context['request'].user_space)))
             elif not checked:
-                instance.food.onhand_users.remove(*User.objects.filter(id__in=get_household_user_ids(self.context['request'].user_space)))
+                if is_food_item(instance.food):
+                    instance.food.onhand_users.remove(*User.objects.filter(id__in=get_household_user_ids(self.context['request'].user_space)))
+        validated_data = self._apply_pack_quantities(validated_data, instance=instance)
         return super().update(instance, validated_data)
 
     class Meta:
         model = ShoppingListEntry
         fields = (
-            'id', 'list_recipe', 'shopping_lists', 'food', 'unit', 'amount', 'order', 'checked', 'ingredient',
+            'id', 'list_recipe', 'shopping_lists', 'food', 'unit', 'amount', 'amount_grams', 'order', 'checked', 'ingredient',
             'list_recipe_data', 'created_by', 'created_at', 'updated_at', 'completed_at', 'delay_until', 'mealplan_id'
         )
         read_only_fields = ('id', 'created_by', 'created_at')
@@ -1845,7 +2000,7 @@ class InviteLinkSerializer(WritableNestedModelSerializer):
                         obj.uuid) + '\n\n'
                     message += _('The invitation is valid until ') + str(obj.valid_until) + '\n\n'
                     message += _(
-                        'Stillroom is an Open Source recipe manager. Check it out on GitHub ') + 'https://github.com/BrendenWalker/TandoorNG/'
+                        'Stillroom is an Open Source recipe manager. Check it out on GitHub ') + 'https://github.com/BrendenWalker/Stillroom/'
 
                     send_mail(
                         _('Stillroom Invite'),
@@ -2000,12 +2155,39 @@ class UnitExportSerializer(UnitSerializer):
         fields = ('name', 'plural_name', 'description')
 
 
+_FOOD_EXPORT_DETAIL_FIELDS = (
+    'shopping_measure',
+    'ingredient_unit_grams',
+    'count_per_pack',
+    'shopping_measure_grams',
+    'kcal',
+    'kcal_grams',
+)
+
+
 class FoodExportSerializer(FoodSerializer):
     supermarket_category = SupermarketCategoryExportSerializer(allow_null=True, required=False)
 
     class Meta:
         model = Food
-        fields = ('name', 'plural_name', 'ignore_shopping', 'supermarket_category',)
+        fields = (
+            'name', 'plural_name', 'ignore_shopping', 'supermarket_category',
+            *_FOOD_EXPORT_DETAIL_FIELDS,
+        )
+
+    def create(self, validated_data):
+        details = {field: validated_data.get(field) for field in _FOOD_EXPORT_DETAIL_FIELDS}
+        food = super().create(validated_data)
+        update_fields = []
+        for field, incoming in details.items():
+            if incoming in (None, ''):
+                continue
+            if getattr(food, field) in (None, ''):
+                setattr(food, field, incoming)
+                update_fields.append(field)
+        if update_fields:
+            food.save(update_fields=update_fields)
+        return food
 
 
 class IngredientExportSerializer(WritableNestedModelSerializer):

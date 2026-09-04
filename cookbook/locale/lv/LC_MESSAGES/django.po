@@ -28,7 +28,7 @@ msgstr "Noklusējuma"
 
 #: .\cookbook\forms.py:90
 msgid ""
-"To prevent duplicates recipes with the same name as existing ones are "
+"To prevent duplicates, recipes with the same name as existing ones are "
 "ignored. Check this box to import everything."
 msgstr ""
 "Lai novērstu dublikātus, receptes ar vienādu nosaukumu kā jau eksistējošās "
@@ -540,7 +540,7 @@ msgstr ""
 
 #: .\cookbook\serializer.py:444 .\cookbook\views\views.py:97
 msgid ""
-"You have the reached the maximum amount of spaces that can be owned by you."
+"You have reached the maximum number of spaces that can be owned by you."
 msgstr ""
 
 #: .\cookbook\serializer.py:457
@@ -937,7 +937,7 @@ msgstr "Markdown informācija"
 #: .\cookbook\templates\markdown_info.html:14
 msgid ""
 "\n"
-"        Markdown is lightweight markup language that can be used to format "
+"        Markdown is a lightweight markup language that can be used to format "
 "plain text easily.\n"
 "        This site uses the <a href=\"https://python-markdown.github.io/\" "
 "target=\"_blank\">Python Markdown</a> library to\n"
@@ -1226,7 +1226,7 @@ msgstr ""
 #: .\cookbook\templates\search_info.html:48
 msgid ""
 " \n"
-"            Raw search is similar to Web except will take puncuation "
+"            Raw search is similar to Web except will take punctuation "
 "operators such as '|', '&' and '()'\n"
 "            "
 msgstr ""
@@ -1240,7 +1240,7 @@ msgid ""
 "            For example searching for 'apple' will create x trigrams 'app', "
 "'ppl', 'ple' and will create a score of how closely words match the "
 "generated trigrams.\n"
-"            One benefit of searching trigams is that a search for 'sandwich' "
+"            One benefit of searching trigrams is that a search for 'sandwich' "
 "will find misspelled words such as 'sandwhich' that would be missed by other "
 "methods.\n"
 "            "
@@ -1488,7 +1488,7 @@ msgstr "Sistēma"
 #| "\n"
 #| "        Django Recipes is an open source free software application. It "
 #| "can be found on\n"
-#| "        <a href=\"https://github.com/BrendenWalker/TandoorNG\">GitHub</a>.\n"
+#| "        <a href=\"https://github.com/BrendenWalker/Stillroom\">GitHub</a>.\n"
 #| "        Changelogs can be found <a href=\"https://github.com/vabene1111/"
 #| "recipes/releases\">here</a>.\n"
 #| "    "
@@ -1496,17 +1496,17 @@ msgid ""
 "\n"
 "        Stillroom is an open source free software application. It can "
 "be found on\n"
-"        <a href=\"https://github.com/BrendenWalker/TandoorNG\">GitHub</a>.\n"
+"        <a href=\"https://github.com/BrendenWalker/Stillroom\">GitHub</a>.\n"
 "        Changelogs can be found <a href=\"https://github.com/BrendenWalker/"
-"TandoorNG/releases\">here</a>.\n"
+"Stillroom/releases\">here</a>.\n"
 "    "
 msgstr ""
 "\n"
 "         Django Receptes ir atvērtā koda bezmaksas programmatūras "
 "lietojumprogramma. To var atrast vietnē\n"
-"         <a href=\"https://github.com/BrendenWalker/TandoorNG\">GitHub</a>.\n"
+"         <a href=\"https://github.com/BrendenWalker/Stillroom\">GitHub</a>.\n"
 "         Izmaiņu žurnāli ir atrodami <a href=\"https://github.com/BrendenWalker/"
-"TandoorNG/releases\">šeit</a>.\n"
+"Stillroom/releases\">šeit</a>.\n"
 "    "
 
 #: .\cookbook\templates\system.html:30
@@ -1545,7 +1545,7 @@ msgstr "Ok"
 msgid ""
 "Serving media files directly using gunicorn/python is <b>not recommend</b>!\n"
 "            Please follow the steps described\n"
-"            <a href=\"https://github.com/BrendenWalker/TandoorNG/releases/"
+"            <a href=\"https://github.com/BrendenWalker/Stillroom/releases/"
 "tag/0.8.1\">here</a> to update\n"
 "            your installation.\n"
 "        "
@@ -1553,7 +1553,7 @@ msgstr ""
 "Rādīt multivides failus, izmantojot gunicorn / python, <b>nav ieteicams</"
 "b>!\n"
 "             Lūdzu, izpildiet aprakstītās darbības\n"
-"             <a href=\"https://github.com/BrendenWalker/TandoorNG/releases/"
+"             <a href=\"https://github.com/BrendenWalker/Stillroom/releases/"
 "tag/0.8.1\">šeit</a>, lai atjauninātu\n"
 "             jūsu instalāciju.\n"
 "        "
@@ -1874,13 +1874,13 @@ msgstr ""
 
 #: .\cookbook\views\api.py:1484
 msgid ""
-"Filter meal plans from date (inclusive). If nothing is given its today - 90 "
+"Filter meal plans from date (inclusive). If nothing is given it's today - 90 "
 "days."
 msgstr ""
 
 #: .\cookbook\views\api.py:1486
 msgid ""
-"Filter meal plans to date (inclusive). If nothing is given its today + 360 "
+"Filter meal plans to date (inclusive). If nothing is given it's today + 360 "
 "days."
 msgstr ""
 
@@ -2028,7 +2028,7 @@ msgid "Filter recipes last cooked on the given date or before."
 msgstr ""
 
 #: .\cookbook\views\api.py:1759 .\cookbook\views\api.py:1760
-msgid "Filter recipes lasts viewed on the given date."
+msgid "Filter recipes last viewed on the given date."
 msgstr ""
 
 #: .\cookbook\views\api.py:1762
@@ -2146,7 +2146,7 @@ msgid ""
 msgstr ""
 
 #: .\cookbook\views\api.py:3365
-msgid "This feature is not yet available in the hosted version of tandoor!"
+msgid "This feature is not yet available in the hosted version of Stillroom!"
 msgstr ""
 
 #: .\cookbook\views\api.py:3386
@@ -2205,7 +2205,7 @@ msgstr ""
 "dokumentāciju par paroļu atiestatīšanu."
 
 #: .\cookbook\views\views.py:362
-msgid "Passwords dont match!"
+msgid "Passwords don't match!"
 msgstr "Paroles nesakrīt!"
 
 #: .\cookbook\views\views.py:370

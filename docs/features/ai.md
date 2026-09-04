@@ -12,7 +12,7 @@ All AI calls are routed through LiteLLM, so any provider supported by LiteLLM (o
 
 ## Default Configuration
 By default the AI features are enabled for every space. Each space has a spending limit of roughly 1 USD per month.
-This can be changed using the [configuration variables](https://github.com/BrendenWalker/TandoorNG/blob/develop/docs/system/configuration.md#ai-integration)
+This can be changed using the [configuration variables](https://github.com/BrendenWalker/Stillroom/blob/develop/docs/system/configuration.md#ai-integration)
 
 You can change these settings any time using the django admin. If you do not care about AI cost you can enter a very high limit or disable cost tracking for your providers.
 The limit resets on the first of every month. 

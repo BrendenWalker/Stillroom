@@ -5,7 +5,7 @@ to this list.
 
 ## Code/Features
 
-Please have a look at the [list of pull requests](https://github.com/BrendenWalker/TandoorNG/pulls) for 
+Please have a look at the [list of pull requests](https://github.com/BrendenWalker/Stillroom/pulls) for 
 a complete list of contributions.
 Below are some of the larger contributions made yet.
 

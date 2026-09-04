@@ -58,6 +58,10 @@ export default defineConfig(async ({command, mode, isSsrBuild, isPreview}) => {
         server: {
             host: '0.0.0.0', // only needed to expose dev server to network bound IPs
             origin: 'http://localhost:5173',
+            watch: {
+                usePolling: true,
+                interval: 300,
+            },
         }
     }
 })
