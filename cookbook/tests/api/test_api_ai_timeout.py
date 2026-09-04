@@ -45,6 +45,16 @@ TIMEOUT_SIDE_EFFECT = Timeout(
     llm_provider='test',
 )
 
+UNEXPECTED_ERROR = Exception('secret internals')
+
+
+def _assert_generic_ai_500(response):
+    assert response.status_code == 500
+    data = json.loads(response.content)
+    assert data['error'] is True
+    assert 'unexpected error' in data['msg'].lower()
+    assert 'secret internals' not in data['msg']
+
 
 @pytest.mark.django_db
 class TestFoodAiPropertiesTimeout:
@@ -66,6 +76,20 @@ class TestFoodAiPropertiesTimeout:
         assert data['error'] is True
         assert 'timed out' in data['msg'].lower()
 
+    @patch('cookbook.views.api.completion')
+    def test_unexpected_error_hides_exception(self, mock_completion, ai_space, food_1, a1_s1):
+        mock_completion.side_effect = UNEXPECTED_ERROR
+        PropertyType.objects.create(name='test_prop', space=ai_space)
+
+        url = reverse('api:food-aiproperties', kwargs={'pk': food_1.pk})
+        response = a1_s1.post(
+            f'{url}?provider={ai_space.ai_provider.pk}',
+            json.dumps({'name': food_1.name}),
+            content_type='application/json',
+        )
+
+        _assert_generic_ai_500(response)
+
 
 @pytest.mark.django_db
 class TestRecipeAiPropertiesTimeout:
@@ -86,6 +110,20 @@ class TestRecipeAiPropertiesTimeout:
         data = json.loads(response.content)
         assert data['error'] is True
         assert 'timed out' in data['msg'].lower()
+
+    @patch('cookbook.views.api.completion')
+    def test_unexpected_error_hides_exception(self, mock_completion, ai_space, recipe_1, a1_s1):
+        mock_completion.side_effect = UNEXPECTED_ERROR
+        PropertyType.objects.create(name='test_prop', space=ai_space)
+
+        url = reverse('api:recipe-aiproperties', kwargs={'pk': recipe_1.pk})
+        response = a1_s1.post(
+            f'{url}?provider={ai_space.ai_provider.pk}',
+            json.dumps({'name': recipe_1.name}),
+            content_type='application/json',
+        )
+
+        _assert_generic_ai_500(response)
 
 
 @pytest.mark.django_db
@@ -109,6 +147,22 @@ class TestAiStepSortTimeout:
         data = json.loads(response.content)
         assert data['error'] is True
         assert 'timed out' in data['msg'].lower()
+
+    @patch('cookbook.views.api.completion')
+    def test_unexpected_error_hides_exception(self, mock_completion, ai_space, recipe_1, a1_s1):
+        mock_completion.side_effect = UNEXPECTED_ERROR
+        step1 = StepFactory.create(space=ai_space, ingredients__count=0)
+        step2 = StepFactory.create(space=ai_space, ingredients__count=0)
+        recipe_1.steps.add(step1, step2)
+
+        url = reverse('api_ai_step_sort')
+        response = a1_s1.post(
+            f'{url}?provider={ai_space.ai_provider.pk}',
+            json.dumps({'name': recipe_1.name}),
+            content_type='application/json',
+        )
+
+        _assert_generic_ai_500(response)
 
 
 @pytest.mark.django_db
