@@ -32,6 +32,12 @@ To contribute to the project you are required to use the following packages with
      prettier --write file.vue
     ```
 
+## Changelog
+
+User-facing changes go in the `[Unreleased]` section of [`CHANGELOG.md`](https://github.com/BrendenWalker/Stillroom/blob/develop/CHANGELOG.md), unless the pull request is labeled `skip-changelog`. Label breaking API, settings, or database migrations `breaking-change`.
+
+Cutting a version tag is a separate maintainer step and requires that changelog heading first. See [Releasing](/contribute/releasing/).
+
 ## Testing
 
 Django uses pytest-django to implement a full suite of testing. If you make any functional changes, please implement the appropriate

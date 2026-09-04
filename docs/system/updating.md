@@ -1,19 +1,9 @@
 The Updating process depends on your chosen method of [installation](/install/docker)
 
 While intermediate updates can be skipped when updating please make sure to
-**read the release notes** in case some special action is required to update.
+**[read the release notes](https://github.com/BrendenWalker/Stillroom/releases)** in case some special action is required to update.
 
-## Shopping pack sizes (migrations 0244–0246)
-
-These migrations add pack/grams fields on foods (`shopping_measure`, `ingredient_unit_grams`,
-`count_per_pack`, `shopping_measure_grams`) and `amount_grams` on shopping list entries.
-
-0246 backfills `amount_grams` for existing entries when the food already has `shopping_measure_grams`.
-Entries that cannot be converted are left unchanged (`amount_grams` stays null). The backfill also
-clears invalid `count_per_pack` values below 1.
-
-The new fields are additive. Rolling back means reversing the migrations; converted `amount`/`unit`
-values on shopping entries are not restored. Take a backup before upgrading if you need a rollback path.
+Notable changes are also listed in [`CHANGELOG.md`](https://github.com/BrendenWalker/Stillroom/blob/develop/CHANGELOG.md).
 
 ## Docker
 For all setups using Docker the updating process look something like this

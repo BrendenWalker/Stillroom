@@ -1,0 +1,34 @@
+name: Publish GitHub Release
+
+on:
+  push:
+    tags:
+      - '[0-9]*.[0-9]*.[0-9]*'
+
+jobs:
+  release:
+    if: github.repository_owner == 'BrendenWalker'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Verify tag is a version
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          if ! echo "$TAG" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+([.-].+)?$'; then
+            echo "Tag $TAG is not a Stillroom version (X.Y.Z)"
+            exit 1
+          fi
+
+      - name: Extract changelog section
+        run: python3 scripts/extract_changelog.py "$GITHUB_REF_NAME" > release-body.md
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          body_path: release-body.md
+          generate_release_notes: true
+          make_latest: ${{ !contains(github.ref_name, '-') }}
+          prerelease: ${{ contains(github.ref_name, '-') }}
