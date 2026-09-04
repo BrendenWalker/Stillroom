@@ -1,0 +1,5 @@
+name: Stillroom
+paths-ignore:
+  - cookbook/static/pdfjs
+  - cookbook/tests/other/test_data
+  - cookbook/tests/resources
