@@ -87,7 +87,7 @@ class MultipleFileField(forms.FileField):
 class ImportForm(ImportExportBase):
     files = MultipleFileField(required=True)
     duplicates = forms.BooleanField(
-        help_text=_('To prevent duplicates recipes with the same name as existing ones are ignored. Check this box to import everything.'), required=False
+        help_text=_('To prevent duplicates, recipes with the same name as existing ones are ignored. Check this box to import everything.'), required=False
     )
     meal_plans = forms.BooleanField(required=False)
     shopping_lists = forms.BooleanField(required=False)

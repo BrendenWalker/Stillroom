@@ -59,9 +59,9 @@ def apply_food_pack_fields(ingredient_unit_grams, count_per_pack, shopping_measu
 
     if cpp is not None:
         if cpp < 1:
-            return iug, smg, _('Count per pack must be at least 1.')
+            return iug, smg, _('Count per shopping measure must be at least 1.')
         if cpp != cpp.to_integral_value():
-            return iug, smg, _('Count per pack must be a whole number.')
+            return iug, smg, _('Count per shopping measure must be a whole number.')
 
     if cpp is not None and cpp == 1:
         if iug is None and smg is not None and smg > 0:

@@ -131,6 +131,7 @@ urlpatterns = [
     path('api-token-auth/', CustomAuthToken.as_view()),
 
     path('offline/', views.offline, name='view_offline'),
+    path('refresh-app/', views.refresh_app, name='refresh_app'),
     path('service-worker.js', views.service_worker, name='service_worker'),
     path('manifest.json', views.web_manifest, name='web_manifest'),
 

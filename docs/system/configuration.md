@@ -29,7 +29,7 @@ SECRET_KEY_FILE=/path/to/file.txt
 
 #### Allowed Hosts
 
-> default `*` - options: `recipes.mydomain.com,cooking.mydomain.com,...` (comma seperated domain/ip list)
+> default `*` - options: `recipes.mydomain.com,cooking.mydomain.com,...` (comma-separated domain/ip list)
 
 Security setting to prevent HTTP Host Header Attacks,
 see [Django docs](https://docs.djangoproject.com/en/5.0/ref/settings/#allowed-hosts).

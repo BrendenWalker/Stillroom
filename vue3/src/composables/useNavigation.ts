@@ -15,7 +15,8 @@ export function useNavigation() {
         let navigation = [
             {component: VListItem, prependIcon: '$recipes', title: 'Home', to: {name: 'StartPage', params: {}}},
             {component: VListItem, prependIcon: '$search', title: t('Search'), to: {name: 'SearchPage', params: {}}},
-            {component: VListItem, prependIcon: '$mealplan', title: t('Meal_Plan'), to: {name: 'MealPlanPage', params: {}}},
+            {component: VListItem, prependIcon: '$mealplan', title: t('Calendar'), to: {name: 'MealPlanPage', params: {}}},
+            {component: VListItem, prependIcon: 'fa-solid fa-calendar-week', title: t('Meal_Planner'), to: {name: 'MealPlanV2Page', params: {}}},
             {component: VListItem, prependIcon: '$shopping', title: t('Shopping'), to: {name: 'ShoppingListPage', params: {}}},
             {component: VListItem, prependIcon: 'fas fa-globe', title: t('Import'), to: {name: 'RecipeImportPage', params: {}}},
             {component: VListItem, prependIcon: '$pantry', title: t('Pantry'), to: {name: 'PantryPage', params: {}}},

@@ -259,3 +259,39 @@ def test_food_properties_skipped_on_create(u1_s1, space_1):
     assert r.status_code == 200
     get_response = json.loads(r.content)
     assert len(get_response['food_properties']) > 0
+
+
+def test_kcal_per_serving_on_list_and_retrieve(u1_s1, space_1):
+    from decimal import Decimal
+
+    from cookbook.models import Step
+
+    user = auth.get_user(u1_s1)
+    with scopes_disabled():
+        unit = Unit.objects.create(name='gram', base_unit='g', space=space_1)
+        food = Food.objects.create(
+            name='Kcal Food',
+            space=space_1,
+            kcal=Decimal('274'),
+            kcal_grams=Decimal('100'),
+        )
+        recipe = Recipe.objects.create(
+            name='Kcal Recipe',
+            servings=2,
+            space=space_1,
+            created_by=user,
+            waiting_time=0,
+            working_time=0,
+        )
+        step = Step.objects.create(instruction='mix', space=space_1)
+        step.ingredients.create(amount=200, unit=unit, food=food, space=space_1)
+        recipe.steps.add(step)
+
+    list_r = u1_s1.get(reverse(LIST_URL))
+    assert list_r.status_code == 200
+    listed = next(item for item in json.loads(list_r.content)['results'] if item['id'] == recipe.id)
+    assert float(listed['kcal_per_serving']) == 274
+
+    detail_r = u1_s1.get(reverse(DETAIL_URL, args=[recipe.id]))
+    assert detail_r.status_code == 200
+    assert float(json.loads(detail_r.content)['kcal_per_serving']) == 274

@@ -58,14 +58,24 @@
 
 <script type="application/javascript">
     window.addEventListener("load", () => {
-        if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.register("{% url 'service_worker' %}", {scope: document.baseURI}).then(function (reg) {
-            }).catch(function (err) {
-                console.warn('Error whilst registering service worker', err);
-            });
-        } else {
-            console.warn('service worker not in navigator');
+        if (!("serviceWorker" in navigator)) {
+            return;
         }
+        {% if not ENABLE_PWA %}
+        navigator.serviceWorker.getRegistrations().then(function (regs) {
+            return Promise.all(regs.map(function (reg) { return reg.unregister(); }));
+        }).then(function () {
+            return caches.keys();
+        }).then(function (keys) {
+            return Promise.all(keys.map(function (key) { return caches.delete(key); }));
+        }).catch(function (err) {
+            console.warn('Error clearing service worker cache', err);
+        });
+        {% else %}
+        navigator.serviceWorker.register("{% url 'service_worker' %}", {scope: document.baseURI}).catch(function (err) {
+            console.warn('Error whilst registering service worker', err);
+        });
+        {% endif %}
      });
 </script>
 

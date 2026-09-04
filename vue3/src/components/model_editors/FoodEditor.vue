@@ -12,9 +12,10 @@
         :editing-object="editingObj">
 
         <v-card-text class="pa-0">
-            <v-tabs v-model="tab" :disabled="loading" grow>
+            <v-tabs v-model="tab" :disabled="loading" grow show-arrows>
                 <v-tab value="food">{{ $t('Food') }}</v-tab>
-                <v-tab value="properties" :disabled="!isUpdate()">{{ $t('Properties') }}</v-tab>
+                <v-tab value="details">{{ $t('Details') }}</v-tab>
+                <v-tab value="properties" :disabled="!isUpdate()">{{ $t('FdcProperties') }}</v-tab>
                 <v-tab value="conversions" :disabled="!isUpdate()">{{ $t('Conversion') }}</v-tab>
                 <v-tab value="hierarchy" :disabled="!isUpdate()">{{ $t('Hierarchy') }}</v-tab>
                 <v-tab value="misc" :disabled="!isUpdate()">{{ $t('Miscellaneous') }}</v-tab>
@@ -30,11 +31,50 @@
                         <v-textarea :label="$t('Description')" v-model="editingObj.description"></v-textarea>
 
                         <v-model-select :label="$t('Category')" v-model="editingObj.supermarketCategory" model="SupermarketCategory" create ></v-model-select>
-                        <v-model-select :label="$t('ShoppingList')" :hint="$t('DefaultShoppingListHelp')" v-model="editingObj.shoppingLists" model="ShoppingList" create chips multiple></v-model-select>
-                        <v-text-field :label="$t('ShoppingMeasure')" :hint="$t('ShoppingMeasureHelp')" persistent-hint v-model="editingObj.shoppingMeasure" class="mt-2"></v-text-field>
-                        <v-number-input :label="$t('IngredientUnitGrams')" :hint="$t('IngredientUnitGramsHelp')" persistent-hint v-model="editingObj.ingredientUnitGrams" :precision="2" clearable></v-number-input>
-                        <v-number-input :label="$t('CountPerPack')" :hint="$t('CountPerPackHelp')" persistent-hint v-model="editingObj.countPerPack" :precision="0" clearable :error-messages="packError"></v-number-input>
-                        <v-number-input :label="$t('ShoppingMeasureGrams')" :hint="$t('ShoppingMeasureGramsHelp')" persistent-hint v-model="editingObj.shoppingMeasureGrams" :precision="2" :disabled="isShoppingGramsDerived" clearable></v-number-input>
+                    </v-form>
+                </v-tabs-window-item>
+
+                <v-tabs-window-item value="details">
+                    <v-form :disabled="loading">
+                        <v-text-field :label="$t('ShoppingMeasure')" v-model="editingObj.shoppingMeasure">
+                            <template #append>
+                                <field-help-button :text="$t('ShoppingMeasureHelp')"></field-help-button>
+                            </template>
+                        </v-text-field>
+                        <v-number-input :label="$t('ShoppingMeasureGrams')" v-model="editingObj.shoppingMeasureGrams" :precision="2" :disabled="isShoppingGramsDerived" clearable>
+                            <template #append>
+                                <field-help-button :text="$t('ShoppingMeasureGramsHelp')"></field-help-button>
+                            </template>
+                        </v-number-input>
+                        <v-alert icon="$help" class="mb-4" density="compact">{{ $t('PerEachHelp') }}</v-alert>
+                        <v-number-input :label="$t('IngredientUnitGrams')" v-model="editingObj.ingredientUnitGrams" :precision="2" clearable>
+                            <template #append>
+                                <field-help-button :text="$t('IngredientUnitGramsHelp')"></field-help-button>
+                            </template>
+                        </v-number-input>
+                        <v-number-input :label="$t('CountPerPack')" v-model="editingObj.countPerPack" :precision="0" clearable :error-messages="packError">
+                            <template #append>
+                                <field-help-button :text="$t('CountPerPackHelp')"></field-help-button>
+                            </template>
+                        </v-number-input>
+                        <v-alert icon="$help" class="mb-4 mt-2" density="compact">{{ $t('KCalHelp') }}</v-alert>
+                        <v-row dense align="center">
+                            <v-col cols="12" sm="5">
+                                <v-number-input v-model="editingObj.kcal" :precision="2" clearable hide-details control-variant="hidden">
+                                    <template #append>
+                                        <span class="text-body-1 text-medium-emphasis">{{ $t('KCal') }}</span>
+                                    </template>
+                                </v-number-input>
+                            </v-col>
+                            <v-col cols="auto" class="text-body-1 text-medium-emphasis">{{ $t('per') }}</v-col>
+                            <v-col cols="12" sm="5">
+                                <v-number-input v-model="editingObj.kcalGrams" :precision="2" clearable hide-details control-variant="hidden">
+                                    <template #append>
+                                        <span class="text-body-1 text-medium-emphasis">{{ $t('Grams') }}</span>
+                                    </template>
+                                </v-number-input>
+                            </v-col>
+                        </v-row>
                     </v-form>
                 </v-tabs-window-item>
 
@@ -130,6 +170,11 @@
                         <v-text-field :label="$t('Website')" v-model="editingObj.url"></v-text-field>
                         <v-checkbox :label="$t('OnHand')" :hint="$t('OnHand_help')" v-model="editingObj.foodOnhand" persistent-hint></v-checkbox>
                         <v-checkbox :label="$t('Ignore_Shopping')" :hint="$t('ignore_shopping_help')" v-model="editingObj.ignoreShopping" persistent-hint></v-checkbox>
+                        <v-model-select :label="$t('ShoppingList')" v-model="editingObj.shoppingLists" model="ShoppingList" create chips multiple>
+                            <template #append>
+                                <field-help-button :text="$t('DefaultShoppingListHelp')"></field-help-button>
+                            </template>
+                        </v-model-select>
                         <v-divider class="mt-2 mb-2"></v-divider>
                         <v-model-select model="Food" v-model="editingObj.substitute" :label="$t('Substitutes')" :hint="$t('substitute_help')" multiple chips :list-params="{isFood: true}"></v-model-select>
 
@@ -164,6 +209,7 @@ import {openFdcPage} from "@/utils/fdc.ts";
 import {DateTime} from "luxon";
 import HierarchyEditor from "@/components/inputs/HierarchyEditor.vue";
 import VModelSelect from "@/components/inputs/VModelSelect.vue";
+import FieldHelpButton from "@/components/buttons/FieldHelpButton.vue";
 import {applyFoodPackFields} from "@/utils/foodPack";
 import {useI18n} from "vue-i18n";
 

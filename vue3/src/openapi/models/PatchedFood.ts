@@ -278,6 +278,18 @@ export interface PatchedFood {
      * @memberof PatchedFood
      */
     shoppingMeasureGrams?: number | null;
+    /**
+     * Kilocalories for the stated gram amount.
+     * @type {number}
+     * @memberof PatchedFood
+     */
+    kcal?: number | null;
+    /**
+     * Grams the kilocalorie value applies to.
+     * @type {number}
+     * @memberof PatchedFood
+     */
+    kcalGrams?: number | null;
 }
 
 /**
@@ -326,6 +338,8 @@ export function PatchedFoodFromJSONTyped(json: any, ignoreDiscriminator: boolean
         'ingredientUnitGrams': json['ingredient_unit_grams'] == null ? undefined : json['ingredient_unit_grams'],
         'countPerPack': json['count_per_pack'] == null ? undefined : json['count_per_pack'],
         'shoppingMeasureGrams': json['shopping_measure_grams'] == null ? undefined : json['shopping_measure_grams'],
+        'kcal': json['kcal'] == null ? undefined : json['kcal'],
+        'kcalGrams': json['kcal_grams'] == null ? undefined : json['kcal_grams'],
     };
 }
 
@@ -364,6 +378,8 @@ export function PatchedFoodToJSONTyped(value?: Omit<PatchedFood, 'shopping'|'par
         'ingredient_unit_grams': value['ingredientUnitGrams'],
         'count_per_pack': value['countPerPack'],
         'shopping_measure_grams': value['shoppingMeasureGrams'],
+        'kcal': value['kcal'],
+        'kcal_grams': value['kcalGrams'],
     };
 }
 

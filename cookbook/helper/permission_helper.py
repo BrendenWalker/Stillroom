@@ -578,4 +578,7 @@ def create_space_for_user(user, name=None):
         user_space = UserSpace.objects.create(space=created_space, user=user, active=new_space_active)
         user_space.groups.add(Group.objects.filter(name='admin').get())
 
+        from cookbook.helper.meal_types import ensure_default_meal_types
+        ensure_default_meal_types(created_space, user)
+
         return user_space

@@ -13,4 +13,5 @@ def context_settings(request):
         'SHOPPING_MIN_AUTOSYNC_INTERVAL': settings.SHOPPING_MIN_AUTOSYNC_INTERVAL,
         'DISABLE_EXTERNAL_CONNECTORS': settings.DISABLE_EXTERNAL_CONNECTORS,
         'HIDE_LOGIN_FORM': settings.HIDE_LOGIN_FORM,
+        'ENABLE_PWA': not settings.DEBUG,
     }
