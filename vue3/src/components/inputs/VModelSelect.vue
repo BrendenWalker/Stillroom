@@ -7,7 +7,7 @@
         autocomplete="suppress"
         no-filter
         :items="autocompleteItems"
-        item-title="title"
+        :item-title="itemTitleFn"
         item-value="id"
         :label="label"
         :hint="props.hint"
@@ -29,6 +29,13 @@
         @focus="onFocus"
         @update:menu="onMenuUpdate"
     >
+        <template #selection="{ item }">
+            {{ itemTitleFn(item) }}
+        </template>
+        <template #chip="{ item, props: chipProps }">
+            <v-chip v-bind="chipProps">{{ itemTitleFn(item) }}</v-chip>
+        </template>
+
         <template #prepend v-if="$slots.prepend">
             <slot name="prepend"></slot>
         </template>
@@ -137,12 +144,31 @@ const items = ref([] as EditorSupportedTypes[])
 const search = ref<string | undefined>(undefined)
 
 const autocompleteItems = computed(() => {
-    const labelKey = itemLabelAttribute.value
     return items.value.map((item: any) => ({
         ...item,
-        title: item?.[labelKey] ?? item?.name ?? String(item?.id ?? ''),
+        title: objectLabel(item),
     }))
 })
+
+function objectLabel(item: any): string {
+    const raw = item?.raw ?? item
+    if (raw == null || typeof raw !== 'object') {
+        return raw == null ? '' : String(raw)
+    }
+    const key = itemLabelAttribute.value
+    const value = raw[key] ?? raw.name ?? raw.title
+    if (value == null) {
+        return raw.id != null ? String(raw.id) : ''
+    }
+    if (typeof value === 'object') {
+        return value.name ?? ''
+    }
+    return String(value)
+}
+
+function itemTitleFn(item: any): string {
+    return objectLabel(item)
+}
 
 /**
  * determine if the user should be able to create a new item based on create prop and if the item is already present
@@ -380,6 +406,7 @@ function updateAutoselectValue(newValue: EditorSupportedTypes | EditorSupportedT
         if ((autoselectValue.value && autoselectValue.value.id! != newValue) || !autoselectValue.value) {
             modelClass.value.retrieve(newValue).then((r: EditorSupportedTypes) => {
                 autoselectValue.value = r
+                ensureSelectedInItems(r)
             })
         }
     } else if ((Array.isArray(newValue) && newValue.every(item => typeof item === 'number'))) {
@@ -410,8 +437,10 @@ function updateAutoselectValue(newValue: EditorSupportedTypes | EditorSupportedT
                     missingItems = missingItems.filter(item => !existingIds.has(item.id))
 
                     autoselectValue.value = autoselectValue.value.concat(missingItems)
+                    ensureSelectedInItems(autoselectValue.value)
                 } else {
                     autoselectValue.value = missingItems
+                    ensureSelectedInItems(missingItems)
                 }
             }).catch((err: any) => {
                 useMessageStore().addError(ErrorMessageType.FETCH_ERROR, err)
@@ -421,7 +450,17 @@ function updateAutoselectValue(newValue: EditorSupportedTypes | EditorSupportedT
         }
     } else {
         autoselectValue.value = newValue
+        ensureSelectedInItems(newValue)
     }
+}
+
+function ensureSelectedInItems(value: EditorSupportedTypes | EditorSupportedTypes[] | undefined | null) {
+    const selected = Array.isArray(value) ? value : (value ? [value] : [])
+    selected.forEach((sel: EditorSupportedTypes) => {
+        if (sel?.id && !items.value.some((i: EditorSupportedTypes) => i.id === sel.id)) {
+            items.value.unshift(sel)
+        }
+    })
 }
 
 /**

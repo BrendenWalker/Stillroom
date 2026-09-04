@@ -26,6 +26,7 @@ let routes = [
     {path: '/advanced-search', component: () => import("@/pages/SearchPage.vue"), name: 'SearchPage', meta: {title: 'Search'}},
     {path: '/shopping', component: () => import("@/pages/ShoppingListPage.vue"), name: 'ShoppingListPage', meta: {title: 'Shopping_list'}},
     {path: '/mealplan', component: MealPlanPage, name: 'MealPlanPage', meta: {title: 'Meal_Plan'}},
+    {path: '/this-week', component: () => import("@/pages/MealPlanV2Page.vue"), name: 'MealPlanV2Page', meta: {title: 'This_Week'}},
     {path: '/books', component: () => import("@/pages/BooksPage.vue"), name: 'BooksPage', meta: {title: 'Books'}},
     {path: '/book/:bookId', component: () => import("@/pages/BookViewPage.vue"), name: 'BookViewPage', props: true, meta: {title: 'Book'}},
     {path: '/recipe/import', component: () => import("@/pages/RecipeImportPage.vue"), name: 'RecipeImportPage', meta: {title: 'Import'}},

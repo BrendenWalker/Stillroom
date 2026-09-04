@@ -1544,7 +1544,18 @@ class MealPlanViewSet(LoggingMixin, viewsets.ModelViewSet):
         if meal_type:
             queryset = queryset.filter(meal_type__in=meal_type)
 
-        return queryset
+        return queryset.select_related('recipe', 'meal_type', 'created_by').prefetch_related(
+            'recipe__steps',
+            'recipe__steps__ingredients',
+            'recipe__steps__ingredients__food',
+            'recipe__steps__ingredients__unit',
+            'recipe__steps__ingredients__unit__unit_conversion_base_relation',
+            'recipe__steps__ingredients__unit__unit_conversion_base_relation__base_unit',
+            'recipe__steps__ingredients__unit__unit_conversion_base_relation__food',
+            'recipe__steps__ingredients__unit__unit_conversion_converted_relation',
+            'recipe__steps__ingredients__unit__unit_conversion_converted_relation__converted_unit',
+            'recipe__steps__ingredients__unit__unit_conversion_converted_relation__food',
+        )
 
     def get_serializer_class(self):
         if self.action == 'ical':
@@ -1856,7 +1867,20 @@ class RecipeViewSet(LoggingMixin, viewsets.ModelViewSet, DeleteRelationMixing):
         params = {x: self.request.GET.get(x) if len({**self.request.GET}[x]) == 1 else self.request.GET.getlist(x) for x
                   in list(self.request.GET)}
         search = RecipeSearch(self.request, **params)
-        self.queryset = search.get_queryset(self.queryset).prefetch_related('keywords', 'cooklog_set')
+        self.queryset = search.get_queryset(self.queryset).prefetch_related(
+            'keywords',
+            'cooklog_set',
+            'steps',
+            'steps__ingredients',
+            'steps__ingredients__food',
+            'steps__ingredients__unit',
+            'steps__ingredients__unit__unit_conversion_base_relation',
+            'steps__ingredients__unit__unit_conversion_base_relation__base_unit',
+            'steps__ingredients__unit__unit_conversion_base_relation__food',
+            'steps__ingredients__unit__unit_conversion_converted_relation',
+            'steps__ingredients__unit__unit_conversion_converted_relation__converted_unit',
+            'steps__ingredients__unit__unit_conversion_converted_relation__food',
+        )
         return self.queryset
 
     def list(self, request, *args, **kwargs):

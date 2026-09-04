@@ -10,7 +10,7 @@ from icalendar import Calendar
 from oauth2_provider.models import AccessToken
 from rest_framework.test import APIClient
 
-from cookbook.models import Household, Keyword, MealPlan, MealType, Recipe, UserSpace
+from cookbook.models import Food, Household, Keyword, MealPlan, MealType, Recipe, Step, Unit, UserSpace
 from cookbook.tests.factories import RecipeFactory
 
 LIST_URL = 'api:mealplan-list'
@@ -569,3 +569,41 @@ def test_auto_plan_internal_only(u1_s1, meal_type, space_1, auto_plan_keywords):
         content_type='application/json',
     )
     assert resp.status_code == 400
+
+
+def test_meal_plan_kcal_per_serving(u1_s1, space_1, meal_type):
+    from decimal import Decimal
+
+    user = auth.get_user(u1_s1)
+    with scopes_disabled():
+        unit = Unit.objects.create(name='gram', base_unit='g', space=space_1)
+        food = Food.objects.create(
+            name='Kcal Food Plan',
+            space=space_1,
+            kcal=Decimal('274'),
+            kcal_grams=Decimal('100'),
+        )
+        recipe = Recipe.objects.create(
+            name='Kcal Recipe Plan',
+            servings=2,
+            space=space_1,
+            created_by=user,
+            waiting_time=0,
+            working_time=0,
+        )
+        step = Step.objects.create(instruction='mix', space=space_1)
+        step.ingredients.create(amount=200, unit=unit, food=food, space=space_1)
+        recipe.steps.add(step)
+        plan = MealPlan.objects.create(
+            recipe=recipe,
+            space=space_1,
+            meal_type=meal_type,
+            from_date=timezone.now(),
+            to_date=timezone.now(),
+            servings=1,
+            created_by=user,
+        )
+
+    r = u1_s1.get(reverse(DETAIL_URL, args=[plan.id]))
+    assert r.status_code == 200
+    assert float(json.loads(r.content)['kcal_per_serving']) == 274
