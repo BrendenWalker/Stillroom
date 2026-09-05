@@ -111,13 +111,16 @@ class UnitConversionHelper:
         """
         Converts an ingredient to all possible conversions based on the custom unit conversion database.
         Uses BFS to discover multi-step conversions (e.g. pinch → tsp → gram).
+        Count units (Each, pcs, …) also convert through Food.ingredient_unit_grams when no gram
+        conversion was already found. Missing units are left alone so properties can flag them.
         After that passes conversion to UnitConversionHelper.base_conversions() to get all base conversions possible.
         :param ingredient: Ingredient object
         :return: list of ingredients with all possible custom and base conversions
         """
         conversions = [ingredient]
+        visited_unit_ids = set()
         if ingredient.unit:
-            visited_unit_ids = {ingredient.unit.id}
+            visited_unit_ids.add(ingredient.unit.id)
             queue = [ingredient]
 
             while queue:
@@ -137,9 +140,34 @@ class UnitConversionHelper:
                             conversions.append(r)
                             queue.append(r)
 
+            each_grams = self._each_to_gram_ingredient(ingredient, visited_unit_ids)
+            if each_grams is not None:
+                conversions.append(each_grams)
+
         conversions = self.base_conversions(conversions)
 
         return conversions
+
+    def _each_to_gram_ingredient(self, ingredient, visited_unit_ids):
+        """Synthetic Each/pcs → grams from Food.ingredient_unit_grams, if grams was not already reached."""
+        from cookbook.helper.food_pack import _is_count_unit, to_decimal
+
+        if ingredient.unit is None or not _is_count_unit(ingredient.unit):
+            return None
+        food = ingredient.food
+        if food is None:
+            return None
+        iug = to_decimal(getattr(food, 'ingredient_unit_grams', None))
+        if iug is None or iug <= 0:
+            return None
+        amount = to_decimal(ingredient.amount)
+        if amount is None:
+            return None
+        gram_unit = Unit.objects.filter(space=self.space, base_unit='g').first()
+        if gram_unit is None or gram_unit.id in visited_unit_ids:
+            return None
+        visited_unit_ids.add(gram_unit.id)
+        return Ingredient(amount=amount * iug, unit=gram_unit, food=food, space=self.space)
 
     def _uc_convert(self, uc, amount, unit, food):
         """
