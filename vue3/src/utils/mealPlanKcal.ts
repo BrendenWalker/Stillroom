@@ -7,3 +7,9 @@ export function plannedKcal(plan: MealPlan): number {
 export function roundKcal(value: number): number {
     return Math.round(value)
 }
+
+export function lineKcalPerServing(kcal: number | null | undefined, recipeServings: number | null | undefined): number {
+    const servings = Number(recipeServings ?? 1)
+    const denom = servings > 0 ? servings : 1
+    return roundKcal(Number(kcal ?? 0) / denom)
+}

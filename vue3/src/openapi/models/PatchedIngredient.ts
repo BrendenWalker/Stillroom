@@ -59,6 +59,12 @@ export interface PatchedIngredient {
      */
     amount?: number;
     /**
+     * kcal for the listed ingredient quantity from Food.kcal / kcal_grams
+     * @type {number}
+     * @memberof PatchedIngredient
+     */
+    readonly kcal?: number;
+    /**
      * 
      * @type {Array<any>}
      * @memberof PatchedIngredient
@@ -129,6 +135,7 @@ export function PatchedIngredientFromJSONTyped(json: any, ignoreDiscriminator: b
         'food': json['food'] == null ? undefined : FoodFromJSON(json['food']),
         'unit': json['unit'] == null ? undefined : UnitFromJSON(json['unit']),
         'amount': json['amount'] == null ? undefined : json['amount'],
+        'kcal': json['kcal'] == null ? undefined : json['kcal'],
         'conversions': json['conversions'] == null ? undefined : json['conversions'],
         'note': json['note'] == null ? undefined : json['note'],
         'order': json['order'] == null ? undefined : json['order'],
@@ -144,7 +151,7 @@ export function PatchedIngredientToJSON(json: any): PatchedIngredient {
     return PatchedIngredientToJSONTyped(json, false);
 }
 
-export function PatchedIngredientToJSONTyped(value?: Omit<PatchedIngredient, 'conversions'|'used_in_recipes'|'checked'> | null, ignoreDiscriminator: boolean = false): any {
+export function PatchedIngredientToJSONTyped(value?: Omit<PatchedIngredient, 'conversions'|'used_in_recipes'|'checked'|'kcal'> | null, ignoreDiscriminator: boolean = false): any {
     if (value == null) {
         return value;
     }
