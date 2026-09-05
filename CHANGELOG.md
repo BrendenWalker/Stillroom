@@ -7,13 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-09-05
+
+No database migrations. Image remains `ghcr.io/brendenwalker/stillroom`.
+
 ### Added
 
-- Recipe ingredient editor shows live line kcal as amount and measure change
+- Recipe ingredient editor shows live line kcal as amount and measure change (#44)
 
 ### Fixed
 
-- Count units (Each, pcs, …) convert to grams via food Per Each grams when no explicit conversion exists
+- Count units (Each, pcs, …) convert to grams via food Per Each grams when no explicit conversion exists (#44)
 
 ## [0.1.2] - 2026-09-05
 
@@ -70,7 +74,8 @@ Back up before upgrading. Apply migrations **0244–0248**. Pack-size fields and
 - Native recipe export dropping Details-tab food values on import (#33)
 - Debug frontend serving stale cached assets (#29, #31)
 
-[Unreleased]: https://github.com/BrendenWalker/Stillroom/compare/0.1.2...develop
+[Unreleased]: https://github.com/BrendenWalker/Stillroom/compare/0.1.3...develop
+[0.1.3]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.3
 [0.1.2]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.2
 [0.1.1]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.1
 [0.1.0]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.0
