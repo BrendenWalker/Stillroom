@@ -24,7 +24,7 @@
                 <v-row v-for="(s, i) in props.steps" v-if="!useUserPreferenceStore().deviceSettings.recipe_mergeStepOverview">
                     <v-col class="pa-1" cols="12" md="6">
                         <b v-if="s.showAsHeader">{{ i + 1 }}. {{ s.name }} </b>
-                        <ingredients-table v-model="s.ingredients" :ingredient-factor="props.ingredientFactor" show-actions
+                        <ingredients-table v-model="s.ingredients" :ingredient-factor="props.ingredientFactor" :recipe-servings="props.recipeServings" show-actions
                                            @scale="(factor: number) => emit('scale', factor)"></ingredients-table>
 
                         <template v-if="s.stepRecipe">
@@ -32,7 +32,7 @@
                                     :to="{name: 'RecipeViewPage', params: {id: s.stepRecipeData.id}}" target="_blank">
                                 <v-row v-for="subRecipeStep in s.stepRecipeData.steps">
                                     <v-col>
-                                        <ingredients-table v-model="subRecipeStep.ingredients" :ingredient-factor="props.ingredientFactor" show-actions
+                                        <ingredients-table v-model="subRecipeStep.ingredients" :ingredient-factor="props.ingredientFactor" :recipe-servings="props.recipeServings" show-actions
                                         @scale="(factor: number) => emit('scale', factor)"></ingredients-table>
                                     </v-col>
                                 </v-row>
@@ -43,7 +43,7 @@
 
                 <v-row v-if="useUserPreferenceStore().deviceSettings.recipe_mergeStepOverview">
                     <v-col class="pa-1" cols="12" md="6">
-                        <ingredients-table v-model="mergedIngredients" :ingredient-factor="props.ingredientFactor" :show-checkbox="false"></ingredients-table>
+                        <ingredients-table v-model="mergedIngredients" :ingredient-factor="props.ingredientFactor" :recipe-servings="props.recipeServings" :show-checkbox="false"></ingredients-table>
                     </v-col>
                 </v-row>
 
@@ -71,6 +71,11 @@ const props = defineProps({
     ingredientFactor: {
         type: Number,
         required: true,
+    },
+    recipeServings: {
+        type: Number,
+        required: false,
+        default: 1,
     },
 })
 
@@ -115,9 +120,12 @@ const mergedIngredients = computed(() => {
         const key = `${ingredient.food.id}-${(ingredient.unit ? ingredient.unit.id : 'no_unit')}`;
 
         if (groupedIngredients.has(key)) {
-            // If this food-unit combination already exists, sum the amounts
             const existingIngredient = groupedIngredients.get(key)!;
-            existingIngredient.amount += ingredient.amount;
+            groupedIngredients.set(key, {
+                ...existingIngredient,
+                amount: existingIngredient.amount + ingredient.amount,
+                kcal: Number(existingIngredient.kcal ?? 0) + Number(ingredient.kcal ?? 0),
+            });
         } else {
             // Create a new entry with the adjusted amount
             const clonedIngredient = {...ingredient};

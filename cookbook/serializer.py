@@ -31,7 +31,7 @@ from cookbook.helper.image_processing import is_file_type_allowed
 from cookbook.helper.permission_helper import above_space_limit, create_space_for_user, get_household_user_ids
 from cookbook.helper.food_availability_helper import is_food_item, lookup_is_food_item
 from cookbook.helper.food_pack import apply_food_pack_fields, shopping_entry_quantities, shopping_measure_grams_of, to_decimal
-from cookbook.helper.kcal_helper import recipe_kcal_per_serving
+from cookbook.helper.kcal_helper import ingredient_kcal, recipe_kcal_per_serving
 from cookbook.helper.property_helper import FoodPropertyHelper
 from cookbook.helper.shopping_helper import RecipeShoppingEditor
 from cookbook.helper.unit_conversion_helper import UnitConversionHelper
@@ -1088,6 +1088,7 @@ class IngredientSerializer(IngredientSimpleSerializer):
     food = FoodSerializer(allow_null=True)
     used_in_recipes = serializers.SerializerMethodField('get_used_in_recipes')
     conversions = serializers.SerializerMethodField('get_conversions')
+    kcal = serializers.SerializerMethodField()
 
     @extend_schema_field(list)
     def get_used_in_recipes(self, obj):
@@ -1109,13 +1110,18 @@ class IngredientSerializer(IngredientSimpleSerializer):
         else:
             return []
 
+    @extend_schema_field(CustomDecimalField)
+    def get_kcal(self, obj):
+        return CustomDecimalField().to_representation(ingredient_kcal(obj))
+
     class Meta:
         model = Ingredient
         fields = (
             'id', 'food', 'unit', 'amount', 'conversions', 'note', 'order',
             'is_header', 'no_amount', 'original_text', 'used_in_recipes', 'checked',
+            'kcal',
         )
-        read_only_fields = ['conversions', ]
+        read_only_fields = ['conversions', 'kcal']
 
 
 class StepSerializer(WritableNestedModelSerializer, ExtendedRecipeMixin):

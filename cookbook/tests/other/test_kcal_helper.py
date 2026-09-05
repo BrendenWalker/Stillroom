@@ -3,7 +3,7 @@ from decimal import Decimal
 from django.contrib import auth
 from django_scopes import scopes_disabled
 
-from cookbook.helper.kcal_helper import recipe_kcal_per_serving
+from cookbook.helper.kcal_helper import ingredient_kcal, recipe_kcal_per_serving
 from cookbook.models import Food, Recipe, Step, Unit
 
 
@@ -55,6 +55,45 @@ def test_kcal_zero_servings_does_not_divide_by_zero(space_1, u1_s1):
         )
         recipe = _gram_recipe(space_1, user, food, amount=100, servings=0)
         assert recipe_kcal_per_serving(recipe) == Decimal('100')
+
+
+def test_ingredient_kcal_from_food_density(space_1, u1_s1):
+    user = auth.get_user(u1_s1)
+    with scopes_disabled():
+        food = Food.objects.create(
+            name='eggs',
+            space=space_1,
+            kcal=Decimal('274'),
+            kcal_grams=Decimal('100'),
+        )
+        recipe = _gram_recipe(space_1, user, food, amount=200, servings=2)
+        ingredient = recipe.steps.first().ingredients.first()
+        assert ingredient_kcal(ingredient) == Decimal('548')
+
+
+def test_ingredient_kcal_missing_on_food_is_zero(space_1, u1_s1):
+    user = auth.get_user(u1_s1)
+    with scopes_disabled():
+        food = Food.objects.create(name='unknown', space=space_1)
+        recipe = _gram_recipe(space_1, user, food, amount=200, servings=2)
+        ingredient = recipe.steps.first().ingredients.first()
+        assert ingredient_kcal(ingredient) == Decimal(0)
+
+
+def test_ingredient_kcal_no_amount_is_zero(space_1, u1_s1):
+    user = auth.get_user(u1_s1)
+    with scopes_disabled():
+        food = Food.objects.create(
+            name='eggs',
+            space=space_1,
+            kcal=Decimal('274'),
+            kcal_grams=Decimal('100'),
+        )
+        recipe = _gram_recipe(space_1, user, food, amount=200, servings=2)
+        ingredient = recipe.steps.first().ingredients.first()
+        ingredient.no_amount = True
+        ingredient.save()
+        assert ingredient_kcal(ingredient) == Decimal(0)
 
 
 def test_kcal_zero_is_valid(space_1, u1_s1):

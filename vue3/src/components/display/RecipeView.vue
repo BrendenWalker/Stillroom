@@ -56,6 +56,10 @@
                                 </recipe-scaling-dialog>
                             </div>
                         </v-col>
+                        <v-col class="pt-1 pb-1">
+                            <i class="fas fa-fire fa-fw mr-1"></i> {{ kcalPerServingDisplay }} {{ $t('KCal') }}<br/>
+                            <div class="text-grey">{{ $t('per_serving') }}</div>
+                        </v-col>
                     </v-row>
                 </v-container>
             </v-card>
@@ -110,6 +114,10 @@
                                     </recipe-scaling-dialog>
                                 </div>
                             </v-col>
+                            <v-col>
+                                <i class="fas fa-fire fa-fw mr-1"></i> {{ kcalPerServingDisplay }} {{ $t('KCal') }}<br/>
+                                <div class="text-grey">{{ $t('per_serving') }}</div>
+                            </v-col>
                         </v-row>
 
                     </v-card>
@@ -138,11 +146,11 @@
 
         <v-card class="mt-1"
                 v-if="recipe.showIngredientOverview && !useUserPreferenceStore().isPrintMode">
-            <steps-overview :steps="recipe.steps" :ingredient-factor="ingredientFactor" @scale="(factor: number) => {servings = recipe.servings * factor}"></steps-overview>
+            <steps-overview :steps="recipe.steps" :ingredient-factor="ingredientFactor" :recipe-servings="recipe.servings" @scale="(factor: number) => {servings = recipe.servings * factor}"></steps-overview>
         </v-card>
 
         <v-card class="mt-1" v-for="(step, index) in recipe.steps" :key="step.id">
-            <step-view v-model="recipe.steps[index]" :step-number="index+1" :ingredientFactor="ingredientFactor"></step-view>
+            <step-view v-model="recipe.steps[index]" :step-number="index+1" :ingredientFactor="ingredientFactor" :recipe-servings="recipe.servings"></step-view>
         </v-card>
 
         <property-view v-model="recipe" :ingredientFactor="ingredientFactor"></property-view>
@@ -217,6 +225,7 @@ import PrivateRecipeBadge from "@/components/display/PrivateRecipeBadge.vue";
 import ModelSelect from "@/components/inputs/ModelSelect.vue";
 import RecipeScalingDialog from "@/components/dialogs/RecipeScalingDialog.vue";
 import VModelSelect from "@/components/inputs/VModelSelect.vue";
+import {roundKcal} from "@/utils/mealPlanKcal";
 
 const {request, release} = useWakeLock()
 const {doAiImport, fileApiLoading} = useFileApi()
@@ -237,6 +246,10 @@ const selectedAiProvider = ref<undefined | AiProvider>(useUserPreferenceStore().
  */
 const ingredientFactor = computed(() => {
     return servings.value / ((recipe.value.servings != undefined) ? Math.max(recipe.value.servings, 1) : 1)
+})
+
+const kcalPerServingDisplay = computed(() => {
+    return roundKcal(Number(recipe.value.kcalPerServing ?? 0))
 })
 
 /**
