@@ -7,9 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-09-05
+
+No database migrations. Image remains `ghcr.io/brendenwalker/stillroom`.
+
 ### Fixed
 
-- One volume↔weight food conversion (e.g. ¼ cup = 40g) applies to the rest of that system (tbsp, tsp, ml, oz, …)
+- One volume↔weight food conversion (e.g. ¼ cup = 40g) applies to the rest of that system (tbsp, tsp, ml, oz, …) (#46)
 
 ## [0.1.3] - 2026-09-05
 
@@ -78,7 +82,8 @@ Back up before upgrading. Apply migrations **0244–0248**. Pack-size fields and
 - Native recipe export dropping Details-tab food values on import (#33)
 - Debug frontend serving stale cached assets (#29, #31)
 
-[Unreleased]: https://github.com/BrendenWalker/Stillroom/compare/0.1.3...develop
+[Unreleased]: https://github.com/BrendenWalker/Stillroom/compare/0.1.4...develop
+[0.1.4]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.4
 [0.1.3]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.3
 [0.1.2]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.2
 [0.1.1]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.1
