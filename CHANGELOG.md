@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- One volume↔weight food conversion (e.g. ¼ cup = 40g) applies to the rest of that system (tbsp, tsp, ml, oz, …)
+
 ## [0.1.3] - 2026-09-05
 
 No database migrations. Image remains `ghcr.io/brendenwalker/stillroom`.
