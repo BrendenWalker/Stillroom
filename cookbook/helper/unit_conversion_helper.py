@@ -110,10 +110,12 @@ class UnitConversionHelper:
     def get_conversions(self, ingredient):
         """
         Converts an ingredient to all possible conversions based on the custom unit conversion database.
-        Uses BFS to discover multi-step conversions (e.g. pinch → tsp → gram).
-        Count units (Each, pcs, …) also convert through Food.ingredient_unit_grams when no gram
-        conversion was already found. Missing units are left alone so properties can flag them.
-        After that passes conversion to UnitConversionHelper.base_conversions() to get all base conversions possible.
+        Same-system base units are expanded first so one volume↔weight conversion (e.g. 1/4 cup = 40g)
+        applies to the rest of that system (tbsp, tsp, ml, …). Then BFS walks custom conversions
+        (e.g. pinch → tsp → gram). Count units (Each, pcs, …) also convert through
+        Food.ingredient_unit_grams when no gram conversion was already found. Missing units are
+        left alone so properties can flag them. Finally base units are expanded again so a newly
+        reached gram amount also yields kg/oz/lb.
         :param ingredient: Ingredient object
         :return: list of ingredients with all possible custom and base conversions
         """
@@ -121,10 +123,16 @@ class UnitConversionHelper:
         visited_unit_ids = set()
         if ingredient.unit:
             visited_unit_ids.add(ingredient.unit.id)
-            queue = [ingredient]
+            conversions = self.base_conversions(conversions)
+            for converted in conversions:
+                if converted.unit:
+                    visited_unit_ids.add(converted.unit.id)
+            queue = list(conversions)
 
             while queue:
                 current = queue.pop(0)
+                if not current.unit:
+                    continue
                 for c in current.unit.unit_conversion_base_relation.all():
                     if self.space and c.space_id == self.space.id:
                         r = self._uc_convert(c, current.amount, current.unit, ingredient.food)
