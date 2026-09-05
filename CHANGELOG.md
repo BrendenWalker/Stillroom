@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-09-05
+
+No database migrations. Nested recipe ingredients gain a read-only `kcal` (line total). Image remains `ghcr.io/brendenwalker/stillroom`.
+
+### Added
+
+- Recipe view shows kcal per serving with working time, waiting time, and servings (#42)
+- Ingredient lines show that ingredient’s kcal contribution per serving (#42)
+- Read-only `kcal` on nested recipe ingredient API responses (#42)
+
 ## [0.1.1] - 2026-09-04
 
 No database migrations. Image remains `ghcr.io/brendenwalker/stillroom`.
@@ -52,6 +62,7 @@ Back up before upgrading. Apply migrations **0244–0248**. Pack-size fields and
 - Native recipe export dropping Details-tab food values on import (#33)
 - Debug frontend serving stale cached assets (#29, #31)
 
-[Unreleased]: https://github.com/BrendenWalker/Stillroom/compare/0.1.1...develop
+[Unreleased]: https://github.com/BrendenWalker/Stillroom/compare/0.1.2...develop
+[0.1.2]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.2
 [0.1.1]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.1
 [0.1.0]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.0

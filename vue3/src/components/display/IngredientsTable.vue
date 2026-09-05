@@ -30,7 +30,7 @@
         <template v-for="(i, idx) in ingredients" :key="i.id">
             <tr @click="i.checked = !i.checked">
                 <template v-if="i.isHeader">
-                    <td colspan="5" class="font-weight-bold">{{ i.note }}</td>
+                    <td colspan="6" class="font-weight-bold">{{ i.note }}</td>
                 </template>
                 <template v-else>
                     <td style="width: 1%; text-wrap: nowrap" class="pa-0 d-print-none" v-if="showCheckbox">
@@ -57,6 +57,10 @@
 
                         </template>
                     </td>
+                    <td style="width: 1%; text-wrap: nowrap" class="pr-1 text-disabled" v-if="kcalPerServing(i) > 0">
+                        {{ kcalPerServing(i) }} {{ $t('KCal') }}
+                    </td>
+                    <td style="width: 1%; text-wrap: nowrap" class="pr-1" v-else></td>
                     <td v-if="useUserPreferenceStore().isPrintMode">
                         <span class="text-disabled font-italic"> {{ i.note }}</span>
                     </td>
@@ -107,6 +111,7 @@ import {ingredientToFoodString, ingredientToUnitString} from "@/utils/model_util
 import {TFood, TUnit} from "@/types/Models.ts";
 import NumberScalerDialog from "@/components/inputs/NumberScalerDialog.vue";
 import {ErrorMessageType, PreparedMessage, useMessageStore} from "@/stores/MessageStore.ts";
+import {lineKcalPerServing} from "@/utils/mealPlanKcal";
 
 const emit = defineEmits(['scale'])
 
@@ -126,6 +131,11 @@ const props = defineProps({
     showActions: {
         type: Boolean,
         default: false
+    },
+    recipeServings: {
+        type: Number,
+        required: false,
+        default: 1,
     },
 })
 
@@ -149,8 +159,8 @@ const tableHeaders = computed(() => {
     return headers
 })
 
-function handleRowClick(event: PointerEvent, data: any) {
-    ingredients.value[data.index].checked = !ingredients.value[data.index].checked
+function kcalPerServing(ingredient: Ingredient): number {
+    return lineKcalPerServing(ingredient.kcal, props.recipeServings)
 }
 
 function addToShopping(ingredient: Ingredient) {
