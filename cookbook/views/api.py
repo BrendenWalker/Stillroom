@@ -529,6 +529,15 @@ class TreeMixin(MergeMixin, FuzzyFilterMixin):
             return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
 
+def ai_unexpected_error_response():
+    """Log the exception server-side and return a generic 500 without leaking details."""
+    traceback.print_exc()
+    return Response(
+        {'error': True, 'msg': 'An unexpected error occurred while processing your AI request.'},
+        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+    )
+
+
 def paginate(func):
     """
     pagination decorator for custom ViewSet actions
@@ -1323,13 +1332,8 @@ class FoodViewSet(LoggingMixin, TreeMixin, DeleteRelationMixing):
                     'msg': 'The AI could not process your request. \n\n' + err.message,
                 }
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
-            except Exception as err:
-                traceback.print_exc()
-                response = {
-                    'error': True,
-                    'msg': 'An unexpected error occurred while processing your AI request. \n\n' + str(err),
-                }
-                return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            except Exception:
+                return ai_unexpected_error_response()
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def destroy(self, *args, **kwargs):
@@ -2164,13 +2168,8 @@ class RecipeViewSet(LoggingMixin, viewsets.ModelViewSet, DeleteRelationMixing):
                     'msg': 'The AI could not process your request. \n\n' + err.message,
                 }
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
-            except Exception as err:
-                traceback.print_exc()
-                response = {
-                    'error': True,
-                    'msg': 'An unexpected error occurred while processing your AI request. \n\n' + str(err),
-                }
-                return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            except Exception:
+                return ai_unexpected_error_response()
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @extend_schema(responses=RecipeSerializer(many=False))
@@ -3017,13 +3016,8 @@ class AiStepSortView(APIView):
                     'msg': 'The AI could not process your request. \n\n' + err.message,
                 }
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
-            except Exception as err:
-                traceback.print_exc()
-                response = {
-                    'error': True,
-                    'msg': 'An unexpected error occurred while processing your AI request. \n\n' + str(err),
-                }
-                return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            except Exception:
+                return ai_unexpected_error_response()
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
