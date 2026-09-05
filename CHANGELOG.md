@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Recipe ingredient editor shows live line kcal as amount and measure change
+
+### Fixed
+
+- Count units (Each, pcs, …) convert to grams via food Per Each grams when no explicit conversion exists
+
 ## [0.1.2] - 2026-09-05
 
 No database migrations. Nested recipe ingredients gain a read-only `kcal` (line total). Image remains `ghcr.io/brendenwalker/stillroom`.
