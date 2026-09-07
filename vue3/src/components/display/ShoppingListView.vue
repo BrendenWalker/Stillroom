@@ -187,7 +187,11 @@
                             <v-skeleton-loader type="list-item"></v-skeleton-loader>
                             <v-skeleton-loader type="list-item"></v-skeleton-loader>
                         </v-list>
-                        <v-list class="mt-3" density="compact" v-model:selected="selectedLines" select-strategy="leaf" v-else>
+                        <v-list class="mt-3" density="compact" v-else
+                                :selectable="selectEnabled"
+                                :select-strategy="selectEnabled ? 'leaf' : undefined"
+                                :selected="selectEnabled ? selectedLines : []"
+                                @update:selected="onShoppingSelection">
                             <template v-for="category in shoppingListItems" :key="category.name">
 
 
@@ -545,6 +549,15 @@ function selectAll(category: IShoppingListCategory | undefined = undefined) {
 function deselectCategory(category: IShoppingListCategory) {
     const categoryFoodIds = new Set(Array.from(category.foods.values()).map(f => f.food.id));
     selectedLines.value = selectedLines.value.filter(f => !categoryFoodIds.has(f.food.id));
+}
+
+/**
+ * keep list selection bound only while select mode is on
+ */
+function onShoppingSelection(selected: IShoppingListFood[]) {
+    if (selectEnabled.value) {
+        selectedLines.value = selected
+    }
 }
 
 /**
