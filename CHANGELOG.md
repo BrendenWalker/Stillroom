@@ -7,12 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-09-11
+
 Additive migrations **0249–0250** (`FoodBarcode` qty + Unit; pack grams are computed). Image remains `ghcr.io/brendenwalker/stillroom`.
 
 ### Added
 
-- UPC/EAN barcodes on foods (quantity and unit per SKU) with a Barcodes tab on the food editor
-- Shopping list barcode scan: subtract pack grams from remaining list amount (split leftover), offer to add one pack if the food is not on the list, or associate an unknown code to a list or catalog food
+- UPC/EAN barcodes on foods (quantity and unit per SKU) with a Barcodes tab on the food editor (#53)
+- Shopping list barcode scan: subtract pack grams from remaining list amount (split leftover), offer to add one pack if the food is not on the list, or associate an unknown code to a list or catalog food (#53)
 
 ## [0.1.5] - 2026-09-07
 
@@ -98,7 +100,8 @@ Back up before upgrading. Apply migrations **0244–0248**. Pack-size fields and
 - Native recipe export dropping Details-tab food values on import (#33)
 - Debug frontend serving stale cached assets (#29, #31)
 
-[Unreleased]: https://github.com/BrendenWalker/Stillroom/compare/0.1.5...develop
+[Unreleased]: https://github.com/BrendenWalker/Stillroom/compare/0.1.6...develop
+[0.1.6]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.6
 [0.1.5]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.5
 [0.1.4]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.4
 [0.1.3]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.3
