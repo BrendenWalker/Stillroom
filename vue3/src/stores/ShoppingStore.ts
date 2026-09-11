@@ -26,6 +26,7 @@ import {
 import {ErrorMessageType, PreparedMessage, useMessageStore} from "@/stores/MessageStore";
 import {useUserPreferenceStore} from "@/stores/UserPreferenceStore";
 import {isDelayed, isEntryVisible} from "@/utils/logic_utils";
+import {parsePackNumber, planConsumePackGrams} from "@/utils/foodPack";
 import {DateTime} from "luxon";
 
 const _STORE_ID = "shopping_store"
@@ -573,6 +574,49 @@ export const useShoppingStore = defineStore(_STORE_ID, () => {
     }
 
     /**
+     * Subtract a scanned pack's grams from unchecked shopping lines.
+     * Whole lines are checked; a leftover remainder stays on the original line
+     * and a checked clone is created for the bought amount.
+     */
+    async function consumePackGrams(entries: ShoppingListEntry[], packGrams: number): Promise<'consumed' | 'no_grams'> {
+        const ordered = [...entries].sort((a, b) => {
+            const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0
+            const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0
+            return ta - tb || (a.id || 0) - (b.id || 0)
+        })
+        const actions = planConsumePackGrams(ordered, packGrams)
+        if (actions.length === 0) {
+            return 'no_grams'
+        }
+        const whole = actions.filter(a => a.leftoverGrams <= 0).map(a => a.entry)
+        if (whole.length > 0) {
+            setEntriesCheckedState(whole, true, true)
+        }
+        for (const action of actions) {
+            if (action.leftoverGrams <= 0) {
+                continue
+            }
+            const entry = action.entry
+            const origGrams = parsePackNumber(entry.amountGrams)
+            const origAmount = parsePackNumber(entry.amount) ?? 0
+            const scale = (origGrams != null && origGrams > 0) ? origAmount / origGrams : 1
+            entry.amountGrams = action.leftoverGrams
+            entry.amount = scale * action.leftoverGrams
+            await updateObject(entry)
+
+            await createObject({
+                food: entry.food,
+                amount: scale * action.boughtGrams,
+                amountGrams: action.boughtGrams,
+                checked: true,
+                shoppingLists: entry.shoppingLists,
+                listRecipe: entry.listRecipe,
+            } as ShoppingListEntry, false)
+        }
+        return 'consumed'
+    }
+
+    /**
      * delete list of entries immediately in the UI, then persist
      * @param entries set of entries
      * @param undo if the user should be able to undo the change or not
@@ -753,6 +797,7 @@ export const useShoppingStore = defineStore(_STORE_ID, () => {
         updateObject,
         undoChange,
         setEntriesCheckedState,
+        consumePackGrams,
         setFoodIgnoredState,
         delayEntries: setEntriesDelayedState,
         getAssociatedRecipes,

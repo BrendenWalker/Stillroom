@@ -12,7 +12,7 @@ from allauth.account.decorators import secure_admin_login
 
 from cookbook.managers import DICTIONARY
 
-from .models import (BookmarkletImport, Comment, CookLog, CustomFilter, Food, ImportLog, Ingredient, InviteLink,
+from .models import (BookmarkletImport, Comment, CookLog, CustomFilter, Food, FoodBarcode, ImportLog, Ingredient, InviteLink,
                      Keyword, MealPlan, MealType, NutritionInformation, Property, PropertyType,
                      Recipe, RecipeBook, RecipeBookEntry, RecipeImport, SearchPreference, ShareLink,
                      ShoppingListEntry, ShoppingListRecipe, Space, Step, Storage,
@@ -279,6 +279,14 @@ class UnitConversionAdmin(admin.ModelAdmin):
 
 
 admin.site.register(UnitConversion, UnitConversionAdmin)
+
+
+class FoodBarcodeAdmin(admin.ModelAdmin):
+    list_display = ('upc', 'brand', 'qty', 'unit', 'food', 'space')
+    search_fields = ('upc', 'brand', 'food__name')
+
+
+admin.site.register(FoodBarcode, FoodBarcodeAdmin)
 
 
 @admin.action(description='Delete Ingredients not part of a Recipe.')

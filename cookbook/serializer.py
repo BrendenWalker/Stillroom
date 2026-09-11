@@ -30,13 +30,14 @@ from cookbook.helper.ai_helper import get_monthly_token_usage
 from cookbook.helper.image_processing import is_file_type_allowed
 from cookbook.helper.permission_helper import above_space_limit, create_space_for_user, get_household_user_ids
 from cookbook.helper.food_availability_helper import is_food_item, lookup_is_food_item
-from cookbook.helper.food_pack import apply_food_pack_fields, shopping_entry_quantities, shopping_measure_grams_of, to_decimal
+from cookbook.helper.food_barcode import canonicalize_upc
+from cookbook.helper.food_pack import apply_food_pack_fields, quantity_to_grams, shopping_entry_quantities, shopping_measure_grams_of, to_decimal
 from cookbook.helper.kcal_helper import ingredient_kcal, recipe_kcal_per_serving
 from cookbook.helper.property_helper import FoodPropertyHelper
 from cookbook.helper.shopping_helper import RecipeShoppingEditor
 from cookbook.helper.unit_conversion_helper import UnitConversionHelper
 from cookbook.models import (Automation, BookmarkletImport, Comment, CookLog, CustomFilter,
-                             ExportLog, Food, FoodInheritField, ImportLog, Ingredient, InviteLink,
+                             ExportLog, Food, FoodBarcode, FoodInheritField, ImportLog, Ingredient, InviteLink,
                              Keyword, MealPlan, MealType, NutritionInformation, Property,
                              PropertyType, Recipe, RecipeBook, RecipeBookEntry, RecipeImport,
                              ShareLink, ShoppingListEntry, ShoppingListRecipe, Space,
@@ -1198,6 +1199,79 @@ class UnitConversionSerializer(WritableNestedModelSerializer, OpenDataModelMixin
     class Meta:
         model = UnitConversion
         fields = ('id', 'name', 'base_amount', 'base_unit', 'converted_amount', 'converted_unit', 'food', 'open_data_slug')
+
+
+class FoodBarcodeSerializer(serializers.ModelSerializer):
+    food = FoodSimpleSerializer(read_only=True)
+    food_id = IntegerField(write_only=True, required=False)
+    unit = UnitSerializer(read_only=True)
+    unit_id = IntegerField(write_only=True, required=False)
+    qty = CustomDecimalField(required=False)
+    grams = serializers.SerializerMethodField()
+
+    def validate_upc(self, value):
+        canonical, error = canonicalize_upc(value)
+        if error:
+            raise ValidationError(error)
+        return canonical
+
+    def validate_food_id(self, value):
+        request = self.context.get('request')
+        food = Food.objects.filter(pk=value, space=request.space).first() if request else None
+        if food is None:
+            raise ValidationError(_('Food not found.'))
+        return value
+
+    def validate_unit_id(self, value):
+        request = self.context.get('request')
+        unit = Unit.objects.filter(pk=value, space=request.space).first() if request else None
+        if unit is None:
+            raise ValidationError(_('Unit not found.'))
+        return value
+
+    def validate_qty(self, value):
+        qty = to_decimal(value)
+        if qty is None or qty <= 0:
+            raise ValidationError(_('Quantity must be greater than 0.'))
+        return qty
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        request = self.context['request']
+        if self.instance is None and 'food_id' not in attrs:
+            raise ValidationError({'food_id': _('This field is required.')})
+        if self.instance is None and 'unit_id' not in attrs:
+            raise ValidationError({'unit_id': _('This field is required.')})
+        upc = attrs.get('upc', getattr(self.instance, 'upc', None))
+        queryset = FoodBarcode.objects.filter(space=request.space, upc=upc)
+        if self.instance is not None:
+            queryset = queryset.exclude(pk=self.instance.pk)
+        if queryset.exists():
+            raise ValidationError({'upc': _('This barcode is already associated with a food in this space.')})
+        if 'food_id' in attrs:
+            attrs['food'] = Food.objects.get(pk=attrs.pop('food_id'), space=request.space)
+        if 'unit_id' in attrs:
+            attrs['unit'] = Unit.objects.get(pk=attrs.pop('unit_id'), space=request.space)
+        if 'brand' in attrs and attrs['brand'] == '':
+            attrs['brand'] = None
+        return attrs
+
+    @extend_schema_field(CustomDecimalField)
+    def get_grams(self, obj):
+        grams = quantity_to_grams(obj.food, obj.qty, obj.unit, space=obj.space)
+        if grams is None:
+            return None
+        return CustomDecimalField().to_representation(grams)
+
+    def create(self, validated_data):
+        validated_data['space'] = self.context['request'].space
+        validated_data['created_by'] = self.context['request'].user
+        return super().create(validated_data)
+
+    class Meta:
+        model = FoodBarcode
+        fields = ('id', 'upc', 'brand', 'qty', 'unit', 'unit_id', 'grams', 'food', 'food_id', 'created_at')
+        read_only_fields = ('id', 'food', 'unit', 'grams', 'created_at')
 
 
 class NutritionInformationSerializer(serializers.ModelSerializer):
