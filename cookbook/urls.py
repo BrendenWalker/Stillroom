@@ -39,6 +39,7 @@ router.register(r'recipe', api.RecipeViewSet)
 router.register(r'recipe-book', api.RecipeBookViewSet)
 router.register(r'recipe-book-entry', api.RecipeBookEntryViewSet)
 router.register(r'unit-conversion', api.UnitConversionViewSet)
+router.register(r'food-barcode', api.FoodBarcodeViewSet)
 router.register(r'property-type', api.PropertyTypeViewSet)  # NOTE: if regenerating the legacy API these need renamed to food-property
 router.register(r'property', api.PropertyViewSet)
 router.register(r'shopping-list', api.ShoppingListViewSet)
