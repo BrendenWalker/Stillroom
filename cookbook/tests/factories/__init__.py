@@ -551,3 +551,19 @@ class InventoryEntryFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = 'cookbook.InventoryEntry'
+
+
+@register
+class FoodBarcodeFactory(factory.django.DjangoModelFactory):
+    """FoodBarcode factory. Pass a valid canonical upc (EAN-13)."""
+    upc = '0012345678905'
+    brand = factory.LazyAttribute(lambda x: faker.word())
+    qty = 1
+    unit = factory.SubFactory(UnitFactory, space=factory.SelfAttribute('..space'), base_unit='g')
+    food = factory.SubFactory(FoodFactory, space=factory.SelfAttribute('..space'))
+    created_by = factory.SubFactory(UserFactory, space=factory.SelfAttribute('..space'))
+    space = factory.SubFactory(SpaceFactory)
+
+    class Meta:
+        model = 'cookbook.FoodBarcode'
+

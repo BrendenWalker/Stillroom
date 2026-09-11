@@ -15,6 +15,7 @@
             <v-tabs v-model="tab" :disabled="loading" grow show-arrows>
                 <v-tab value="food">{{ $t('Food') }}</v-tab>
                 <v-tab value="details">{{ $t('Details') }}</v-tab>
+                <v-tab value="barcodes" :disabled="!isUpdate()">{{ $t('Barcodes') }}</v-tab>
                 <v-tab value="properties" :disabled="!isUpdate()">{{ $t('FdcProperties') }}</v-tab>
                 <v-tab value="conversions" :disabled="!isUpdate()">{{ $t('Conversion') }}</v-tab>
                 <v-tab value="hierarchy" :disabled="!isUpdate()">{{ $t('Hierarchy') }}</v-tab>
@@ -76,6 +77,53 @@
                             </v-col>
                         </v-row>
                     </v-form>
+                </v-tabs-window-item>
+
+                <v-tabs-window-item value="barcodes">
+                    <v-alert icon="$help">{{ $t('BarcodesHelp') }}</v-alert>
+                    <v-form :disabled="loading" class="mt-5">
+                        <v-btn color="create" class="mb-3" prepend-icon="$create" @click="showNewBarcode = true">{{ $t('Add') }}</v-btn>
+                        <v-card v-if="showNewBarcode" class="mb-3" border>
+                            <v-card-text>
+                                <v-text-field :label="$t('Barcode')" v-model="newBarcode.upc" hide-details class="mb-2">
+                                    <template #append>
+                                        <v-btn icon="fa-solid fa-barcode" variant="text" @click="barcodeScanDialog = true"></v-btn>
+                                    </template>
+                                </v-text-field>
+                                <v-text-field :label="$t('Brand')" v-model="newBarcode.brand" hide-details class="mb-2"></v-text-field>
+                                <v-number-input :label="$t('Amount')" v-model="newBarcode.qty" :min="0.0001" :precision="4" control-variant="hidden" hide-details class="mb-2"></v-number-input>
+                                <v-model-select :label="$t('Unit')" v-model="newBarcode.unit" model="Unit"></v-model-select>
+                            </v-card-text>
+                            <v-card-actions>
+                                <v-spacer></v-spacer>
+                                <v-btn variant="text" @click="showNewBarcode = false">{{ $t('Cancel') }}</v-btn>
+                                <v-btn color="create" :loading="barcodeSaving" :disabled="!canSaveBarcode(newBarcode)" @click="createBarcode">{{ $t('Save') }}</v-btn>
+                            </v-card-actions>
+                        </v-card>
+                        <v-card class="mt-2" border v-for="bc in foodBarcodes" :key="bc.id">
+                            <v-card-text>
+                                <v-text-field :label="$t('Barcode')" v-model="bc.upc" hide-details class="mb-2"></v-text-field>
+                                <v-text-field :label="$t('Brand')" v-model="bc.brand" hide-details class="mb-2"></v-text-field>
+                                <v-number-input :label="$t('Amount')" v-model="bc.qty" :min="0.0001" :precision="4" control-variant="hidden" hide-details class="mb-2"></v-number-input>
+                                <v-model-select :label="$t('Unit')" v-model="bc.unit" model="Unit"></v-model-select>
+                                <p class="text-caption mt-2 mb-0" v-if="formatGramsLabel(bc.grams)">{{ formatGramsLabel(bc.grams) }}</p>
+                                <p class="text-caption text-warning mt-2 mb-0" v-else-if="bc.unit">{{ $t('BarcodeNoGrams') }}</p>
+                            </v-card-text>
+                            <v-card-actions>
+                                <v-spacer></v-spacer>
+                                <v-btn color="delete" variant="text" @click="deleteBarcode(bc)">{{ $t('Delete') }}</v-btn>
+                                <v-btn color="edit" :disabled="!bc.unit?.id || !(Number(bc.qty) > 0)" @click="saveBarcode(bc)">{{ $t('Save') }}</v-btn>
+                            </v-card-actions>
+                        </v-card>
+                    </v-form>
+                    <v-dialog v-model="barcodeScanDialog" max-width="480">
+                        <v-card>
+                            <v-closable-card-title :title="$t('BarcodeScan')" icon="fa-solid fa-barcode" v-model="barcodeScanDialog"></v-closable-card-title>
+                            <v-card-text>
+                                <barcode-scanner v-if="barcodeScanDialog" @scanned="onEditorScanned"></barcode-scanner>
+                            </v-card-text>
+                        </v-card>
+                    </v-dialog>
                 </v-tabs-window-item>
 
                 <v-tabs-window-item value="properties">
@@ -196,7 +244,7 @@
 <script setup lang="ts">
 
 import {computed, onMounted, PropType, ref, watch} from "vue";
-import {ApiApi, Food, Unit, UnitConversion} from "@/openapi";
+import {ApiApi, Food, FoodBarcode, Unit, UnitConversion} from "@/openapi";
 import {ErrorMessageType, useMessageStore} from "@/stores/MessageStore";
 import ModelSelect from "@/components/inputs/ModelSelect.vue";
 import ModelEditDialog from "@/components/dialogs/ModelEditDialog.vue";
@@ -210,8 +258,10 @@ import {DateTime} from "luxon";
 import HierarchyEditor from "@/components/inputs/HierarchyEditor.vue";
 import VModelSelect from "@/components/inputs/VModelSelect.vue";
 import FieldHelpButton from "@/components/buttons/FieldHelpButton.vue";
-import {applyFoodPackFields} from "@/utils/foodPack";
+import {applyFoodPackFields, formatGramsLabel} from "@/utils/foodPack";
 import {useI18n} from "vue-i18n";
+import BarcodeScanner from "@/components/display/BarcodeScanner.vue";
+import VClosableCardTitle from "@/components/dialogs/VClosableCardTitle.vue";
 
 
 const props = defineProps({
@@ -292,6 +342,11 @@ function saveFood() {
 const tab = ref("food")
 
 const unitConversions = ref([] as UnitConversion[])
+const foodBarcodes = ref([] as FoodBarcode[])
+const showNewBarcode = ref(false)
+const barcodeSaving = ref(false)
+const barcodeScanDialog = ref(false)
+const newBarcode = ref({upc: '', brand: '', qty: 1, unit: null as Unit | null})
 
 const fdcDialog = ref(false)
 
@@ -300,6 +355,13 @@ const stopConversionsWatcher = watch(tab, (value, oldValue, onCleanup) => {
     if (value == 'conversions') {
         loadConversions()
         stopConversionsWatcher()
+    }
+})
+
+const stopBarcodesWatcher = watch(tab, (value) => {
+    if (value == 'barcodes') {
+        loadBarcodes()
+        stopBarcodesWatcher()
     }
 })
 
@@ -353,6 +415,90 @@ function loadConversions() {
     }).catch(err => {
         useMessageStore().addError(ErrorMessageType.FETCH_ERROR, err)
     })
+}
+
+function loadBarcodes() {
+    if (!editingObj.value.id) {
+        return
+    }
+    const api = new ApiApi()
+    api.apiFoodBarcodeList({foodId: editingObj.value.id}).then(r => {
+        foodBarcodes.value = r.results
+    }).catch(err => {
+        useMessageStore().addError(ErrorMessageType.FETCH_ERROR, err)
+    })
+}
+
+function emptyBarcodeForm() {
+    return {upc: '', brand: '', qty: 1, unit: null as Unit | null}
+}
+
+function canSaveBarcode(barcode: {upc?: string, qty?: number | null, unit?: Unit | null}) {
+    return Boolean(barcode.upc) && barcode.unit?.id != null && Number(barcode.qty) > 0
+}
+
+function createBarcode() {
+    if (!editingObj.value.id || !canSaveBarcode(newBarcode.value)) {
+        return
+    }
+    barcodeSaving.value = true
+    const api = new ApiApi()
+    api.apiFoodBarcodeCreate({
+        foodBarcode: {
+            upc: newBarcode.value.upc,
+            brand: newBarcode.value.brand || null,
+            qty: newBarcode.value.qty,
+            unitId: newBarcode.value.unit!.id,
+            foodId: editingObj.value.id,
+        },
+    }).then((created) => {
+        foodBarcodes.value.push(created)
+        newBarcode.value = emptyBarcodeForm()
+        showNewBarcode.value = false
+    }).catch(err => {
+        useMessageStore().addError(ErrorMessageType.CREATE_ERROR, err)
+    }).finally(() => {
+        barcodeSaving.value = false
+    })
+}
+
+function saveBarcode(barcode: FoodBarcode) {
+    if (!barcode.id || !barcode.unit?.id || !(Number(barcode.qty) > 0)) {
+        return
+    }
+    const api = new ApiApi()
+    api.apiFoodBarcodePartialUpdate({
+        id: barcode.id,
+        patchedFoodBarcode: {
+            upc: barcode.upc,
+            brand: barcode.brand,
+            qty: barcode.qty,
+            unitId: barcode.unit.id,
+        },
+    }).then((updated) => {
+        const idx = foodBarcodes.value.findIndex(b => b.id === updated.id)
+        if (idx >= 0) {
+            foodBarcodes.value[idx] = updated
+        }
+    }).catch(err => {
+        useMessageStore().addError(ErrorMessageType.UPDATE_ERROR, err)
+    })
+}
+
+function deleteBarcode(barcode: FoodBarcode) {
+    foodBarcodes.value = foodBarcodes.value.filter(b => b !== barcode)
+    if (barcode.id) {
+        const api = new ApiApi()
+        api.apiFoodBarcodeDestroy({id: barcode.id}).catch(err => {
+            useMessageStore().addError(ErrorMessageType.DELETE_ERROR, err)
+        })
+    }
+}
+
+function onEditorScanned(code: string) {
+    newBarcode.value.upc = code
+    showNewBarcode.value = true
+    barcodeScanDialog.value = false
 }
 
 /**

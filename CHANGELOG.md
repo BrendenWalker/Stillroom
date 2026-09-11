@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Additive migrations **0249–0250** (`FoodBarcode` qty + Unit; pack grams are computed). Image remains `ghcr.io/brendenwalker/stillroom`.
+
+### Added
+
+- UPC/EAN barcodes on foods (quantity and unit per SKU) with a Barcodes tab on the food editor
+- Shopping list barcode scan: subtract pack grams from remaining list amount (split leftover), offer to add one pack if the food is not on the list, or associate an unknown code to a list or catalog food
+
 ## [0.1.5] - 2026-09-07
 
 No database migrations. Image remains `ghcr.io/brendenwalker/stillroom`.
