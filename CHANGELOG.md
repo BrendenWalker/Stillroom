@@ -13,7 +13,7 @@ No database migrations. Image remains `ghcr.io/brendenwalker/stillroom`.
 
 ### Changed
 
-- Recipe view shows calculated serving size next to servings (e.g. `6 - 120g`) from ingredient grams ÷ servings via read-only `grams_per_serving`; Servings Text overrides; omit calculated size when any amount cannot convert accurately (#69)
+- Recipe view shows calculated serving size next to servings (e.g. `6 - 120g`) from ingredient grams / servings via read-only `grams_per_serving`; Servings Text overrides; omit calculated size when any amount cannot convert accurately (#69)
 
 ## [0.1.7] - 2026-10-02
 
