@@ -254,7 +254,14 @@ const kcalPerServingDisplay = computed(() => {
 
 const servingsDisplay = computed(() => {
     const servingsText = recipe.value.servingsText?.trim()
-    return servingsText ? `${servings.value} - ${servingsText}` : String(servings.value)
+    if (servingsText) {
+        return `${servings.value} - ${servingsText}`
+    }
+    const grams = Number(recipe.value.gramsPerServing)
+    if (Number.isFinite(grams) && grams > 0) {
+        return `${servings.value} - ${Math.round(grams)}g`
+    }
+    return String(servings.value)
 })
 
 /**

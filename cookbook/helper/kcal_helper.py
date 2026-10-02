@@ -36,9 +36,7 @@ def recipe_kcal_total(recipe):
     return total
 
 
-def recipe_kcal_per_serving(recipe):
-    if recipe is None:
-        return Decimal(0)
+def _recipe_servings(recipe):
     servings = getattr(recipe, 'servings', None) or 1
     try:
         servings = Decimal(servings)
@@ -46,4 +44,42 @@ def recipe_kcal_per_serving(recipe):
         servings = Decimal(1)
     if servings <= 0:
         servings = Decimal(1)
-    return recipe_kcal_total(recipe) / servings
+    return servings
+
+
+def recipe_kcal_per_serving(recipe):
+    if recipe is None:
+        return Decimal(0)
+    return recipe_kcal_total(recipe) / _recipe_servings(recipe)
+
+
+def recipe_grams_total(recipe):
+    """
+    Sum ingredient grams for the recipe, or None when weight cannot be determined
+    accurately (any amount-bearing ingredient fails conversion, or none contribute).
+    Headers / no_amount lines are skipped.
+    """
+    if recipe is None:
+        return None
+    total = Decimal(0)
+    saw_amount = False
+    for step in recipe.steps.all():
+        for ingredient in step.ingredients.all():
+            if getattr(ingredient, 'no_amount', False) or getattr(ingredient, 'is_header', False):
+                continue
+            saw_amount = True
+            grams = ingredient_to_grams(ingredient)
+            if grams is None:
+                return None
+            total += grams
+    if not saw_amount:
+        return None
+    return total
+
+
+def recipe_grams_per_serving(recipe):
+    """Grams per serving, or None when total weight cannot be calculated accurately."""
+    total = recipe_grams_total(recipe)
+    if total is None:
+        return None
+    return total / _recipe_servings(recipe)
