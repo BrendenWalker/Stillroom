@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Recipe view shows serving size next to servings count (e.g. `6 - 120gr`) using Servings Text
+
 ## [0.1.6] - 2026-09-11
 
 Additive migrations **0249–0250** (`FoodBarcode` qty + Unit; pack grams are computed). Image remains `ghcr.io/brendenwalker/stillroom`.

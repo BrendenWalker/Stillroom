@@ -50,8 +50,8 @@
                         <v-col class="pt-1 pb-1">
 
                             <div class="cursor-pointer">
-                                <i class="fas fa-sort-numeric-up fa-fw mr-1"></i> {{ servings }} <br/>
-                                <div class="text-grey"><span v-if="recipe.servingsText">{{ recipe.servingsText }}</span><span v-else>{{ $t('Servings') }}</span></div>
+                                <i class="fas fa-sort-numeric-up fa-fw mr-1"></i> {{ servingsDisplay }} <br/>
+                                <div class="text-grey">{{ $t('Servings') }}</div>
                                 <recipe-scaling-dialog :recipe="recipe" :number="servings" @confirm="(s: number) => {servings = s}" title="Servings">
                                 </recipe-scaling-dialog>
                             </div>
@@ -108,8 +108,8 @@
                             </v-col>
                             <v-col>
                                 <div class="cursor-pointer">
-                                    <i class="fas fa-sort-numeric-up fa-fw mr-1"></i> {{ servings }} <br/>
-                                    <div class="text-grey"><span v-if="recipe.servingsText">{{ recipe.servingsText }}</span><span v-else>{{ $t('Servings') }}</span></div>
+                                    <i class="fas fa-sort-numeric-up fa-fw mr-1"></i> {{ servingsDisplay }} <br/>
+                                    <div class="text-grey">{{ $t('Servings') }}</div>
                                     <recipe-scaling-dialog :recipe="recipe" :number="servings" @confirm="(s: number) => {servings = s}" title="Servings">
                                     </recipe-scaling-dialog>
                                 </div>
@@ -250,6 +250,11 @@ const ingredientFactor = computed(() => {
 
 const kcalPerServingDisplay = computed(() => {
     return roundKcal(Number(recipe.value.kcalPerServing ?? 0))
+})
+
+const servingsDisplay = computed(() => {
+    const servingsText = recipe.value.servingsText?.trim()
+    return servingsText ? `${servings.value} - ${servingsText}` : String(servings.value)
 })
 
 /**
