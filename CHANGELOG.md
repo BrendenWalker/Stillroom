@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.7] - 2026-10-02
+
+No database migrations. Image remains `ghcr.io/brendenwalker/stillroom`.
+
+### Changed
+
+- Recipe view shows serving size next to servings count (e.g. `6 - 120gr`) using Servings Text (#66)
+
 ## [0.1.6] - 2026-09-11
 
 Additive migrations **0249–0250** (`FoodBarcode` qty + Unit; pack grams are computed). Image remains `ghcr.io/brendenwalker/stillroom`.
@@ -100,7 +108,8 @@ Back up before upgrading. Apply migrations **0244–0248**. Pack-size fields and
 - Native recipe export dropping Details-tab food values on import (#33)
 - Debug frontend serving stale cached assets (#29, #31)
 
-[Unreleased]: https://github.com/BrendenWalker/Stillroom/compare/0.1.6...develop
+[Unreleased]: https://github.com/BrendenWalker/Stillroom/compare/0.1.7...develop
+[0.1.7]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.7
 [0.1.6]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.6
 [0.1.5]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.5
 [0.1.4]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.4
