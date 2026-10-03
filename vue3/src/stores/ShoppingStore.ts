@@ -11,7 +11,7 @@ import {
     Supermarket,
     SupermarketCategory
 } from "@/openapi";
-import {computed, ref, shallowRef, triggerRef} from "vue";
+import {computed, ref, shallowRef} from "vue";
 import {
     IShoppingExportEntry,
     IShoppingList,
@@ -26,6 +26,7 @@ import {
 import {ErrorMessageType, PreparedMessage, useMessageStore} from "@/stores/MessageStore";
 import {useUserPreferenceStore} from "@/stores/UserPreferenceStore";
 import {isDelayed, isEntryVisible} from "@/utils/logic_utils";
+import {parsePackNumber, planConsumePackGrams} from "@/utils/foodPack";
 import {DateTime} from "luxon";
 
 const _STORE_ID = "shopping_store"
@@ -221,13 +222,11 @@ export const useShoppingStore = defineStore(_STORE_ID, () => {
             let requestParameters = {pageSize: 50, page: 1} as ApiShoppingListEntryListRequest
             if (mealPlanId) {
                 requestParameters.mealplan = mealPlanId
-            } else {
-                // only clear local entries when not given a meal plan to not accidentally filter the shopping list
-                globalEntriesMap.value = new Map<number, ShoppingListEntry>
-                initialized.value = false
             }
 
-            recLoadShoppingListEntries(requestParameters)
+            const previousMap = globalEntriesMap.value
+            const replaceAll = !mealPlanId
+            recLoadShoppingListEntries(requestParameters, previousMap, replaceAll)
 
             api.apiSupermarketCategoryList().then(r => {
                 supermarketCategories.value = r.results
@@ -244,36 +243,44 @@ export const useShoppingStore = defineStore(_STORE_ID, () => {
     }
 
     /**
-     * recursively load shopping list entries from paginated api
+     * load shopping list entries from paginated api without sharing a mutable page cursor
      * @param requestParameters
+     * @param previousMap map to restore if the first page fails
+     * @param replaceAll if true, replace the local map on success; if false, merge into existing entries
      */
-    function recLoadShoppingListEntries(requestParameters: ApiShoppingListEntryListRequest) {
+    function recLoadShoppingListEntries(requestParameters: ApiShoppingListEntryListRequest, previousMap: Map<number, ShoppingListEntry>, replaceAll: boolean) {
         let api = new ApiApi()
-        return api.apiShoppingListEntryList(requestParameters).then((r) => {
-            let promises = [] as Promise<any>[]
-            let newMap = new Map<number, ShoppingListEntry>()
-            r.results.forEach((e) => {
-                newMap.set(e.id!, e)
+        const pageSize = requestParameters.pageSize ?? 50
+        const baseParams = {...requestParameters, pageSize}
+
+        return api.apiShoppingListEntryList({...baseParams, page: 1}).then((firstPage) => {
+            const merged = replaceAll ? new Map<number, ShoppingListEntry>() : new Map(globalEntriesMap.value)
+            firstPage.results.forEach((e) => {
+                merged.set(e.id!, e)
             })
-            // bulk assign to avoid unnecessary reactivity updates
-            globalEntriesMap.value = new Map([...globalEntriesMap.value, ...newMap])
 
-            if (requestParameters.page == 1) {
-                if (r.next) {
-                    while (Math.ceil(r.count / requestParameters.pageSize) > requestParameters.page) {
-                        requestParameters.page = requestParameters.page + 1
-                        promises.push(recLoadShoppingListEntries(requestParameters))
-                    }
-                }
-
-                Promise.allSettled(promises).then(() => {
-                    updateEntriesStructure()
-                    currentlyUpdating.value = false
-                    initialized.value = true
-                })
+            const totalPages = Math.max(1, Math.ceil((firstPage.count ?? 0) / pageSize))
+            const pagePromises: Promise<void>[] = []
+            for (let page = 2; page <= totalPages; page++) {
+                pagePromises.push(
+                    api.apiShoppingListEntryList({...baseParams, page}).then((r) => {
+                        r.results.forEach((e) => {
+                            merged.set(e.id!, e)
+                        })
+                    })
+                )
             }
 
+            return Promise.all(pagePromises).then(() => {
+                globalEntriesMap.value = merged
+                updateEntriesStructure()
+                currentlyUpdating.value = false
+                initialized.value = true
+            })
         }).catch((err) => {
+            if (replaceAll) {
+                globalEntriesMap.value = previousMap
+            }
             currentlyUpdating.value = false
             useMessageStore().addError(ErrorMessageType.FETCH_ERROR, err)
         })
@@ -311,6 +318,7 @@ export const useShoppingStore = defineStore(_STORE_ID, () => {
         const api = new ApiApi()
         return api.apiShoppingListEntryCreate({shoppingListEntry: object}).then((r) => {
             globalEntriesMap.value.set(r.id!, r)
+            globalEntriesMap.value = new Map(globalEntriesMap.value)
             updateEntriesStructure()
             if (undo) {
                 registerChange("CREATE", [r])
@@ -339,6 +347,9 @@ export const useShoppingStore = defineStore(_STORE_ID, () => {
 
         return api.apiShoppingListEntryUpdate({id: object.id!, shoppingListEntry: object}).then((r) => {
             globalEntriesMap.value.set(r.id!, r)
+            globalEntriesMap.value = new Map(globalEntriesMap.value)
+            updateEntriesStructure()
+            return r
         }).catch((err) => {
             useMessageStore().addError(ErrorMessageType.UPDATE_ERROR, err)
         })
@@ -351,28 +362,7 @@ export const useShoppingStore = defineStore(_STORE_ID, () => {
      * @param undo if the user should be able to undo the change or not
      */
     function deleteObject(object: ShoppingListEntry, undo: boolean) {
-        const api = new ApiApi()
-        return api.apiShoppingListEntryDestroy({id: object.id!}).then((r) => {
-            globalEntriesMap.value.delete(object.id!)
-            let categoryName = getEntryCategoryKey(object)
-
-            entriesByGroup.value.forEach(category => {
-                if (category.name == categoryName) {
-                    category.foods.get(object.food!.id!)?.entries.delete(object.id!)
-                    if (category.foods.get(object.food!.id!)?.entries.size == 0) {
-                        category.foods.delete(object.food!.id!)
-                        triggerRef(entriesByGroup)
-                    }
-
-                }
-            })
-
-            if (undo) {
-                registerChange("DESTROY", [object])
-            }
-        }).catch((err) => {
-            useMessageStore().addError(ErrorMessageType.DELETE_ERROR, err)
-        })
+        return deleteEntries([object], undo)
     }
 
     /**
@@ -584,12 +574,84 @@ export const useShoppingStore = defineStore(_STORE_ID, () => {
     }
 
     /**
-     * delete list of entries
-     * @param {{}} entries set of entries
+     * Subtract a scanned pack's grams from unchecked shopping lines.
+     * Whole lines are checked; a leftover remainder stays on the original line
+     * and a checked clone is created for the bought amount.
      */
-    function deleteEntries(entries: ShoppingListEntry[]) {
-        entries.forEach((entry) => {
-            deleteObject(entry, false)
+    async function consumePackGrams(entries: ShoppingListEntry[], packGrams: number): Promise<'consumed' | 'no_grams'> {
+        const ordered = [...entries].sort((a, b) => {
+            const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0
+            const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0
+            return ta - tb || (a.id || 0) - (b.id || 0)
+        })
+        const actions = planConsumePackGrams(ordered, packGrams)
+        if (actions.length === 0) {
+            return 'no_grams'
+        }
+        const whole = actions.filter(a => a.leftoverGrams <= 0).map(a => a.entry)
+        if (whole.length > 0) {
+            setEntriesCheckedState(whole, true, true)
+        }
+        for (const action of actions) {
+            if (action.leftoverGrams <= 0) {
+                continue
+            }
+            const entry = action.entry
+            const origGrams = parsePackNumber(entry.amountGrams)
+            const origAmount = parsePackNumber(entry.amount) ?? 0
+            const scale = (origGrams != null && origGrams > 0) ? origAmount / origGrams : 1
+            entry.amountGrams = action.leftoverGrams
+            entry.amount = scale * action.leftoverGrams
+            await updateObject(entry)
+
+            await createObject({
+                food: entry.food,
+                amount: scale * action.boughtGrams,
+                amountGrams: action.boughtGrams,
+                checked: true,
+                shoppingLists: entry.shoppingLists,
+                listRecipe: entry.listRecipe,
+            } as ShoppingListEntry, false)
+        }
+        return 'consumed'
+    }
+
+    /**
+     * delete list of entries immediately in the UI, then persist
+     * @param entries set of entries
+     * @param undo if the user should be able to undo the change or not
+     */
+    function deleteEntries(entries: ShoppingListEntry[], undo: boolean = false) {
+        const toDelete = entries.filter(entry => entry.id != null)
+        if (toDelete.length === 0) {
+            return Promise.resolve()
+        }
+
+        toDelete.forEach((entry) => {
+            globalEntriesMap.value.delete(entry.id!)
+        })
+        globalEntriesMap.value = new Map(globalEntriesMap.value)
+        updateEntriesStructure()
+
+        const api = new ApiApi()
+        const failed: ShoppingListEntry[] = []
+        return Promise.allSettled(toDelete.map((entry) => {
+            return api.apiShoppingListEntryDestroy({id: entry.id!}).catch((err) => {
+                failed.push(entry)
+                useMessageStore().addError(ErrorMessageType.DELETE_ERROR, err)
+            })
+        })).then(() => {
+            if (failed.length > 0) {
+                failed.forEach((entry) => {
+                    globalEntriesMap.value.set(entry.id!, entry)
+                })
+                globalEntriesMap.value = new Map(globalEntriesMap.value)
+                updateEntriesStructure()
+            }
+            const removed = toDelete.filter(entry => !failed.includes(entry))
+            if (undo && removed.length > 0) {
+                registerChange("DESTROY", removed)
+            }
         })
     }
 
@@ -731,9 +793,11 @@ export const useShoppingStore = defineStore(_STORE_ID, () => {
         autoSync,
         createObject,
         deleteObject,
+        deleteEntries,
         updateObject,
         undoChange,
         setEntriesCheckedState,
+        consumePackGrams,
         setFoodIgnoredState,
         delayEntries: setEntriesDelayedState,
         getAssociatedRecipes,

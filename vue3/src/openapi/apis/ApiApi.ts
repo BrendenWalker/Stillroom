@@ -34,6 +34,7 @@ import type {
   ExportRequest,
   FdcQuery,
   Food,
+  FoodBarcode,
   FoodBatchUpdate,
   FoodInheritField,
   FoodShoppingUpdate,
@@ -77,6 +78,7 @@ import type {
   PaginatedEnterpriseSpaceList,
   PaginatedExportLogList,
   PaginatedFoodList,
+  PaginatedFoodBarcodeList,
   PaginatedGenericModelReferenceList,
   PaginatedHouseholdList,
   PaginatedImportLogList,
@@ -132,6 +134,7 @@ import type {
   PatchedEnterpriseSpace,
   PatchedExportLog,
   PatchedFood,
+  PatchedFoodBarcode,
   PatchedHousehold,
   PatchedImportLog,
   PatchedIngredient,
@@ -252,6 +255,8 @@ import {
     FdcQueryToJSON,
     FoodFromJSON,
     FoodToJSON,
+    FoodBarcodeFromJSON,
+    FoodBarcodeToJSON,
     FoodBatchUpdateFromJSON,
     FoodBatchUpdateToJSON,
     FoodInheritFieldFromJSON,
@@ -338,6 +343,8 @@ import {
     PaginatedExportLogListToJSON,
     PaginatedFoodListFromJSON,
     PaginatedFoodListToJSON,
+    PaginatedFoodBarcodeListFromJSON,
+    PaginatedFoodBarcodeListToJSON,
     PaginatedGenericModelReferenceListFromJSON,
     PaginatedGenericModelReferenceListToJSON,
     PaginatedHouseholdListFromJSON,
@@ -448,6 +455,8 @@ import {
     PatchedExportLogToJSON,
     PatchedFoodFromJSON,
     PatchedFoodToJSON,
+    PatchedFoodBarcodeFromJSON,
+    PatchedFoodBarcodeToJSON,
     PatchedHouseholdFromJSON,
     PatchedHouseholdToJSON,
     PatchedImportLogFromJSON,
@@ -1293,6 +1302,35 @@ export interface ApiFoodCreateRequest {
 
 export interface ApiFoodDestroyRequest {
     id: number;
+}
+
+export interface ApiFoodBarcodeCreateRequest {
+    foodBarcode: Omit<FoodBarcode, 'food'|'unit'|'grams'|'createdAt'>;
+}
+
+export interface ApiFoodBarcodeDestroyRequest {
+    id: number;
+}
+
+export interface ApiFoodBarcodeListRequest {
+    foodId?: number;
+    page?: number;
+    pageSize?: number;
+    upc?: string;
+}
+
+export interface ApiFoodBarcodePartialUpdateRequest {
+    id: number;
+    patchedFoodBarcode?: Omit<PatchedFoodBarcode, 'food'|'unit'|'grams'|'createdAt'>;
+}
+
+export interface ApiFoodBarcodeRetrieveRequest {
+    id: number;
+}
+
+export interface ApiFoodBarcodeUpdateRequest {
+    id: number;
+    foodBarcode: Omit<FoodBarcode, 'food'|'unit'|'grams'|'createdAt'>;
 }
 
 export interface ApiFoodFdcCreateRequest {
@@ -9163,6 +9201,172 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async apiFoodDestroy(requestParameters: ApiFoodDestroyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
         await this.apiFoodDestroyRaw(requestParameters, initOverrides);
+    }
+
+    /**
+     * logs request counts to redis cache total/per user/
+     */
+    async apiFoodBarcodeCreateRaw(requestParameters: ApiFoodBarcodeCreateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<FoodBarcode>> {
+        if (requestParameters['foodBarcode'] == null) {
+            throw new runtime.RequiredError(
+                'foodBarcode',
+                'Required parameter "foodBarcode" was null or undefined when calling apiFoodBarcodeCreate().'
+            );
+        }
+
+        const queryParameters: any = {};
+        const headerParameters: runtime.HTTPHeaders = {};
+        headerParameters['Content-Type'] = 'application/json';
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization");
+        }
+        const response = await this.request({
+            path: `/api/food-barcode/`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: FoodBarcodeToJSON(requestParameters['foodBarcode']),
+        }, initOverrides);
+        return new runtime.JSONApiResponse(response, (jsonValue) => FoodBarcodeFromJSON(jsonValue));
+    }
+
+    async apiFoodBarcodeCreate(requestParameters: ApiFoodBarcodeCreateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<FoodBarcode> {
+        const response = await this.apiFoodBarcodeCreateRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    async apiFoodBarcodeDestroyRaw(requestParameters: ApiFoodBarcodeDestroyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling apiFoodBarcodeDestroy().');
+        }
+        const headerParameters: runtime.HTTPHeaders = {};
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization");
+        }
+        let urlPath = `/api/food-barcode/{id}/`;
+        urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
+        const response = await this.request({
+            path: urlPath,
+            method: 'DELETE',
+            headers: headerParameters,
+            query: {},
+        }, initOverrides);
+        return new runtime.VoidApiResponse(response);
+    }
+
+    async apiFoodBarcodeDestroy(requestParameters: ApiFoodBarcodeDestroyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.apiFoodBarcodeDestroyRaw(requestParameters, initOverrides);
+    }
+
+    async apiFoodBarcodeListRaw(requestParameters: ApiFoodBarcodeListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PaginatedFoodBarcodeList>> {
+        const queryParameters: any = {};
+        if (requestParameters['foodId'] != null) {
+            queryParameters['food_id'] = requestParameters['foodId'];
+        }
+        if (requestParameters['page'] != null) {
+            queryParameters['page'] = requestParameters['page'];
+        }
+        if (requestParameters['pageSize'] != null) {
+            queryParameters['page_size'] = requestParameters['pageSize'];
+        }
+        if (requestParameters['upc'] != null) {
+            queryParameters['upc'] = requestParameters['upc'];
+        }
+        const headerParameters: runtime.HTTPHeaders = {};
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization");
+        }
+        const response = await this.request({
+            path: `/api/food-barcode/`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+        return new runtime.JSONApiResponse(response, (jsonValue) => PaginatedFoodBarcodeListFromJSON(jsonValue));
+    }
+
+    async apiFoodBarcodeList(requestParameters: ApiFoodBarcodeListRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PaginatedFoodBarcodeList> {
+        const response = await this.apiFoodBarcodeListRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    async apiFoodBarcodePartialUpdateRaw(requestParameters: ApiFoodBarcodePartialUpdateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<FoodBarcode>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling apiFoodBarcodePartialUpdate().');
+        }
+        const headerParameters: runtime.HTTPHeaders = {};
+        headerParameters['Content-Type'] = 'application/json';
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization");
+        }
+        let urlPath = `/api/food-barcode/{id}/`;
+        urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
+        const response = await this.request({
+            path: urlPath,
+            method: 'PATCH',
+            headers: headerParameters,
+            query: {},
+            body: PatchedFoodBarcodeToJSON(requestParameters['patchedFoodBarcode']),
+        }, initOverrides);
+        return new runtime.JSONApiResponse(response, (jsonValue) => FoodBarcodeFromJSON(jsonValue));
+    }
+
+    async apiFoodBarcodePartialUpdate(requestParameters: ApiFoodBarcodePartialUpdateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<FoodBarcode> {
+        const response = await this.apiFoodBarcodePartialUpdateRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    async apiFoodBarcodeRetrieveRaw(requestParameters: ApiFoodBarcodeRetrieveRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<FoodBarcode>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling apiFoodBarcodeRetrieve().');
+        }
+        const headerParameters: runtime.HTTPHeaders = {};
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization");
+        }
+        let urlPath = `/api/food-barcode/{id}/`;
+        urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: {},
+        }, initOverrides);
+        return new runtime.JSONApiResponse(response, (jsonValue) => FoodBarcodeFromJSON(jsonValue));
+    }
+
+    async apiFoodBarcodeRetrieve(requestParameters: ApiFoodBarcodeRetrieveRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<FoodBarcode> {
+        const response = await this.apiFoodBarcodeRetrieveRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    async apiFoodBarcodeUpdateRaw(requestParameters: ApiFoodBarcodeUpdateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<FoodBarcode>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling apiFoodBarcodeUpdate().');
+        }
+        if (requestParameters['foodBarcode'] == null) {
+            throw new runtime.RequiredError('foodBarcode', 'Required parameter "foodBarcode" was null or undefined when calling apiFoodBarcodeUpdate().');
+        }
+        const headerParameters: runtime.HTTPHeaders = {};
+        headerParameters['Content-Type'] = 'application/json';
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization");
+        }
+        let urlPath = `/api/food-barcode/{id}/`;
+        urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
+        const response = await this.request({
+            path: urlPath,
+            method: 'PUT',
+            headers: headerParameters,
+            query: {},
+            body: FoodBarcodeToJSON(requestParameters['foodBarcode']),
+        }, initOverrides);
+        return new runtime.JSONApiResponse(response, (jsonValue) => FoodBarcodeFromJSON(jsonValue));
+    }
+
+    async apiFoodBarcodeUpdate(requestParameters: ApiFoodBarcodeUpdateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<FoodBarcode> {
+        const response = await this.apiFoodBarcodeUpdateRaw(requestParameters, initOverrides);
+        return await response.value();
     }
 
     /**

@@ -90,6 +90,10 @@
                                             </template>
                                         </v-text-field>
                                     </div>
+                                    <div class="flex-col flex-grow-0 ma-1 text-disabled text-no-wrap d-flex align-center"
+                                         style="min-width: 4.75rem" v-if="!ingredient.isHeader">
+                                        <span v-if="lineKcal(ingredient) > 0">{{ lineKcal(ingredient) }} {{ $t('KCal') }}</span>
+                                    </div>
                                     <div class="flex-col flex-grow-0 d-flex ma-1">
                                         <div class="d-flex align-center justify-center">
                                             <v-btn variant="plain" class="" density="compact" tabindex="-1" icon>
@@ -122,6 +126,9 @@
                                          @click="editingIngredientIndex = index; dialogIngredientEditor = true">
                                 <ingredient-string :ingredient="ingredient"></ingredient-string>
                                 <template #append>
+                                    <span class="text-caption text-disabled me-2" v-if="lineKcal(ingredient) > 0">
+                                        {{ lineKcal(ingredient) }} {{ $t('KCal') }}
+                                    </span>
                                     <v-icon icon="$dragHandle" class="drag-handle"></v-icon>
                                 </template>
                             </v-list-item>
@@ -204,6 +211,11 @@
                                   create></v-model-select>
                     <v-model-select model="Food" v-model="step.ingredients[editingIngredientIndex].food" v-if="!step.ingredients[editingIngredientIndex].isHeader"
                                   create :list-params="{isFood: true}"></v-model-select>
+                    <v-text-field v-if="!step.ingredients[editingIngredientIndex].isHeader"
+                                  :model-value="lineKcalDisplay(step.ingredients[editingIngredientIndex])"
+                                  :label="$t('KCal')"
+                                  readonly
+                                  hide-details></v-text-field>
                     <v-text-field :label="(step.ingredients[editingIngredientIndex].isHeader) ?$t('Headline')  : $t('Note')"
                                   v-model="step.ingredients[editingIngredientIndex].note"></v-text-field>
 
@@ -245,6 +257,7 @@ import {useUserPreferenceStore} from "@/stores/UserPreferenceStore";
 import {ErrorMessageType, useMessageStore} from "@/stores/MessageStore";
 import StepIngredientSorterDialog from "@/components/dialogs/StepIngredientSorterDialog.vue";
 import VModelSelect from "@/components/inputs/VModelSelect.vue";
+import {ingredientLineKcal} from "@/utils/ingredientKcal";
 
 const emit = defineEmits(['delete', 'move'])
 
@@ -343,6 +356,16 @@ function insertAndFocusIngredient() {
  */
 function deleteIngredientAtIndex(index: number) {
     step.value.ingredients.splice(index, 1)
+}
+
+function lineKcal(ingredient: Ingredient | undefined): number {
+    if (!ingredient) return 0
+    return ingredientLineKcal(ingredient)
+}
+
+function lineKcalDisplay(ingredient: Ingredient | undefined): string {
+    const n = lineKcal(ingredient)
+    return n > 0 ? String(n) : ''
 }
 
 </script>

@@ -88,20 +88,26 @@
 
         </v-navigation-drawer>
 
-        <v-bottom-navigation grow v-if="useUserPreferenceStore().isAuthenticated && !lgAndUp && !useUserPreferenceStore().isPrintMode">
-            <v-btn value="recent" :to="{ name: 'StartPage', params: {} }">
+        <!-- Menu must never share a value with a routed tab (Safari active-state / navigate bugs). -->
+        <v-bottom-navigation
+            :model-value="bottomNavTab"
+            grow
+            class="stillroom-bottom-nav"
+            v-if="useUserPreferenceStore().isAuthenticated && !lgAndUp && !useUserPreferenceStore().isPrintMode"
+        >
+            <v-btn value="home" :to="{ name: 'StartPage' }">
                 <v-icon icon="fa-fw fas fa-book "/>
             </v-btn>
 
-            <v-btn value="favorites" to="/mealplan">
+            <v-btn value="mealplan" :to="{ name: 'MealPlanPage' }">
                 <v-icon icon="fa-fw fas fa-calendar-alt"></v-icon>
             </v-btn>
 
-            <v-btn value="nearby" to="/shopping">
+            <v-btn value="shopping" :to="{ name: 'ShoppingListPage' }">
                 <v-icon icon="fa-fw fas fa-shopping-cart"></v-icon>
             </v-btn>
 
-            <v-btn value="nearby">
+            <v-btn value="menu">
                 <v-icon icon="fa-fw fas fa-bars"></v-icon>
                 <v-bottom-sheet activator="parent" close-on-content-click>
                     <v-list nav>
@@ -129,12 +135,12 @@ import {toVuetifyLocale} from "@/vuetify"
 import VSnackbarQueued from "@/components/display/VSnackbarQueued.vue";
 import {useUserPreferenceStore} from "@/stores/UserPreferenceStore";
 import NavigationDrawerContextMenu from "@/components/display/NavigationDrawerContextMenu.vue";
-import {nextTick, onMounted, ref} from "vue";
+import {computed, nextTick, onMounted, ref} from "vue";
 import {isSpaceAboveLimit} from "@/utils/logic_utils";
 import {useTitle} from "@vueuse/core";
 import HelpDialog from "@/components/dialogs/HelpDialog.vue";
 import {useNavigation} from "@/composables/useNavigation.ts";
-import {useRouter} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 import {useI18n} from "vue-i18n";
 import {THousehold, TSpace} from "@/types/Models.ts";
 import MenuUserInfo from "@/components/display/MenuUserInfo.vue";
@@ -144,6 +150,21 @@ const {t} = useI18n()
 
 const title = useTitle()
 const router = useRouter()
+const route = useRoute()
+
+/** Keep bottom-nav highlight tied to the real route (not shared/conflicting tab values). */
+const bottomNavTab = computed(() => {
+    switch (route.name) {
+        case 'StartPage':
+            return 'home'
+        case 'MealPlanPage':
+            return 'mealplan'
+        case 'ShoppingListPage':
+            return 'shopping'
+        default:
+            return undefined
+    }
+})
 
 onMounted(() => {
     useUserPreferenceStore().init().then(() => {
@@ -187,6 +208,10 @@ router.afterEach((to, from) => {
 </script>
 
 <style>
+
+.stillroom-bottom-nav {
+    padding-bottom: env(safe-area-inset-bottom);
+}
 
 .v-theme--dark {
 

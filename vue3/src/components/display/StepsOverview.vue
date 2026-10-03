@@ -115,9 +115,12 @@ const mergedIngredients = computed(() => {
         const key = `${ingredient.food.id}-${(ingredient.unit ? ingredient.unit.id : 'no_unit')}`;
 
         if (groupedIngredients.has(key)) {
-            // If this food-unit combination already exists, sum the amounts
             const existingIngredient = groupedIngredients.get(key)!;
-            existingIngredient.amount += ingredient.amount;
+            groupedIngredients.set(key, {
+                ...existingIngredient,
+                amount: existingIngredient.amount + ingredient.amount,
+                kcal: Number(existingIngredient.kcal ?? 0) + Number(ingredient.kcal ?? 0),
+            });
         } else {
             // Create a new entry with the adjusted amount
             const clonedIngredient = {...ingredient};
