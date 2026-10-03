@@ -146,11 +146,11 @@
 
         <v-card class="mt-1"
                 v-if="recipe.showIngredientOverview && !useUserPreferenceStore().isPrintMode">
-            <steps-overview :steps="recipe.steps" :ingredient-factor="ingredientFactor" :recipe-servings="recipe.servings" @scale="(factor: number) => {servings = recipe.servings * factor}"></steps-overview>
+            <steps-overview :steps="recipe.steps" :ingredient-factor="ingredientFactor" @scale="(factor: number) => {servings = recipe.servings * factor}"></steps-overview>
         </v-card>
 
         <v-card class="mt-1" v-for="(step, index) in recipe.steps" :key="step.id">
-            <step-view v-model="recipe.steps[index]" :step-number="index+1" :ingredientFactor="ingredientFactor" :recipe-servings="recipe.servings"></step-view>
+            <step-view v-model="recipe.steps[index]" :step-number="index+1" :ingredientFactor="ingredientFactor"></step-view>
         </v-card>
 
         <property-view v-model="recipe" :ingredientFactor="ingredientFactor"></property-view>
