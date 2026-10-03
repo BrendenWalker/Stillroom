@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- iPhone Safari bottom navigation: Calendar → Shopping now switches reliably (unique tab values, route-synced active state, named routes)
+
 ## [0.1.8] - 2026-10-02
 
 No database migrations. Image remains `ghcr.io/brendenwalker/stillroom`.
