@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Recipe ingredient kcal shows the total for the listed quantity (amount × density, scaled with servings), not a per-serving share
+- Recipe ingredient kcal shows the total for the listed quantity (amount × density, scaled with servings), not a per-serving share (#73)
 
 ## [0.1.9] - 2026-10-02
 
