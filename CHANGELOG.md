@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.10] - 2026-10-02
+
+No database migrations. Image remains `ghcr.io/brendenwalker/stillroom`.
+
 ### Fixed
 
 - Recipe ingredient kcal shows the total for the listed quantity (amount × density, scaled with servings), not a per-serving share (#73)
@@ -128,7 +132,8 @@ Back up before upgrading. Apply migrations **0244–0248**. Pack-size fields and
 - Native recipe export dropping Details-tab food values on import (#33)
 - Debug frontend serving stale cached assets (#29, #31)
 
-[Unreleased]: https://github.com/BrendenWalker/Stillroom/compare/0.1.9...develop
+[Unreleased]: https://github.com/BrendenWalker/Stillroom/compare/0.1.10...develop
+[0.1.10]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.10
 [0.1.9]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.9
 [0.1.8]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.8
 [0.1.7]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.7
