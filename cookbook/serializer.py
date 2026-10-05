@@ -32,7 +32,7 @@ from cookbook.helper.permission_helper import above_space_limit, create_space_fo
 from cookbook.helper.food_availability_helper import is_food_item, lookup_is_food_item
 from cookbook.helper.food_barcode import canonicalize_upc
 from cookbook.helper.food_pack import apply_food_pack_fields, quantity_to_grams, shopping_entry_quantities, shopping_measure_grams_of, to_decimal
-from cookbook.helper.kcal_helper import ingredient_kcal, recipe_kcal_per_serving
+from cookbook.helper.kcal_helper import ingredient_kcal, recipe_grams_per_serving, recipe_kcal_per_serving
 from cookbook.helper.property_helper import FoodPropertyHelper
 from cookbook.helper.shopping_helper import RecipeShoppingEditor
 from cookbook.helper.unit_conversion_helper import UnitConversionHelper
@@ -1314,10 +1314,15 @@ class RecipeOverviewSerializer(RecipeBaseSerializer):
     last_cooked = serializers.DateTimeField(required=False, allow_null=True, read_only=True)
     created_by = UserSerializer(read_only=True)
     kcal_per_serving = serializers.SerializerMethodField()
+    grams_per_serving = serializers.SerializerMethodField()
 
     @extend_schema_field(CustomDecimalField)
     def get_kcal_per_serving(self, obj):
         return CustomDecimalField().to_representation(recipe_kcal_per_serving(obj))
+
+    @extend_schema_field(CustomDecimalField)
+    def get_grams_per_serving(self, obj):
+        return CustomDecimalField().to_representation(recipe_grams_per_serving(obj))
 
     def create(self, validated_data):
         pass
@@ -1331,7 +1336,7 @@ class RecipeOverviewSerializer(RecipeBaseSerializer):
             'id', 'name', 'description', 'image', 'keywords', 'working_time',
             'waiting_time', 'created_by', 'created_at', 'updated_at',
             'internal', 'private', 'servings', 'servings_text', 'rating', 'last_cooked', 'new', 'recent',
-            'kcal_per_serving',
+            'kcal_per_serving', 'grams_per_serving',
         )
         # TODO having these readonly fields makes "RecipeOverview.ts" (API Client) not generate the RecipeOverviewToJSON second else block which leads to errors when using the api
         # TODO find a solution (custom schema?) to have these fields readonly (to save performance) and generate a proper client (two serializers would probably do the trick)
@@ -1341,7 +1346,7 @@ class RecipeOverviewSerializer(RecipeBaseSerializer):
         read_only_fields = ['image', 'keywords', 'working_time',
                             'waiting_time', 'created_by', 'created_at', 'updated_at',
                             'internal', 'servings', 'servings_text', 'diameter', 'diameter_text', 'rating', 'last_cooked', 'new', 'recent',
-                            'kcal_per_serving']
+                            'kcal_per_serving', 'grams_per_serving']
 
 
 class RecipeSerializer(RecipeBaseSerializer):
@@ -1354,11 +1359,16 @@ class RecipeSerializer(RecipeBaseSerializer):
     last_cooked = serializers.DateTimeField(required=False, allow_null=True, read_only=True)
     food_properties = serializers.SerializerMethodField('get_food_properties')
     kcal_per_serving = serializers.SerializerMethodField()
+    grams_per_serving = serializers.SerializerMethodField()
     created_by = UserSerializer(read_only=True)
 
     @extend_schema_field(CustomDecimalField)
     def get_kcal_per_serving(self, obj):
         return CustomDecimalField().to_representation(recipe_kcal_per_serving(obj))
+
+    @extend_schema_field(CustomDecimalField)
+    def get_grams_per_serving(self, obj):
+        return CustomDecimalField().to_representation(recipe_grams_per_serving(obj))
 
     @extend_schema_field(serializers.JSONField)
     def get_food_properties(self, obj):
@@ -1376,10 +1386,10 @@ class RecipeSerializer(RecipeBaseSerializer):
         model = Recipe
         fields = (
             'id', 'name', 'description', 'image', 'keywords', 'steps', 'working_time', 'waiting_time', 'created_by', 'created_at', 'updated_at', 'source_url',
-            'internal', 'show_ingredient_overview', 'nutrition', 'properties', 'food_properties', 'kcal_per_serving', 'servings', 'file_path', 'servings_text', 'diameter',
-            'diameter_text', 'rating', 'last_cooked', 'private', 'shared'
+            'internal', 'show_ingredient_overview', 'nutrition', 'properties', 'food_properties', 'kcal_per_serving', 'grams_per_serving', 'servings', 'file_path',
+            'servings_text', 'diameter', 'diameter_text', 'rating', 'last_cooked', 'private', 'shared'
         )
-        read_only_fields = ['image', 'created_by', 'created_at', 'food_properties', 'kcal_per_serving']
+        read_only_fields = ['image', 'created_by', 'created_at', 'food_properties', 'kcal_per_serving', 'grams_per_serving']
 
     def validate(self, data):
         above_limit, msg = above_space_limit(self.context['request'].space)
