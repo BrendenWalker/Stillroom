@@ -1,5 +1,5 @@
 Django==5.2.16
-cryptography===50.0.0
+cryptography===50.0.1
 django-annoying==0.10.8
 django-cleanup==9.0.0
 django-crispy-forms==2.7
@@ -25,13 +25,13 @@ whitenoise==6.12.0
 icalendar==7.3.0
 pyyaml==6.0.3
 uritemplate==4.1.1
-beautifulsoup4==4.12.3
+beautifulsoup4==4.15.0
 microdata==0.8.0
 mock==5.2.0
 Jinja2==3.1.6
 django-allauth[mfa,socialaccount]==65.19.1
-recipe-scrapers==15.11.0
-django-scopes==2.0.0
+recipe-scrapers==15.12.0
+django-scopes==2.1.0
 django-treebeard==4.7.1
 django-cors-headers==4.9.0
 django-storages==1.14.6
@@ -54,7 +54,7 @@ litellm==1.89.3
 thefuzz==0.22.1
 stripe==14.0.0
 frappe-client==0.1.0.dev0
-regex==2026.5.9
+regex==2026.9.29
 
 # Development
 pytest== 9.0.3
