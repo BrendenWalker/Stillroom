@@ -50,8 +50,8 @@
                         <v-col class="pt-1 pb-1">
 
                             <div class="cursor-pointer">
-                                <i class="fas fa-sort-numeric-up fa-fw mr-1"></i> {{ servings }} <br/>
-                                <div class="text-grey"><span v-if="recipe.servingsText">{{ recipe.servingsText }}</span><span v-else>{{ $t('Servings') }}</span></div>
+                                <i class="fas fa-sort-numeric-up fa-fw mr-1"></i> {{ servingsDisplay }} <br/>
+                                <div class="text-grey">{{ $t('Servings') }}</div>
                                 <recipe-scaling-dialog :recipe="recipe" :number="servings" @confirm="(s: number) => {servings = s}" title="Servings">
                                 </recipe-scaling-dialog>
                             </div>
@@ -108,8 +108,8 @@
                             </v-col>
                             <v-col>
                                 <div class="cursor-pointer">
-                                    <i class="fas fa-sort-numeric-up fa-fw mr-1"></i> {{ servings }} <br/>
-                                    <div class="text-grey"><span v-if="recipe.servingsText">{{ recipe.servingsText }}</span><span v-else>{{ $t('Servings') }}</span></div>
+                                    <i class="fas fa-sort-numeric-up fa-fw mr-1"></i> {{ servingsDisplay }} <br/>
+                                    <div class="text-grey">{{ $t('Servings') }}</div>
                                     <recipe-scaling-dialog :recipe="recipe" :number="servings" @confirm="(s: number) => {servings = s}" title="Servings">
                                     </recipe-scaling-dialog>
                                 </div>
@@ -146,11 +146,11 @@
 
         <v-card class="mt-1"
                 v-if="recipe.showIngredientOverview && !useUserPreferenceStore().isPrintMode">
-            <steps-overview :steps="recipe.steps" :ingredient-factor="ingredientFactor" :recipe-servings="recipe.servings" @scale="(factor: number) => {servings = recipe.servings * factor}"></steps-overview>
+            <steps-overview :steps="recipe.steps" :ingredient-factor="ingredientFactor" @scale="(factor: number) => {servings = recipe.servings * factor}"></steps-overview>
         </v-card>
 
         <v-card class="mt-1" v-for="(step, index) in recipe.steps" :key="step.id">
-            <step-view v-model="recipe.steps[index]" :step-number="index+1" :ingredientFactor="ingredientFactor" :recipe-servings="recipe.servings"></step-view>
+            <step-view v-model="recipe.steps[index]" :step-number="index+1" :ingredientFactor="ingredientFactor"></step-view>
         </v-card>
 
         <property-view v-model="recipe" :ingredientFactor="ingredientFactor"></property-view>
@@ -250,6 +250,18 @@ const ingredientFactor = computed(() => {
 
 const kcalPerServingDisplay = computed(() => {
     return roundKcal(Number(recipe.value.kcalPerServing ?? 0))
+})
+
+const servingsDisplay = computed(() => {
+    const servingsText = recipe.value.servingsText?.trim()
+    if (servingsText) {
+        return `${servings.value} - ${servingsText}`
+    }
+    const grams = Number(recipe.value.gramsPerServing)
+    if (Number.isFinite(grams) && grams > 0) {
+        return `${servings.value} - ${Math.round(grams)}g`
+    }
+    return String(servings.value)
 })
 
 /**
