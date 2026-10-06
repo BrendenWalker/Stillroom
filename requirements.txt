@@ -1,4 +1,4 @@
-Django==5.2.16
+Django==5.2.17
 cryptography===50.0.1
 django-annoying==0.10.8
 django-cleanup==9.0.0
@@ -46,11 +46,11 @@ inflection==0.5.1
 redis==7.4.0
 hiredis==3.3.0
 requests-oauthlib==2.0.0
-pyjwt==2.13.0
+pyjwt==2.15.0
 python3-openid==3.2.0
 python3-saml==1.16.0
 django-vite==3.1.0
-litellm==1.89.3
+litellm==1.93.2
 thefuzz==0.22.1
 stripe==14.0.0
 frappe-client==0.1.0.dev0
