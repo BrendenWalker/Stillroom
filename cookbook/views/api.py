@@ -54,7 +54,7 @@ from rest_framework import decorators, status, viewsets
 from rest_framework import mixins
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.exceptions import APIException, PermissionDenied
+from rest_framework.exceptions import APIException, PermissionDenied, ValidationError as DrfValidationError
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.parsers import MultiPartParser
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer, BaseRenderer
@@ -85,10 +85,11 @@ from cookbook.helper.permission_helper import (CustomIsAdmin, CustomIsOwner, Cus
                                                get_household_user_ids)
 from cookbook.helper.recipe_search import RecipeSearch
 from cookbook.helper.recipe_url_import import clean_dict, get_from_youtube_scraper, get_images_from_soup
+from cookbook.helper.food_barcode import canonicalize_upc
 from cookbook.helper.food_pack import shopping_entry_quantities, shopping_measure_grams_of, shopping_units_to_grams
 from cookbook.helper.shopping_helper import RecipeShoppingEditor
 from cookbook.models import (Automation, BookmarkletImport, ConnectorConfig, CookLog, CustomFilter, ExportLog, Food,
-                             FoodInheritField, FoodProperty, ImportLog, Ingredient,
+                             FoodBarcode, FoodInheritField, FoodProperty, ImportLog, Ingredient,
                              InviteLink, Keyword, MealPlan, MealType, Property, PropertyType, Recipe, RecipeBook,
                              RecipeBookEntry, ShareLink, ShoppingListEntry,
                              ShoppingListRecipe, Space, Step, Storage, Supermarket, SupermarketCategory,
@@ -122,7 +123,8 @@ from cookbook.serializer import (AccessTokenSerializer, AutomationSerializer, Au
                                  AiImportSerializer, ImportOpenDataSerializer, ImportOpenDataMetaDataSerializer, ImportOpenDataResponseSerializer, ExportRequestSerializer,
                                  RecipeImportSerializer, ConnectorConfigSerializer, SearchPreferenceSerializer, SearchFieldsSerializer, RecipeBatchUpdateSerializer,
                                  AiProviderSerializer, AiLogSerializer, FoodBatchUpdateSerializer, GenericModelReferenceSerializer, ShoppingListSerializer,
-                                 IngredientParserRequestSerializer, IngredientParserResponseSerializer, HouseholdSerializer, UserSpaceBatchUpdateSerializer
+                                 IngredientParserRequestSerializer, IngredientParserResponseSerializer, HouseholdSerializer, UserSpaceBatchUpdateSerializer,
+                                 FoodBarcodeSerializer
                                  )
 from cookbook.version_info import STILLROOM_VERSION
 from cookbook.views.import_export import get_integration
@@ -2208,6 +2210,33 @@ class UnitConversionViewSet(LoggingMixin, viewsets.ModelViewSet):
             self.queryset = self.queryset.filter(Q(food__name__icontains=query) | Q(base_unit__name__icontains=query) | Q(converted_unit__name__icontains=query))
 
         return self.queryset.filter(space=self.request.space)
+
+
+@extend_schema_view(list=extend_schema(parameters=[
+    OpenApiParameter(name='food_id', description='ID of food to filter for', type=int),
+    OpenApiParameter(name='upc', description='Canonical barcode lookup (UPC-A, EAN-8/13, GTIN-14). Normalized the same way as on save.', type=str),
+]))
+class FoodBarcodeViewSet(LoggingMixin, viewsets.ModelViewSet):
+    queryset = FoodBarcode.objects
+    serializer_class = FoodBarcodeSerializer
+    permission_classes = [CustomIsUser & CustomTokenHasReadWriteScope]
+    pagination_class = DefaultPagination
+
+    def get_queryset(self):
+        queryset = self.queryset.filter(space=self.request.space)
+
+        food_id = self.request.query_params.get('food_id', None)
+        if food_id is not None:
+            queryset = queryset.filter(food_id=food_id)
+
+        upc = self.request.query_params.get('upc', None)
+        if upc is not None:
+            canonical, error = canonicalize_upc(upc)
+            if error:
+                raise DrfValidationError({'upc': error})
+            queryset = queryset.filter(upc=canonical)
+
+        return queryset.select_related('food', 'unit')
 
 
 @extend_schema_view(list=extend_schema(

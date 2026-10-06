@@ -3,6 +3,7 @@ import pathlib
 import re
 import uuid
 from datetime import date, timedelta
+from decimal import Decimal
 
 import oauth2_provider.models
 from annoying.fields import AutoOneToOneField
@@ -755,6 +756,7 @@ class Unit(ExportModelOperationsMixin('unit'), models.Model, PermissionModelMixi
 
         Ingredient.objects.filter(unit=self).update(unit=target)
         ShoppingListEntry.objects.filter(unit=self).update(unit=target)
+        FoodBarcode.objects.filter(unit=self).update(unit=target)
         Food.objects.filter(properties_food_unit=self).update(properties_food_unit=target)
         Food.objects.filter(preferred_unit=self).update(preferred_unit=target)
         Food.objects.filter(preferred_shopping_unit=self).update(preferred_shopping_unit=target)
@@ -840,6 +842,7 @@ class Food(ExportModelOperationsMixin('food'), TreeModel, PermissionModelMixin):
         self.properties.clear()
         Ingredient.objects.filter(food=self).update(food=target)
         ShoppingListEntry.objects.filter(food=self).update(food=target)
+        self.barcodes.update(food=target)
         self.delete()
         return target
 
@@ -938,6 +941,36 @@ class UnitConversion(ExportModelOperationsMixin('unit_conversion'), models.Model
             models.UniqueConstraint(fields=['space', 'open_data_slug'], name='unit_conversion_unique_open_data_slug_per_space')
         ]
         ordering = ('pk',)
+
+
+class FoodBarcode(ExportModelOperationsMixin('food_barcode'), models.Model, PermissionModelMixin):
+    """Packaged SKU barcode mapped to a generic Food."""
+
+    upc = models.CharField(max_length=14)
+    brand = models.CharField(max_length=128, blank=True, null=True, default='')
+    qty = models.DecimalField(default=1, decimal_places=4, max_digits=16, validators=[MinValueValidator(Decimal('0.0001'))])
+    unit = models.ForeignKey('Unit', on_delete=models.PROTECT, null=True, blank=True)
+    food = models.ForeignKey(Food, on_delete=models.CASCADE, related_name='barcodes')
+
+    created_by = models.ForeignKey(User, on_delete=models.PROTECT)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    space = models.ForeignKey(Space, on_delete=models.CASCADE)
+    objects = ScopedManager(space='space')
+
+    def __str__(self):
+        unit_name = self.unit.name if self.unit_id else ''
+        return f'{self.upc} {self.qty} {unit_name} {self.food}'.strip()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['space', 'upc'], name='food_barcode_unique_upc_per_space'),
+        ]
+        indexes = (
+            Index(fields=['upc']),
+        )
+        ordering = ('upc',)
 
 
 class Ingredient(ExportModelOperationsMixin('ingredient'), models.Model, PermissionModelMixin):

@@ -100,6 +100,7 @@
     </v-banner>
 
     <shopping-export-dialog v-model="exportDialog" activator="model"></shopping-export-dialog>
+    <shopping-barcode-dialog v-model="barcodeDialog"></shopping-barcode-dialog>
 
     <v-window v-model="currentTab">
         <v-window-item value="shopping">
@@ -131,6 +132,9 @@
                             <!-- undo -->
                             <v-btn label size="small" class="ms-1" variant="outlined" @click="useShoppingStore().undoChange()" :disabled="useShoppingStore().undoStack.length == 0">
                                 <v-icon icon="fa-solid fa-rotate-left"></v-icon>
+                            </v-btn>
+                            <v-btn v-if="props.mealPlanId == undefined" label size="small" class="ms-1" variant="outlined" @click="barcodeDialog = true">
+                                <v-icon icon="fa-solid fa-barcode"></v-icon>
                             </v-btn>
 
                             <v-chip label size="small" variant="outlined" class="ms-1 me-0 mt-0 mb-0 h-100" style="max-width: 50%;" :prepend-icon="TSupermarket.icon"
@@ -187,7 +191,11 @@
                             <v-skeleton-loader type="list-item"></v-skeleton-loader>
                             <v-skeleton-loader type="list-item"></v-skeleton-loader>
                         </v-list>
-                        <v-list class="mt-3" density="compact" v-model:selected="selectedLines" select-strategy="leaf" v-else>
+                        <v-list class="mt-3" density="compact" v-else
+                                :selectable="selectEnabled"
+                                :select-strategy="selectEnabled ? 'leaf' : undefined"
+                                :selected="selectEnabled ? selectedLines : []"
+                                @update:selected="onShoppingSelection">
                             <template v-for="category in shoppingListItems" :key="category.name">
 
 
@@ -358,6 +366,7 @@ import {DateTime} from "luxon";
 import ModelEditDialog from "@/components/dialogs/ModelEditDialog.vue";
 import {onBeforeRouteLeave} from "vue-router";
 import ShoppingExportDialog from "@/components/dialogs/ShoppingExportDialog.vue";
+import ShoppingBarcodeDialog from "@/components/dialogs/ShoppingBarcodeDialog.vue";
 import AddToShoppingDialog from "@/components/dialogs/AddToShoppingDialog.vue";
 import {TSupermarket} from "@/types/Models.ts";
 import ShoppingListSelectChip from "@/components/inputs/ShoppingListSelectChip.vue";
@@ -371,6 +380,7 @@ const props = defineProps({
 })
 
 const exportDialog = ref(false)
+const barcodeDialog = ref(false)
 const currentTab = ref("shopping")
 const supermarkets = ref([] as Supermarket[])
 const manualAddRecipe = ref<undefined | Recipe>(undefined)
@@ -545,6 +555,15 @@ function selectAll(category: IShoppingListCategory | undefined = undefined) {
 function deselectCategory(category: IShoppingListCategory) {
     const categoryFoodIds = new Set(Array.from(category.foods.values()).map(f => f.food.id));
     selectedLines.value = selectedLines.value.filter(f => !categoryFoodIds.has(f.food.id));
+}
+
+/**
+ * keep list selection bound only while select mode is on
+ */
+function onShoppingSelection(selected: IShoppingListFood[]) {
+    if (selectEnabled.value) {
+        selectedLines.value = selected
+    }
 }
 
 /**

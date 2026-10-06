@@ -107,6 +107,11 @@ registerRoute(
     'PATCH'
 )
 
+registerRoute(
+    new RegExp('api/shopping-list-entry'),
+    new NetworkOnly()
+)
+
 addEventListener('message', (event) => {
     if (event.data.type === 'BGSYNC_REPLAY_REQUESTS') {
         queue.replayRequests().then((r) => {

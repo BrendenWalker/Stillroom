@@ -103,14 +103,14 @@
                                 <v-btn color="edit" icon="$edit" v-if="!e.ingredient">
                                     <v-icon icon="$edit"></v-icon>
                                     <model-edit-dialog model="ShoppingListEntry" :item="e"
-                                                       @delete="useShoppingStore().entries.delete(e.id!); shoppingListFood.entries.delete(e.id!)"
-                                                       @save="(args: ShoppingListEntry) => { useShoppingStore().entries.set(e.id!, args); shoppingListFood.entries.set(e.id!, args) }"></model-edit-dialog>
+                                                       @delete="useShoppingStore().deleteObject(e, true)"
+                                                       @save="(args: ShoppingListEntry) => { useShoppingStore().entries.set(e.id!, args); useShoppingStore().updateEntriesStructure() }"></model-edit-dialog>
                                 </v-btn>
                                 <v-btn color="edit" icon="$recipes" v-if="e.listRecipe && e.listRecipeData.recipe && e.ingredient"
                                        :to="{name: 'RecipeViewPage', params: {id: e.listRecipeData.recipe}}">
                                     <v-icon icon="$recipes"></v-icon>
                                 </v-btn>
-                                <v-btn icon="" @click="useShoppingStore().deleteObject(e, true); shoppingListFood.entries.delete(e.id!)" color="delete">
+                                <v-btn icon="" @click="useShoppingStore().deleteObject(e, true)" color="delete">
                                     <v-icon icon="$delete"></v-icon>
                                 </v-btn>
                             </v-btn-group>
@@ -226,10 +226,9 @@ function addEntryForFood() {
  * delete all shopping list entries for the given shopping list food
  */
 function deleteAllEntries() {
+    const entries = Array.from(shoppingListFood.value.entries.values())
     showDialog.value = false
-    shoppingListFood.value.entries.forEach(e => {
-        useShoppingStore().deleteObject(e, true)
-    })
+    useShoppingStore().deleteEntries(entries, true)
 }
 
 /**

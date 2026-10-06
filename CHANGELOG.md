@@ -7,6 +7,99 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.10] - 2026-10-02
+
+No database migrations. Image remains `ghcr.io/brendenwalker/stillroom`.
+
+### Fixed
+
+- Recipe ingredient kcal shows the total for the listed quantity (amount × density, scaled with servings), not a per-serving share (#73)
+
+## [0.1.9] - 2026-10-02
+
+No database migrations. Image remains `ghcr.io/brendenwalker/stillroom`.
+
+### Fixed
+
+- iPhone Safari bottom navigation: Calendar → Shopping now switches reliably (unique tab values, route-synced active state, named routes) (#71)
+
+## [0.1.8] - 2026-10-02
+
+No database migrations. Image remains `ghcr.io/brendenwalker/stillroom`.
+
+### Changed
+
+- Recipe view shows calculated serving size next to servings (e.g. `6 - 120g`) from ingredient grams / servings via read-only `grams_per_serving`; Servings Text overrides; omit calculated size when any amount cannot convert accurately (#69)
+
+## [0.1.7] - 2026-10-02
+
+No database migrations. Image remains `ghcr.io/brendenwalker/stillroom`.
+
+### Changed
+
+- Recipe view shows serving size next to servings count (e.g. `6 - 120gr`) using Servings Text (#66)
+
+## [0.1.6] - 2026-09-11
+
+Additive migrations **0249–0250** (`FoodBarcode` qty + Unit; pack grams are computed). Image remains `ghcr.io/brendenwalker/stillroom`.
+
+### Added
+
+- UPC/EAN barcodes on foods (quantity and unit per SKU) with a Barcodes tab on the food editor (#53)
+- Shopping list barcode scan: subtract pack grams from remaining list amount (split leftover), offer to add one pack if the food is not on the list, or associate an unknown code to a list or catalog food (#53)
+
+## [0.1.5] - 2026-09-07
+
+No database migrations. Image remains `ghcr.io/brendenwalker/stillroom`.
+
+### Fixed
+
+- Shopping list rebuilds after add/edit/delete so items appear and vanish immediately; display is name then quantity (#49)
+- Row clicks no longer mark items checked; shopping-list-entry API is not cached by the service worker; paginated reload cannot skip pages or wipe the list on failure (#49)
+
+## [0.1.4] - 2026-09-05
+
+No database migrations. Image remains `ghcr.io/brendenwalker/stillroom`.
+
+### Fixed
+
+- One volume↔weight food conversion (e.g. ¼ cup = 40g) applies to the rest of that system (tbsp, tsp, ml, oz, …) (#46)
+
+## [0.1.3] - 2026-09-05
+
+No database migrations. Image remains `ghcr.io/brendenwalker/stillroom`.
+
+### Added
+
+- Recipe ingredient editor shows live line kcal as amount and measure change (#44)
+
+### Fixed
+
+- Count units (Each, pcs, …) convert to grams via food Per Each grams when no explicit conversion exists (#44)
+
+## [0.1.2] - 2026-09-05
+
+No database migrations. Nested recipe ingredients gain a read-only `kcal` (line total). Image remains `ghcr.io/brendenwalker/stillroom`.
+
+### Added
+
+- Recipe view shows kcal per serving with working time, waiting time, and servings (#42)
+- Ingredient lines show that ingredient’s kcal contribution per serving (#42)
+- Read-only `kcal` on nested recipe ingredient API responses (#42)
+
+## [0.1.1] - 2026-09-04
+
+No database migrations. Image remains `ghcr.io/brendenwalker/stillroom`.
+
+### Security
+
+- Ingredient parser: bound regexes that CodeQL flagged as ReDoS / overly broad `[A-z]` ranges (#39)
+- AI food/recipe property and step-sort 500s no longer include exception text in the response; traceback stays in server logs (#39)
+
+### Changed
+
+- CodeQL scan ignores pdfjs vendor files and test fixtures; drop deprecated `HEAD^2` checkout (#39)
+
 ## [0.1.0] - 2026-09-04
 
 Back up before upgrading. Apply migrations **0244–0248**. Pack-size fields and shopping `amount_grams` are additive; **0246** backfills grams when conversion is possible and clears `count_per_pack` below 1; unconverted shopping entries stay unchanged. Rolling back does not restore converted shopping `amount`/`unit`. **0247** adds food `kcal` / `kcal_grams`; **0248** copies from existing calorie/grams properties only when those food fields are null. After upgrade, check foods’ Details tab (pack sizes and kcal). Mark non-food supermarket categories (soap, bags) with Food items unchecked. Integrations may see new optional fields on Food, ShoppingListEntry, SupermarketCategory, Recipe, and MealPlan (`kcal_per_serving` is read-only). Image remains `ghcr.io/brendenwalker/stillroom`.
@@ -39,5 +132,15 @@ Back up before upgrading. Apply migrations **0244–0248**. Pack-size fields and
 - Native recipe export dropping Details-tab food values on import (#33)
 - Debug frontend serving stale cached assets (#29, #31)
 
-[Unreleased]: https://github.com/BrendenWalker/Stillroom/compare/0.1.0...develop
+[Unreleased]: https://github.com/BrendenWalker/Stillroom/compare/0.1.10...develop
+[0.1.10]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.10
+[0.1.9]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.9
+[0.1.8]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.8
+[0.1.7]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.7
+[0.1.6]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.6
+[0.1.5]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.5
+[0.1.4]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.4
+[0.1.3]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.3
+[0.1.2]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.2
+[0.1.1]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.1
 [0.1.0]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.0

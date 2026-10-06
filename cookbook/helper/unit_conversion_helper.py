@@ -110,18 +110,29 @@ class UnitConversionHelper:
     def get_conversions(self, ingredient):
         """
         Converts an ingredient to all possible conversions based on the custom unit conversion database.
-        Uses BFS to discover multi-step conversions (e.g. pinch → tsp → gram).
-        After that passes conversion to UnitConversionHelper.base_conversions() to get all base conversions possible.
+        Same-system base units are expanded first so one volume↔weight conversion (e.g. 1/4 cup = 40g)
+        applies to the rest of that system (tbsp, tsp, ml, …). Then BFS walks custom conversions
+        (e.g. pinch → tsp → gram). Count units (Each, pcs, …) also convert through
+        Food.ingredient_unit_grams when no gram conversion was already found. Missing units are
+        left alone so properties can flag them. Finally base units are expanded again so a newly
+        reached gram amount also yields kg/oz/lb.
         :param ingredient: Ingredient object
         :return: list of ingredients with all possible custom and base conversions
         """
         conversions = [ingredient]
+        visited_unit_ids = set()
         if ingredient.unit:
-            visited_unit_ids = {ingredient.unit.id}
-            queue = [ingredient]
+            visited_unit_ids.add(ingredient.unit.id)
+            conversions = self.base_conversions(conversions)
+            for converted in conversions:
+                if converted.unit:
+                    visited_unit_ids.add(converted.unit.id)
+            queue = list(conversions)
 
             while queue:
                 current = queue.pop(0)
+                if not current.unit:
+                    continue
                 for c in current.unit.unit_conversion_base_relation.all():
                     if self.space and c.space_id == self.space.id:
                         r = self._uc_convert(c, current.amount, current.unit, ingredient.food)
@@ -137,9 +148,34 @@ class UnitConversionHelper:
                             conversions.append(r)
                             queue.append(r)
 
+            each_grams = self._each_to_gram_ingredient(ingredient, visited_unit_ids)
+            if each_grams is not None:
+                conversions.append(each_grams)
+
         conversions = self.base_conversions(conversions)
 
         return conversions
+
+    def _each_to_gram_ingredient(self, ingredient, visited_unit_ids):
+        """Synthetic Each/pcs → grams from Food.ingredient_unit_grams, if grams was not already reached."""
+        from cookbook.helper.food_pack import _is_count_unit, to_decimal
+
+        if ingredient.unit is None or not _is_count_unit(ingredient.unit):
+            return None
+        food = ingredient.food
+        if food is None:
+            return None
+        iug = to_decimal(getattr(food, 'ingredient_unit_grams', None))
+        if iug is None or iug <= 0:
+            return None
+        amount = to_decimal(ingredient.amount)
+        if amount is None:
+            return None
+        gram_unit = Unit.objects.filter(space=self.space, base_unit='g').first()
+        if gram_unit is None or gram_unit.id in visited_unit_ids:
+            return None
+        visited_unit_ids.add(gram_unit.id)
+        return Ingredient(amount=amount * iug, unit=gram_unit, food=food, space=self.space)
 
     def _uc_convert(self, uc, amount, unit, food):
         """

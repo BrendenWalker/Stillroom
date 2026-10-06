@@ -367,3 +367,112 @@ def test_conversion_with_zero(space_1, space_2, u1_s1):
         conversions = uch.get_conversions(ingredient_food_1_gram)
 
         assert len(conversions) == 1 # conversion always includes the ingredient, if count is 1 no other conversion was found
+
+
+def test_each_uses_ingredient_unit_grams(space_1):
+    """Count units convert through Food.ingredient_unit_grams when no UnitConversion exists."""
+    with scopes_disabled():
+        uch = UnitConversionHelper(space_1)
+        unit_each = Unit.objects.create(name='each', base_unit='', space=space_1)
+        unit_gram = Unit.objects.create(name='gram', base_unit='g', space=space_1)
+        unit_kg = Unit.objects.create(name='kg', base_unit='kg', space=space_1)
+        food = Food.objects.create(name='egg', space=space_1, ingredient_unit_grams=Decimal('50'))
+        ingredient = Ingredient.objects.create(food=food, unit=unit_each, amount=3, space=space_1)
+
+        conversions = uch.get_conversions(ingredient)
+        gram = next(x for x in conversions if x.unit == unit_gram)
+        assert abs(gram.amount - Decimal('150')) < Decimal('0.001')
+        kg = next(x for x in conversions if x.unit == unit_kg)
+        assert abs(kg.amount - Decimal('0.15')) < Decimal('0.001')
+
+
+def test_each_unit_conversion_overrides_ingredient_unit_grams(space_1, u1_s1):
+    """An explicit Each→g UnitConversion wins over Per Each grams."""
+    with scopes_disabled():
+        uch = UnitConversionHelper(space_1)
+        unit_each = Unit.objects.create(name='each', base_unit='', space=space_1)
+        unit_gram = Unit.objects.create(name='gram', base_unit='g', space=space_1)
+        food = Food.objects.create(name='egg', space=space_1, ingredient_unit_grams=Decimal('50'))
+        UnitConversion.objects.create(
+            base_amount=1,
+            base_unit=unit_each,
+            converted_amount=40,
+            converted_unit=unit_gram,
+            food=food,
+            space=space_1,
+            created_by=auth.get_user(u1_s1),
+        )
+        ingredient = Ingredient.objects.create(food=food, unit=unit_each, amount=3, space=space_1)
+
+        conversions = uch.get_conversions(ingredient)
+        gram = next(x for x in conversions if x.unit == unit_gram)
+        assert abs(gram.amount - Decimal('120')) < Decimal('0.001')
+
+
+def test_each_without_ingredient_unit_grams_has_no_gram(space_1):
+    with scopes_disabled():
+        uch = UnitConversionHelper(space_1)
+        unit_each = Unit.objects.create(name='each', base_unit='', space=space_1)
+        Unit.objects.create(name='gram', base_unit='g', space=space_1)
+        food = Food.objects.create(name='egg', space=space_1)
+        ingredient = Ingredient.objects.create(food=food, unit=unit_each, amount=3, space=space_1)
+
+        conversions = uch.get_conversions(ingredient)
+        assert len(conversions) == 1
+        assert conversions[0].unit == unit_each
+
+
+def test_missing_unit_does_not_inject_grams(space_1):
+    with scopes_disabled():
+        uch = UnitConversionHelper(space_1)
+        Unit.objects.create(name='gram', base_unit='g', space=space_1)
+        food = Food.objects.create(name='egg', space=space_1, ingredient_unit_grams=Decimal('50'))
+        ingredient = Ingredient.objects.create(food=food, unit=None, amount=3, space=space_1)
+
+        conversions = uch.get_conversions(ingredient)
+        assert len(conversions) == 1
+        assert conversions[0].unit is None
+
+
+def test_volume_food_conversion_applies_to_other_volume_units(space_1, u1_s1):
+    """1/4 cup = 40g should make 1 tbsp ≈ 10g (16 tbsp per US cup)."""
+    from cookbook.helper.food_pack import quantity_to_grams
+    from cookbook.helper.kcal_helper import ingredient_kcal
+
+    with scopes_disabled():
+        uch = UnitConversionHelper(space_1)
+        unit_cup = Unit.objects.create(name='cup', base_unit='us_cup', space=space_1)
+        unit_tbsp = Unit.objects.create(name='tbsp', base_unit='tbsp', space=space_1)
+        unit_gram = Unit.objects.create(name='gram', base_unit='g', space=space_1)
+        food = Food.objects.create(name='Craisins', space=space_1, kcal=Decimal('130'), kcal_grams=Decimal('40'))
+        UnitConversion.objects.create(
+            base_amount=Decimal('0.25'),
+            base_unit=unit_cup,
+            converted_amount=Decimal('40'),
+            converted_unit=unit_gram,
+            food=food,
+            space=space_1,
+            created_by=auth.get_user(u1_s1),
+        )
+
+        tbsp_line = Ingredient.objects.create(food=food, unit=unit_tbsp, amount=1, space=space_1)
+        conversions = uch.get_conversions(tbsp_line)
+        gram = next(x for x in conversions if x.unit == unit_gram)
+        expected = UnitConversionHelper.convert_from_to('tbsp', 'us_cup', 1) * (Decimal('40') / Decimal('0.25'))
+        assert abs(gram.amount - expected) < Decimal('0.01')
+        assert abs(gram.amount - Decimal('10')) < Decimal('0.01')
+
+        cup_line = Ingredient.objects.create(food=food, unit=unit_cup, amount=1, space=space_1)
+        cup_conversions = uch.get_conversions(cup_line)
+        cup_gram = next(x for x in cup_conversions if x.unit == unit_gram)
+        assert abs(cup_gram.amount - Decimal('160')) < Decimal('0.01')
+
+        assert abs(quantity_to_grams(food, 1, unit_tbsp) - expected) < Decimal('0.01')
+        assert abs(ingredient_kcal(tbsp_line) - Decimal('130') * (expected / Decimal('40'))) < Decimal('0.1')
+
+        gram_line = Ingredient.objects.create(food=food, unit=unit_gram, amount=40, space=space_1)
+        reverse = uch.get_conversions(gram_line)
+        reverse_cup = next(x for x in reverse if x.unit == unit_cup)
+        reverse_tbsp = next(x for x in reverse if x.unit == unit_tbsp)
+        assert abs(reverse_cup.amount - Decimal('0.25')) < Decimal('0.001')
+        assert abs(reverse_tbsp.amount - Decimal('4')) < Decimal('0.01')
