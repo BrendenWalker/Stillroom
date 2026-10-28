@@ -7,9 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.12] - 2026-10-28
+
+No database migrations. Image remains `ghcr.io/brendenwalker/stillroom`.
+
 ### Fixed
 
 - iPhone Safari bottom navigation changes the page on the first tap (Home, Shopping, Pantry, and the rest of the menu) instead of highlighting the tab and staying on Calendar
+
+### Changed
+
+- Dependency updates (Django 5.2.17, cryptography 50.0.1, beautifulsoup4 4.15.0, recipe-scrapers 15.12.0, django-scopes 2.1.0, PyJWT 2.15.0, litellm 1.93.2, regex 2026.9.29, Vue Router 5.3.1, vue-i18n 11.4.12, @vueuse/router 15)
 
 ## [0.1.10] - 2026-10-02
 
@@ -136,7 +144,8 @@ Back up before upgrading. Apply migrations **0244–0248**. Pack-size fields and
 - Native recipe export dropping Details-tab food values on import (#33)
 - Debug frontend serving stale cached assets (#29, #31)
 
-[Unreleased]: https://github.com/BrendenWalker/Stillroom/compare/0.1.10...develop
+[Unreleased]: https://github.com/BrendenWalker/Stillroom/compare/0.1.12...develop
+[0.1.12]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.12
 [0.1.10]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.10
 [0.1.9]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.9
 [0.1.8]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.8
