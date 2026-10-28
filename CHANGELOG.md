@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- iPhone Safari bottom navigation changes the page on the first tap (Home, Shopping, Pantry, and the rest of the menu) instead of highlighting the tab and staying on Calendar
+
 ## [0.1.10] - 2026-10-02
 
 No database migrations. Image remains `ghcr.io/brendenwalker/stillroom`.
