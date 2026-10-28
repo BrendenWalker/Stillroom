@@ -148,6 +148,12 @@ export interface RecipeOverview {
      * @memberof RecipeOverview
      */
     readonly kcalPerServing?: number;
+    /**
+     * grams per serving from convertible ingredient amounts, or null when incomplete
+     * @type {number}
+     * @memberof RecipeOverview
+     */
+    readonly gramsPerServing?: number | null;
 }
 
 /**
@@ -201,6 +207,7 @@ export function RecipeOverviewFromJSONTyped(json: any, ignoreDiscriminator: bool
         '_new': json['new'],
         'recent': json['recent'],
         'kcalPerServing': json['kcal_per_serving'] == null ? undefined : json['kcal_per_serving'],
+        'gramsPerServing': json['grams_per_serving'] == null ? undefined : json['grams_per_serving'],
     };
 }
 
@@ -208,7 +215,7 @@ export function RecipeOverviewToJSON(json: any): RecipeOverview {
     return RecipeOverviewToJSONTyped(json, false);
 }
 
-export function RecipeOverviewToJSONTyped(value?: Omit<RecipeOverview, 'image'|'keywords'|'working_time'|'waiting_time'|'created_by'|'created_at'|'updated_at'|'internal'|'servings'|'servings_text'|'rating'|'last_cooked'|'new'|'recent'|'kcal_per_serving'> | null, ignoreDiscriminator: boolean = false): any {
+export function RecipeOverviewToJSONTyped(value?: Omit<RecipeOverview, 'image'|'keywords'|'working_time'|'waiting_time'|'created_by'|'created_at'|'updated_at'|'internal'|'servings'|'servings_text'|'rating'|'last_cooked'|'new'|'recent'|'kcal_per_serving'|'grams_per_serving'> | null, ignoreDiscriminator: boolean = false): any {
     if (value == null) {
         return value;
     }

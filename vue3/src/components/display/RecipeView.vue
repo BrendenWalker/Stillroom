@@ -50,11 +50,15 @@
                         <v-col class="pt-1 pb-1">
 
                             <div class="cursor-pointer">
-                                <i class="fas fa-sort-numeric-up fa-fw mr-1"></i> {{ servings }} <br/>
-                                <div class="text-grey"><span v-if="recipe.servingsText">{{ recipe.servingsText }}</span><span v-else>{{ $t('Servings') }}</span></div>
+                                <i class="fas fa-sort-numeric-up fa-fw mr-1"></i> {{ servingsDisplay }} <br/>
+                                <div class="text-grey">{{ $t('Servings') }}</div>
                                 <recipe-scaling-dialog :recipe="recipe" :number="servings" @confirm="(s: number) => {servings = s}" title="Servings">
                                 </recipe-scaling-dialog>
                             </div>
+                        </v-col>
+                        <v-col class="pt-1 pb-1">
+                            <i class="fas fa-fire fa-fw mr-1"></i> {{ kcalPerServingDisplay }} {{ $t('KCal') }}<br/>
+                            <div class="text-grey">{{ $t('per_serving') }}</div>
                         </v-col>
                     </v-row>
                 </v-container>
@@ -104,11 +108,15 @@
                             </v-col>
                             <v-col>
                                 <div class="cursor-pointer">
-                                    <i class="fas fa-sort-numeric-up fa-fw mr-1"></i> {{ servings }} <br/>
-                                    <div class="text-grey"><span v-if="recipe.servingsText">{{ recipe.servingsText }}</span><span v-else>{{ $t('Servings') }}</span></div>
+                                    <i class="fas fa-sort-numeric-up fa-fw mr-1"></i> {{ servingsDisplay }} <br/>
+                                    <div class="text-grey">{{ $t('Servings') }}</div>
                                     <recipe-scaling-dialog :recipe="recipe" :number="servings" @confirm="(s: number) => {servings = s}" title="Servings">
                                     </recipe-scaling-dialog>
                                 </div>
+                            </v-col>
+                            <v-col>
+                                <i class="fas fa-fire fa-fw mr-1"></i> {{ kcalPerServingDisplay }} {{ $t('KCal') }}<br/>
+                                <div class="text-grey">{{ $t('per_serving') }}</div>
                             </v-col>
                         </v-row>
 
@@ -217,6 +225,7 @@ import PrivateRecipeBadge from "@/components/display/PrivateRecipeBadge.vue";
 import ModelSelect from "@/components/inputs/ModelSelect.vue";
 import RecipeScalingDialog from "@/components/dialogs/RecipeScalingDialog.vue";
 import VModelSelect from "@/components/inputs/VModelSelect.vue";
+import {roundKcal} from "@/utils/mealPlanKcal";
 
 const {request, release} = useWakeLock()
 const {doAiImport, fileApiLoading} = useFileApi()
@@ -237,6 +246,22 @@ const selectedAiProvider = ref<undefined | AiProvider>(useUserPreferenceStore().
  */
 const ingredientFactor = computed(() => {
     return servings.value / ((recipe.value.servings != undefined) ? Math.max(recipe.value.servings, 1) : 1)
+})
+
+const kcalPerServingDisplay = computed(() => {
+    return roundKcal(Number(recipe.value.kcalPerServing ?? 0))
+})
+
+const servingsDisplay = computed(() => {
+    const servingsText = recipe.value.servingsText?.trim()
+    if (servingsText) {
+        return `${servings.value} - ${servingsText}`
+    }
+    const grams = Number(recipe.value.gramsPerServing)
+    if (Number.isFinite(grams) && grams > 0) {
+        return `${servings.value} - ${Math.round(grams)}g`
+    }
+    return String(servings.value)
 })
 
 /**

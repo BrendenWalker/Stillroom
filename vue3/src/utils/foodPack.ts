@@ -116,3 +116,39 @@ export function shoppingUnitsToGrams(units: unknown, shoppingMeasureGrams: unkno
     if (u == null || m == null) return null
     return u * m
 }
+
+export type ConsumePackAction<T> = {
+    entry: T
+    boughtGrams: number
+    leftoverGrams: number
+}
+
+export type ShoppingGramsEntry = {
+    checked?: boolean
+    amountGrams?: number | null
+}
+
+export function planConsumePackGrams<T extends ShoppingGramsEntry>(
+    entries: T[],
+    packGrams: unknown,
+): ConsumePackAction<T>[] {
+    let remaining = parsePackNumber(packGrams)
+    if (remaining == null || remaining <= 0) return []
+
+    const actions: ConsumePackAction<T>[] = []
+    for (const entry of entries) {
+        if (remaining <= 0) break
+        if (entry.checked) continue
+        const grams = parsePackNumber(entry.amountGrams)
+        if (grams == null || grams <= 0) continue
+        if (grams <= remaining) {
+            actions.push({entry, boughtGrams: grams, leftoverGrams: 0})
+            remaining -= grams
+        } else {
+            actions.push({entry, boughtGrams: remaining, leftoverGrams: grams - remaining})
+            remaining = 0
+            break
+        }
+    }
+    return actions
+}

@@ -5,6 +5,7 @@ from cookbook.helper.food_pack import (
     apply_food_pack_fields,
     derive_shopping_measure_grams,
     in_store_shopping_count,
+    plan_consume_pack_grams,
     quantity_to_grams,
     shopping_entry_quantities,
     shopping_units_to_grams,
@@ -49,6 +50,8 @@ def test_quantity_to_grams_weight_and_each():
     dozen = SimpleNamespace(name='dozen', base_unit='')
 
     assert quantity_to_grams(food, 100, gram) == Decimal('100')
+    gram_named = SimpleNamespace(name='g', base_unit='')
+    assert quantity_to_grams(food, 100, gram_named) == Decimal('100')
     assert quantity_to_grams(food, 3, each) == Decimal('150')
     assert quantity_to_grams(food, 3, None) == Decimal('150')
     assert quantity_to_grams(food, 1, dozen) == Decimal('600')
@@ -100,3 +103,23 @@ def test_shopping_units_to_grams():
     food = SimpleNamespace(shopping_measure_grams=Decimal('600'))
     assert shopping_units_to_grams(food, 1) == Decimal('600')
     assert shopping_units_to_grams(food, 2) == Decimal('1200')
+
+
+def test_plan_consume_pack_grams_split_and_skip():
+    e1 = SimpleNamespace(id=1, checked=False, amount_grams=Decimal('3785.41'))
+    e2 = SimpleNamespace(id=2, checked=False, amount_grams=Decimal('3785.41'))
+    actions = plan_consume_pack_grams([e1, e2], Decimal('3785.41'))
+    assert len(actions) == 1
+    assert actions[0]['entry'] is e1
+    assert actions[0]['bought_grams'] == Decimal('3785.41')
+    assert actions[0]['leftover_grams'] == Decimal(0)
+
+    actions = plan_consume_pack_grams([e1], Decimal('1000'))
+    assert actions[0]['bought_grams'] == Decimal('1000')
+    assert actions[0]['leftover_grams'] == Decimal('2785.41')
+
+    no_grams = SimpleNamespace(id=3, checked=False, amount_grams=None)
+    checked = SimpleNamespace(id=4, checked=True, amount_grams=Decimal('500'))
+    assert plan_consume_pack_grams([no_grams, checked, e1], Decimal('1000'))[0]['entry'] is e1
+    assert plan_consume_pack_grams([no_grams], Decimal('1000')) == []
+    assert plan_consume_pack_grams([e1], None) == []

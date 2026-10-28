@@ -144,6 +144,9 @@ def quantity_to_grams(food, amount, unit, space=None):
         except ConversionException:
             pass
 
+    if _is_gram_unit(unit):
+        return amount
+
     iug = to_decimal(getattr(food, 'ingredient_unit_grams', None))
     if _is_count_unit(unit) and iug is not None and iug > 0:
         return amount * iug
@@ -198,3 +201,33 @@ def shopping_entry_quantities(food, amount, unit=None, amount_grams=None):
         return grams / smg, None, grams
 
     return amount, unit, grams
+
+
+def plan_consume_pack_grams(entries, pack_grams):
+    """Plan how a scanned pack reduces unchecked shopping lines.
+
+    ``entries`` are objects with ``id``, ``checked``, and ``amount_grams``.
+    Returns a list of ``{entry, bought_grams, leftover_grams}`` in order.
+    ``leftover_grams`` of 0 means check the whole line.
+    """
+    remaining = to_decimal(pack_grams)
+    if remaining is None or remaining <= 0:
+        return []
+
+    actions = []
+    for entry in entries:
+        if remaining <= 0:
+            break
+        if getattr(entry, 'checked', False):
+            continue
+        grams = to_decimal(getattr(entry, 'amount_grams', None))
+        if grams is None or grams <= 0:
+            continue
+        if grams <= remaining:
+            actions.append({'entry': entry, 'bought_grams': grams, 'leftover_grams': Decimal(0)})
+            remaining -= grams
+        else:
+            actions.append({'entry': entry, 'bought_grams': remaining, 'leftover_grams': grams - remaining})
+            remaining = Decimal(0)
+            break
+    return actions

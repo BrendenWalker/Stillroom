@@ -88,25 +88,41 @@
 
         </v-navigation-drawer>
 
-        <v-bottom-navigation grow v-if="useUserPreferenceStore().isAuthenticated && !lgAndUp && !useUserPreferenceStore().isPrintMode">
-            <v-btn value="recent" :to="{ name: 'StartPage', params: {} }">
-                <v-icon icon="fa-fw fas fa-book "/>
+        <!--
+          iOS Safari drops navigation on <a> inside this bar (Vuetify pins it with
+          translateY(0), and the first tap only applies :hover). Buttons call the
+          router directly. Tab values stay unique so the menu never looks selected.
+        -->
+        <v-bottom-navigation
+            :model-value="bottomNavTab"
+            grow
+            class="stillroom-bottom-nav"
+            v-if="useUserPreferenceStore().isAuthenticated && !lgAndUp && !useUserPreferenceStore().isPrintMode"
+        >
+            <v-btn value="home" :ripple="false" @click="go('StartPage')">
+                <v-icon icon="fa-fw fas fa-book"/>
             </v-btn>
 
-            <v-btn value="favorites" to="/mealplan">
+            <v-btn value="mealplan" :ripple="false" @click="go('MealPlanPage')">
                 <v-icon icon="fa-fw fas fa-calendar-alt"></v-icon>
             </v-btn>
 
-            <v-btn value="nearby" to="/shopping">
+            <v-btn value="shopping" :ripple="false" @click="go('ShoppingListPage')">
                 <v-icon icon="fa-fw fas fa-shopping-cart"></v-icon>
             </v-btn>
 
-            <v-btn value="nearby">
+            <v-btn value="menu" :ripple="false">
                 <v-icon icon="fa-fw fas fa-bars"></v-icon>
-                <v-bottom-sheet activator="parent" close-on-content-click>
-                    <v-list nav>
+                <v-bottom-sheet v-model="navMenu" activator="parent">
+                    <v-list nav class="stillroom-nav-menu">
                         <menu-user-info></menu-user-info>
-                        <component :is="item.component" :="item" :key="item.title" v-for="item in useNavigation().getBottomNavigation()"></component>
+                        <component
+                            :is="item.component"
+                            v-bind="menuItemBind(item)"
+                            :key="item.title"
+                            v-for="item in useNavigation().getBottomNavigation()"
+                            @click="go(item.to?.name)"
+                        ></component>
                     </v-list>
                 </v-bottom-sheet>
             </v-btn>
@@ -129,12 +145,12 @@ import {toVuetifyLocale} from "@/vuetify"
 import VSnackbarQueued from "@/components/display/VSnackbarQueued.vue";
 import {useUserPreferenceStore} from "@/stores/UserPreferenceStore";
 import NavigationDrawerContextMenu from "@/components/display/NavigationDrawerContextMenu.vue";
-import {nextTick, onMounted, ref} from "vue";
+import {computed, nextTick, onMounted, ref} from "vue";
 import {isSpaceAboveLimit} from "@/utils/logic_utils";
 import {useTitle} from "@vueuse/core";
 import HelpDialog from "@/components/dialogs/HelpDialog.vue";
 import {useNavigation} from "@/composables/useNavigation.ts";
-import {useRouter} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 import {useI18n} from "vue-i18n";
 import {THousehold, TSpace} from "@/types/Models.ts";
 import MenuUserInfo from "@/components/display/MenuUserInfo.vue";
@@ -144,6 +160,34 @@ const {t} = useI18n()
 
 const title = useTitle()
 const router = useRouter()
+const route = useRoute()
+const navMenu = ref(false)
+
+/** Keep bottom-nav highlight tied to the real route (not shared/conflicting tab values). */
+const bottomNavTab = computed(() => {
+    switch (route.name) {
+        case 'StartPage':
+            return 'home'
+        case 'MealPlanPage':
+            return 'mealplan'
+        case 'ShoppingListPage':
+            return 'shopping'
+        default:
+            return undefined
+    }
+})
+
+/** Drop `to` so the row is not an <a>; iOS Safari was swallowing those clicks. */
+function menuItemBind(item: { component?: unknown, to?: unknown }) {
+    const {component, to, ...rest} = item
+    return {...rest, ripple: false, link: true}
+}
+
+function go(name?: string) {
+    navMenu.value = false
+    if (!name || route.name === name) return
+    router.push({name}).catch(() => {})
+}
 
 onMounted(() => {
     useUserPreferenceStore().init().then(() => {
@@ -187,6 +231,28 @@ router.afterEach((to, from) => {
 </script>
 
 <style>
+
+.stillroom-bottom-nav {
+    /* translateY(0) from Vuetify's layout makes iOS hit-testing miss these buttons. */
+    position: fixed !important;
+    transform: none !important;
+    bottom: 0 !important;
+    touch-action: manipulation;
+    height: calc(56px + env(safe-area-inset-bottom, 0px)) !important;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* First tap on iOS only applies :hover (overlay fades in) and never clicks. */
+@media (hover: none) {
+    .stillroom-bottom-nav .v-btn:hover > .v-btn__overlay,
+    .stillroom-nav-menu .v-list-item:hover > .v-list-item__overlay {
+        opacity: 0;
+    }
+}
+
+.stillroom-nav-menu .v-list-item {
+    touch-action: manipulation;
+}
 
 .v-theme--dark {
 

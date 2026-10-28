@@ -59,6 +59,12 @@ export interface Ingredient {
      */
     amount: number;
     /**
+     * kcal for the listed ingredient quantity from Food.kcal / kcal_grams
+     * @type {number}
+     * @memberof Ingredient
+     */
+    readonly kcal?: number;
+    /**
      * 
      * @type {Array<any>}
      * @memberof Ingredient
@@ -135,6 +141,7 @@ export function IngredientFromJSONTyped(json: any, ignoreDiscriminator: boolean)
         'food': FoodFromJSON(json['food']),
         'unit': UnitFromJSON(json['unit']),
         'amount': json['amount'],
+        'kcal': json['kcal'] == null ? undefined : json['kcal'],
         'conversions': json['conversions'],
         'note': json['note'] == null ? undefined : json['note'],
         'order': json['order'] == null ? undefined : json['order'],
@@ -150,7 +157,7 @@ export function IngredientToJSON(json: any): Ingredient {
     return IngredientToJSONTyped(json, false);
 }
 
-export function IngredientToJSONTyped(value?: Omit<Ingredient, 'conversions'|'used_in_recipes'|'checked'> | null, ignoreDiscriminator: boolean = false): any {
+export function IngredientToJSONTyped(value?: Omit<Ingredient, 'conversions'|'used_in_recipes'|'checked'|'kcal'> | null, ignoreDiscriminator: boolean = false): any {
     if (value == null) {
         return value;
     }

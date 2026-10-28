@@ -1,9 +1,9 @@
 <template>
-    <v-list-item class="swipe-container border-t-sm mt-0 mb-0 pt-0 pb-0 pe-0 pa-0 shopping-border"
+    <v-list-item class="swipe-container border-t-sm mt-0 mb-0 pt-0 pb-0 shopping-border"
                  :id="itemContainerId"
                  @touchend="handleSwipe()"
                  @click="dialog = true;"
-                 :value="shoppingListFood"
+                 :value="selectEnabled ? shoppingListFood : undefined"
     >
         <!--        <div class="swipe-action" :class="{'bg-success': !isChecked , 'bg-warning': isChecked }">-->
         <!--            <i class="swipe-icon fa-fw fas" :class="{'fa-check': !isChecked , 'fa-cart-plus': isChecked }"></i>-->
@@ -13,48 +13,47 @@
             <span :style="{background: sl.color}" v-for="sl in shoppingList"></span>
         </div>
 
-        <div class="flex-grow-1 p-2">
-            <div class="d-flex">
-                <div class="d-flex flex-column pr-2 pl-4">
-                    <span v-for="a in amounts" v-bind:key="a.key">
-                        <span>
-                            <i class="fas fa-check text-success fa-fw" v-if="a.checked"></i>
-                            <i class="fas fa-clock-rotate-left text-info fa-fw" v-if="a.delayed"></i> <b>
-                            <span :class="{'text-disabled': a.checked || a.delayed}" class="text-no-wrap">
-                                <template v-if="a.amountGrams != null && a.shoppingMeasure">
-                                    <span v-if="a.buyCount != null && a.exactUnits != null && a.buyCount !== a.exactUnits">{{ $t('Buy') }}&nbsp;</span>
-                                    <span>{{ $n(a.amount) }}</span>
-                                    <span class="ms-1">{{ a.shoppingMeasure }}</span>
-                                    <span class="ms-1">({{ formatGramsLabel(a.amountGrams) }})</span>
-                                </template>
-                                <template v-else>
-                                    <span v-if="amounts.length > 1 || (amounts.length == 1 && !isSingularAmount(a.amount)) || a.unit">{{ $n(a.amount) }}</span>
-                                    <span class="ms-1" v-if="a.unit">{{ pluralString(a.unit, a.amount) }}</span>
-                                </template>
-                            </span>
-                            </b>
-                        </span>
-                        <br/>
+        <div class="flex-grow-1 p-2 shopping-line-body">
+            <div class="d-flex flex-column pl-4">
+                <div v-for="(a, idx) in amounts" :key="a.key" class="d-flex align-baseline flex-wrap">
+                    <i class="fas fa-check text-success fa-fw" v-if="a.checked"></i>
+                    <i class="fas fa-clock-rotate-left text-info fa-fw" v-if="a.delayed"></i>
+                    <span v-if="idx === 0" :class="{'text-disabled': a.checked || a.delayed}">
+                        {{ foodName }}<template v-if="hasVisibleQuantity(a)">&nbsp;-&nbsp;</template>
                     </span>
+                    <span v-else class="shopping-qty-follow-on"></span>
+                    <b>
+                        <span :class="{'text-disabled': a.checked || a.delayed}" class="text-no-wrap">
+                            <template v-if="a.amountGrams != null && a.shoppingMeasure">
+                                <span v-if="a.buyCount != null && a.exactUnits != null && a.buyCount !== a.exactUnits">{{ $t('Buy') }}&nbsp;</span>
+                                <span>{{ $n(a.amount) }}</span>
+                                <span class="ms-1">{{ a.shoppingMeasure }}</span>
+                                <span class="ms-1">({{ formatGramsLabel(a.amountGrams) }})</span>
+                            </template>
+                            <template v-else>
+                                <span v-if="hasVisibleQuantity(a)">{{ $n(a.amount) }}</span>
+                                <span class="ms-1" v-if="a.unit">{{ pluralString(a.unit, a.amount) }}</span>
+                            </template>
+                        </span>
+                    </b>
                 </div>
-                <div class="d-flex  flex-column flex-grow-1 align-self-center">
-                    {{ pluralString(shoppingListFood.food, (amounts.length > 1 ? 2 : amounts[0]?.amount ?? 1)) }} 
-                    <span v-if="infoRow"><small class="text-disabled">{{ infoRow }}</small></span>
-                </div>
+                <div v-if="amounts.length === 0">{{ foodName }}</div>
+                <span v-if="infoRow"><small class="text-disabled">{{ infoRow }}</small></span>
             </div>
         </div>
 
 
         <template v-slot:[selectBtnSlot]="{ isSelected, select }" v-if="selectEnabled">
             <v-list-item-action class="ps-3 pe-3" start>
-                <v-checkbox-btn :model-value="isSelected" @update:model-value="select" @click.native.stop=""></v-checkbox-btn>
+                <v-checkbox-btn :model-value="isSelected" @update:model-value="select" @click.stop></v-checkbox-btn>
             </v-list-item-action>
         </template>
 
         <template v-slot:[checkBtnSlot]>
-            <div class="ps-3 pe-3" @click.native.stop="useShoppingStore().setEntriesCheckedState(entries, !isChecked, true);">
+            <div class="shopping-check-action ps-3 pe-3" @click.stop @mousedown.stop>
                 <v-btn color="success" size="large"
-                       :class="{'btn-success': !isChecked, 'btn-warning': isChecked}" :icon="actionButtonIcon" variant="plain">
+                       :class="{'btn-success': !isChecked, 'btn-warning': isChecked}" :icon="actionButtonIcon" variant="plain"
+                       @click.stop="toggleChecked">
                 </v-btn>
             </div>
         </template>
@@ -99,6 +98,21 @@ const dialog = ref(false)
 const entries = computed(() => {
     return Array.from(props.shoppingListFood.entries.values())
 })
+
+const foodName = computed(() => {
+    return pluralString(props.shoppingListFood.food, (amounts.value.length > 1 ? 2 : amounts.value[0]?.amount ?? 1))
+})
+
+function hasVisibleQuantity(a: ShoppingLineAmount): boolean {
+    if (a.amountGrams != null && a.shoppingMeasure) {
+        return true
+    }
+    return amounts.value.length > 1 || (amounts.value.length == 1 && !isSingularAmount(a.amount)) || !!a.unit
+}
+
+function toggleChecked() {
+    useShoppingStore().setEntriesCheckedState(entries.value, !isChecked.value, true)
+}
 
 /**
  * ID of outer container, used by swipe system
@@ -330,6 +344,24 @@ function handleSwipe() {
 .color-marker-container span {
     width: 100%;
     flex-grow: 1;
+}
+
+.shopping-line-body {
+    min-width: 0;
+}
+
+.shopping-check-action {
+    flex: 0 0 auto;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+}
+
+.shopping-qty-follow-on {
+    display: inline-block;
+    width: 1.25rem;
 }
 
 </style>

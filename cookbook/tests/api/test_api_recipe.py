@@ -291,7 +291,11 @@ def test_kcal_per_serving_on_list_and_retrieve(u1_s1, space_1):
     assert list_r.status_code == 200
     listed = next(item for item in json.loads(list_r.content)['results'] if item['id'] == recipe.id)
     assert float(listed['kcal_per_serving']) == 274
+    assert float(listed['grams_per_serving']) == 100
 
     detail_r = u1_s1.get(reverse(DETAIL_URL, args=[recipe.id]))
     assert detail_r.status_code == 200
-    assert float(json.loads(detail_r.content)['kcal_per_serving']) == 274
+    detail = json.loads(detail_r.content)
+    assert float(detail['kcal_per_serving']) == 274
+    assert float(detail['grams_per_serving']) == 100
+    assert float(detail['steps'][0]['ingredients'][0]['kcal']) == 548
