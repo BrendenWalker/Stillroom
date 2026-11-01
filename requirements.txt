@@ -59,7 +59,7 @@ regex==2026.9.29
 # Development
 pytest== 9.0.3
 pytest-django==4.11.1
-pytest-cov===6.2.1
+pytest-cov===7.1.0
 pytest-factoryboy==2.8.1
 pytest-html==4.1.1
 pytest-asyncio==1.4.0
