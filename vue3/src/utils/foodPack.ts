@@ -111,9 +111,8 @@ export function inStoreShoppingCountDisplay(grams: unknown, shoppingMeasureGrams
 export function formatGramsLabel(grams: unknown): string {
     const n = parsePackNumber(grams)
     if (n == null || n <= 0) return ''
-    const rounded = Math.round(n * 10000) / 10000
-    if (Math.abs(rounded - Math.round(rounded)) < 1e-9) return `${Math.round(rounded)} g`
-    return `${rounded} g`
+    // Display only: oz↔g noise (e.g. 425.2424) rounds to whole grams for the shopping label.
+    return `${Math.round(n)} g`
 }
 
 export function shoppingUnitsToGrams(units: unknown, shoppingMeasureGrams: unknown): number | null {
