@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.14] - 2026-11-14
+
+No database migrations. Image remains `ghcr.io/brendenwalker/stillroom`.
+
+### Fixed
+
+- Shopping list gram labels round to whole grams so ounce→gram conversion noise no longer shows as long decimals (e.g. `425.2424 g` → `425 g`) (#90)
+
 ## [0.1.13] - 2026-11-14
 
 No database migrations. Image remains `ghcr.io/brendenwalker/stillroom`.
@@ -152,7 +160,8 @@ Back up before upgrading. Apply migrations **0244–0248**. Pack-size fields and
 - Native recipe export dropping Details-tab food values on import (#33)
 - Debug frontend serving stale cached assets (#29, #31)
 
-[Unreleased]: https://github.com/BrendenWalker/Stillroom/compare/0.1.13...develop
+[Unreleased]: https://github.com/BrendenWalker/Stillroom/compare/0.1.14...develop
+[0.1.14]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.14
 [0.1.13]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.13
 [0.1.12]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.12
 [0.1.10]: https://github.com/BrendenWalker/Stillroom/releases/tag/0.1.10
