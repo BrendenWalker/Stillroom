@@ -88,31 +88,41 @@
 
         </v-navigation-drawer>
 
-        <!-- Menu must never share a value with a routed tab (Safari active-state / navigate bugs). -->
+        <!--
+          iOS Safari drops navigation on <a> inside this bar (Vuetify pins it with
+          translateY(0), and the first tap only applies :hover). Buttons call the
+          router directly. Tab values stay unique so the menu never looks selected.
+        -->
         <v-bottom-navigation
             :model-value="bottomNavTab"
             grow
             class="stillroom-bottom-nav"
             v-if="useUserPreferenceStore().isAuthenticated && !lgAndUp && !useUserPreferenceStore().isPrintMode"
         >
-            <v-btn value="home" :to="{ name: 'StartPage' }">
-                <v-icon icon="fa-fw fas fa-book "/>
+            <v-btn value="home" :ripple="false" @click="go('StartPage')">
+                <v-icon icon="fa-fw fas fa-book"/>
             </v-btn>
 
-            <v-btn value="mealplan" :to="{ name: 'MealPlanPage' }">
+            <v-btn value="mealplan" :ripple="false" @click="go('MealPlanPage')">
                 <v-icon icon="fa-fw fas fa-calendar-alt"></v-icon>
             </v-btn>
 
-            <v-btn value="shopping" :to="{ name: 'ShoppingListPage' }">
+            <v-btn value="shopping" :ripple="false" @click="go('ShoppingListPage')">
                 <v-icon icon="fa-fw fas fa-shopping-cart"></v-icon>
             </v-btn>
 
-            <v-btn value="menu">
+            <v-btn value="menu" :ripple="false">
                 <v-icon icon="fa-fw fas fa-bars"></v-icon>
-                <v-bottom-sheet activator="parent" close-on-content-click>
-                    <v-list nav>
+                <v-bottom-sheet v-model="navMenu" activator="parent">
+                    <v-list nav class="stillroom-nav-menu">
                         <menu-user-info></menu-user-info>
-                        <component :is="item.component" :="item" :key="item.title" v-for="item in useNavigation().getBottomNavigation()"></component>
+                        <component
+                            :is="item.component"
+                            v-bind="menuItemBind(item)"
+                            :key="item.title"
+                            v-for="item in useNavigation().getBottomNavigation()"
+                            @click="go(item.to?.name)"
+                        ></component>
                     </v-list>
                 </v-bottom-sheet>
             </v-btn>
@@ -151,6 +161,7 @@ const {t} = useI18n()
 const title = useTitle()
 const router = useRouter()
 const route = useRoute()
+const navMenu = ref(false)
 
 /** Keep bottom-nav highlight tied to the real route (not shared/conflicting tab values). */
 const bottomNavTab = computed(() => {
@@ -165,6 +176,18 @@ const bottomNavTab = computed(() => {
             return undefined
     }
 })
+
+/** Drop `to` so the row is not an <a>; iOS Safari was swallowing those clicks. */
+function menuItemBind(item: { component?: unknown, to?: unknown }) {
+    const {component, to, ...rest} = item
+    return {...rest, ripple: false, link: true}
+}
+
+function go(name?: string) {
+    navMenu.value = false
+    if (!name || route.name === name) return
+    router.push({name}).catch(() => {})
+}
 
 onMounted(() => {
     useUserPreferenceStore().init().then(() => {
@@ -210,7 +233,25 @@ router.afterEach((to, from) => {
 <style>
 
 .stillroom-bottom-nav {
-    padding-bottom: env(safe-area-inset-bottom);
+    /* translateY(0) from Vuetify's layout makes iOS hit-testing miss these buttons. */
+    position: fixed !important;
+    transform: none !important;
+    bottom: 0 !important;
+    touch-action: manipulation;
+    height: calc(56px + env(safe-area-inset-bottom, 0px)) !important;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* First tap on iOS only applies :hover (overlay fades in) and never clicks. */
+@media (hover: none) {
+    .stillroom-bottom-nav .v-btn:hover > .v-btn__overlay,
+    .stillroom-nav-menu .v-list-item:hover > .v-list-item__overlay {
+        opacity: 0;
+    }
+}
+
+.stillroom-nav-menu .v-list-item {
+    touch-action: manipulation;
 }
 
 .v-theme--dark {

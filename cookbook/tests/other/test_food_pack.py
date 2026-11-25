@@ -97,6 +97,13 @@ def test_in_store_shopping_count_ceils():
     assert in_store_shopping_count(150, 600) == 1
     assert in_store_shopping_count(600, 600) == 1
     assert in_store_shopping_count(601, 600) == 2
+    # ounce→gram conversion vs rounded can label (15 oz / 6 oz)
+    assert in_store_shopping_count(Decimal('425.2424'), 425) == 1
+    assert in_store_shopping_count(Decimal('170.097'), 170) == 1
+    # two converted cans must not ceil to three
+    assert in_store_shopping_count(Decimal('850.4848'), 425) == 2
+    assert in_store_shopping_count(Decimal('0.1'), 425) == 1
+    assert in_store_shopping_count(0, 425) == 0
 
 
 def test_shopping_units_to_grams():
