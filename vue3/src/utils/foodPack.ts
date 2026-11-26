@@ -1,7 +1,7 @@
 /**
  * Shopping list stores amount_grams. When shopping_measure_grams is set,
- * the trip list shows ceil(grams / smg) shopping units (what to buy);
- * editors show exact grams / smg (what the recipes need).
+ * the trip list shows ceil(grams / smg) shopping units with a small relative
+ * pack tolerance (what to buy); editors show exact grams / smg (what the recipes need).
  */
 
 export type FoodPackLike = {
@@ -93,21 +93,26 @@ export function formatShoppingUnitsDisplay(units: number): string {
 }
 
 const CEIL_EPS = 1e-9
+// oz↔g conversion vs rounded label grams lands ~0.057% over a whole pack
+// (15 oz → 425.2424 g vs a 425 g can). Treat that as one pack, not two.
+const PACK_COUNT_REL_EPS = 0.001
 
 export function inStoreShoppingCountDisplay(grams: unknown, shoppingMeasureGrams: unknown): number {
     const g = parsePackNumber(grams)
     if (g == null) return 0
     const m = parseShoppingMeasureGrams(shoppingMeasureGrams)
     if (m == null) return Math.ceil(g - CEIL_EPS)
-    return Math.ceil(g / m - CEIL_EPS)
+    // Multiply (not subtract) so N cans of conversion noise stay within tolerance of N packs.
+    const units = g / m
+    if (units <= 0) return 0
+    return Math.ceil(units * (1 - PACK_COUNT_REL_EPS))
 }
 
 export function formatGramsLabel(grams: unknown): string {
     const n = parsePackNumber(grams)
     if (n == null || n <= 0) return ''
-    const rounded = Math.round(n * 10000) / 10000
-    if (Math.abs(rounded - Math.round(rounded)) < 1e-9) return `${Math.round(rounded)} g`
-    return `${rounded} g`
+    // Display only: oz↔g noise (e.g. 425.2424) rounds to whole grams for the shopping label.
+    return `${Math.round(n)} g`
 }
 
 export function shoppingUnitsToGrams(units: unknown, shoppingMeasureGrams: unknown): number | null {
