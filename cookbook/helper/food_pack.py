@@ -24,7 +24,12 @@ COUNT_UNIT_NAMES = {
     '个',
 }
 GRAM_UNIT_NAMES = {'g', 'gram', 'grams'}
+# Float dust only. Pack buy-count uses PACK_COUNT_REL_EPS instead.
 CEIL_EPS = 1e-9
+# oz↔g conversion vs rounded label grams lands ~0.057% over a whole pack
+# (15 oz → 425.2424 g vs a 425 g can). Applied as units * (1 - eps) before ceil
+# so N cans of the same noise still count as N packs.
+PACK_COUNT_REL_EPS = Decimal('0.001')
 
 
 def to_decimal(value):
@@ -104,8 +109,13 @@ def in_store_shopping_count(grams, shopping_measure_grams):
     smg = to_decimal(shopping_measure_grams)
     if smg is None or smg <= 0:
         return int(ceil(float(g) - CEIL_EPS))
-    units = float(g / smg)
-    return int(ceil(units - CEIL_EPS))
+    # Stay in Decimal so oz→g / pack-label ratios do not float-jitter over the next integer.
+    # Multiply (not subtract) so N cans of conversion noise stay within tolerance of N packs.
+    units = g / smg
+    if units <= 0:
+        return 0
+    adjusted = units * (Decimal(1) - PACK_COUNT_REL_EPS)
+    return int(ceil(float(adjusted)))
 
 
 def _unit_name(unit):
